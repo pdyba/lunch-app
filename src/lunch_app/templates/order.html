@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>My new order</h1>
+  <form action="" method="post" name="order">
+      <p>
+          Please enter your Order:<br>
+          {{ form.openid(size=800) }}<br>
+      </p>
+      <p>{{ form.remember_me }} Remember Me</p>
+      <p><input type="submit" value="Sign In"></p>
+  </form>
+
+{% endblock %}
