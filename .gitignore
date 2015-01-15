@@ -12,12 +12,14 @@ build/
 develop-eggs/
 dist/
 downloads/
+download-cache/
 eggs/
 lib/
 lib64/
 parts/
 sdist/
 var/
+bin/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -52,3 +54,11 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Cloud9
+.c9/
