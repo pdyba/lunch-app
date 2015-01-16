@@ -48,3 +48,10 @@ class Order(db.Model):
 
     def __repr__(self):
         return '<Order %r>' % (self.id)
+
+class Menu(db.Model):
+    id = Column(Integer, primary_key=True)
+    company = Column(String(800), unique=False)
+    description = Column(String(800), unique=False)
+    cost = Column(Integer)
+    date_available = Column(DateTime)
