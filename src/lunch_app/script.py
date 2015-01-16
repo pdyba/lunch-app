@@ -2,7 +2,7 @@
 """
 Startup utilities.
 """
-# pylint: disable=invalid-name, unused-variable
+# pylint: disable=invalid-name, unused-variable disable=missing-docstring
 
 import os
 import subprocess
@@ -115,9 +115,8 @@ def run():
         else:
             make_app()
 
-        from lunch_app import app, db, database
+        from lunch_app import app, db
         from lunch_app import models
-        database.init_db()
         db.create_all()
 
     werkzeug.script.run()

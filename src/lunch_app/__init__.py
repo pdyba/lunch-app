@@ -2,6 +2,8 @@
 """
 STX Lunch server.
 """
+# pylint: disable=missing-docstring
+
 from .main import app, db, init
 
 from . import views

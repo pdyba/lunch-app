@@ -1,11 +1,9 @@
-
+# pylint: disable=missing-docstring
 from datetime import datetime
 
 from flask.ext.login import UserMixin
 from sqlalchemy import Column, Integer, String, Boolean, Unicode, DateTime
 from lunch_app import db
-from lunch_app.database import Base
-
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -34,7 +32,13 @@ class Order(db.Model):
     company = Column(Integer)
     date = Column(DateTime)
 
-    def __init__(self, description=None, cost=None, arrival_time=None, company=None, date=None):
+    def __init__(
+            self,
+            description=None,
+            cost=None,
+            arrival_time=None,
+            company=None,
+            date=None):
         self.description = description
         self.cost = cost
         self.arrival_time = arrival_time

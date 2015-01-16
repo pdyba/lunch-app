@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
 """
 Defines views.
 """
@@ -8,7 +9,6 @@ from flask.ext import login
 from lunch_app.main import app, db
 from lunch_app.forms import OrderForm
 from lunch_app.models import Order
-from lunch_app.database import db_session
 
 import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -49,7 +49,3 @@ def create_order():
         return redirect('/')
     return render_template('order.html', form=form)
 
-
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    db_session.remove()
