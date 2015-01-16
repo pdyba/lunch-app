@@ -5,11 +5,26 @@
 <h1>My new order</h1>
   <form action="" method="post" name="order">
       <p>
-          Please enter your Order:<br>
-          {{ form.openid(size=800) }}<br>
+          {{ form.crsf_token }}
+          {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+                                {% for error in field_errors %}
+                                <br /><span style="margin-left:15px">- {{ error }}</span>
+                                {% endfor %}
+                        {% endfor %}
+      <br>
+          <b>Please enter your Order:</b><br>
+          {{ form.description }}<br>
+          <br>
+          Cost: {{ form.cost }}<br>
+          <br>
+          Arrival Time: {{ form.arrival_time }}<br>
+          <br>
+          Company: {{ form.company }}<br>
+          <br>
+          I want a copy on my e-mail: {{ form.send_me_a_copy }}<br>
       </p>
-      <p>{{ form.remember_me }} Remember Me</p>
-      <p><input type="submit" value="Sign In"></p>
+      <p></p>
+      <p><input type="submit" value="commit"></p>
   </form>
 
 {% endblock %}

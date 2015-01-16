@@ -2,11 +2,13 @@
 """
 Defines views.
 """
-from flask import redirect, render_template, url_for
+from flask import redirect, render_template, url_for, request, flash
 from flask.ext import login
 
-from lunch_app.main import app
+from lunch_app.main import app, db
 from lunch_app.forms import OrderForm
+from lunch_app.models import Order
+from lunch_app.database import db_session
 
 import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -28,7 +30,26 @@ def overview():
     """
     return render_template('overview.html')
 
-@app.route('/order')
+
+@app.route('/order', methods=['GET', 'POST'])
 def create_order():
-    form = OrderForm.order_form()
+    form = OrderForm(request.form)
+    if request.method == 'POST' and form.validate():
+        order = Order()
+        form.populate_obj(order)
+        db.session.add(order)
+        db.session.commit()
+        flash('Order Accepted')
+        if form.send_me_a_copy:
+            """
+            kod wysylajacy email
+            email backend ?
+            """
+            pass
+        return redirect('/')
     return render_template('order.html', form=form)
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()

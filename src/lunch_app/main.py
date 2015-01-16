@@ -56,7 +56,7 @@ def init_api(app):
 def init_admin():
     from . import models
     admin.add_view(ModelView(models.User, db.session))
-
+    admin.add_view(ModelView(models.Order, db.session))
 
 def init():
     init_social_login(app, db)
