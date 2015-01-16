@@ -3,8 +3,14 @@
 {% block content %}
 
 <h1>My new order</h1>
-  <form action="" method="post" name="order">
+  <h3>Available Meals:</h3>
       <p>
+      {% for meal in food %}
+      {% if make_date(meal.date_available) == get_current_date() or meal.date_avalible_upto >= get_current_datetime() %}
+          <li>{{ meal.company }}   <b>{{ meal.cost }} pln </b>   : {{ meal.description }}</li>
+  {% endif %}
+      {% endfor %}
+    <form action="" method="post" name="order">
           {{ form.crsf_token }}
           {% for field_name, field_errors in form.errors|dictsort if field_errors %}
                                 {% for error in field_errors %}
@@ -12,6 +18,7 @@
                                 {% endfor %}
                         {% endfor %}
       <br>
+
           <b>Please enter your Order:</b><br>
           {{ form.description }}<br>
           <br>

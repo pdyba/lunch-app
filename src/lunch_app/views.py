@@ -7,8 +7,8 @@ from flask import redirect, render_template, url_for, request, flash
 from flask.ext import login
 
 from lunch_app.main import app, db
-from lunch_app.forms import OrderForm
-from lunch_app.models import Order
+from lunch_app.forms import OrderForm, AddFood
+from lunch_app.models import Order, Food
 
 import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -34,6 +34,7 @@ def overview():
 @app.route('/order', methods=['GET', 'POST'])
 def create_order():
     form = OrderForm(request.form)
+    food = Food.query.getall()
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
@@ -47,5 +48,17 @@ def create_order():
             """
             pass
         return redirect('/')
-    return render_template('order.html', form=form)
+    return render_template('order.html', form=form, food=food)
 
+
+@app.route('/add_food', methods=['GET', 'POST'])
+def add_food():
+    form = AddFood(request.form)
+    if request.method == 'POST' and form.validate():
+        food = Food()
+        form.populate_obj(food)
+        db.session.add(food)
+        db.session.commit()
+        flash('Food Accepted')
+        return redirect('/')
+    return render_template('add_food.html', form=form)

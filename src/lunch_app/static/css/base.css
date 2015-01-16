@@ -54,3 +54,7 @@ body {
     color: black;
     font-weight: bold;
 }
+
+.hidden {
+    display: none;
+}

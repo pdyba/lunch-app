@@ -1,0 +1,29 @@
+<component name="libraryTable">
+  <library name="Buildout Eggs" type="python">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/eggs/Flask_Admin-1.0.9-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/python_social_auth-0.2.1-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/Flask_Login-0.2.11-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/Flask_SQLAlchemy-2.0-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/Flask_RESTful-0.3.1-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/Flask-0.10.1-py3.4.egg" />
+      <root url="jar://$PROJECT_DIR$/eggs/setuptools-11.3.1-py3.4.egg!/" />
+      <root url="file://$PROJECT_DIR$/eggs/WTForms-2.0.1-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/requests_oauthlib-0.3.1-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/python3_openid-3.0.5-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/PyJWT-0.4.1-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/six-1.9.0-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/oauthlib-0.7.2-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/requests-2.5.1-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/SQLAlchemy-0.9.8-py3.4-macosx-10.6-x86_64.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/pytz-2014.10-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/aniso8601-0.92-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/itsdangerous-0.24-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/Jinja2-2.7.3-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/Werkzeug-0.9.6-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/defusedxml-0.4.1-py3.4.egg" />
+      <root url="file://$PROJECT_DIR$/eggs/MarkupSafe-0.23-py3.4-macosx-10.6-x86_64.egg" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>

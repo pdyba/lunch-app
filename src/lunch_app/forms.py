@@ -2,7 +2,7 @@
 from wtforms import Form, validators, TextAreaField, IntegerField, BooleanField, \
     SelectField, DateField
 
-from datetime import date
+from datetime import datetime, date
 
 
 class OrderForm(Form):
@@ -29,7 +29,7 @@ class OrderForm(Form):
         'company',
         validators=[validators.DataRequired("Please choose company.")],
         choices=[
-            ('Pod Koziołkiem', 'Order froim Pod Koziołkiem'),
+            ('Pod Koziołkiem', 'Order from Pod Koziołkiem'),
             ('Tomas', 'Order from Tomas'),
             ]
     )
@@ -48,3 +48,31 @@ class OrderForm(Form):
         else:
             return True
         """
+
+
+class AddFood(Form):
+    """
+    New Order Creation Form
+    """
+    company = SelectField(
+        'company',
+        validators=[validators.DataRequired("Please choose company.")],
+        choices=[
+            ('Pod Koziołkiem', 'Pod Koziołkiem'),
+            ('Tomas', 'Tomas'),
+            ]
+    )
+    description = TextAreaField(
+        "description",
+        validators=[validators.DataRequired("Please enter order description.")]
+    )
+    cost = IntegerField(
+        'cost',
+        validators=[validators.DataRequired('Please enter cost.')]
+    )
+    today_date = date.today()
+    date_available = DateField(label='date_available', default=datetime(2015, 1, 1, 11, 1, 1), format='%Y-%m-%d')
+    date_avalible_upto = DateField(label='date_avalible_upto', default=datetime(2015, 1, 1, 11, 1, 1), format="%Y-%m-%d")
+
+    def __init__(self, *args, **kwargs):
+        Form.__init__(self, *args, **kwargs)

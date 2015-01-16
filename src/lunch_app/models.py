@@ -2,8 +2,18 @@
 from datetime import datetime
 
 from flask.ext.login import UserMixin
+from flask.ext.sqlalchemy import BaseQuery
 from sqlalchemy import Column, Integer, String, Boolean, Unicode, DateTime
 from lunch_app import db
+
+
+class CategoryQuery(BaseQuery):
+
+    def getall(self):
+        return self.all()
+
+    def getcategory_id(self, id):
+        return self.get(id)
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -49,9 +59,23 @@ class Order(db.Model):
     def __repr__(self):
         return '<Order %r>' % (self.id)
 
-class Menu(db.Model):
+
+class FoodQuery(BaseQuery):
+
+    def getall(self):
+        return self.all()
+
+    def getcomment_id(self, id):
+        return self.get(id)
+
+
+class Food(db.Model):
     id = Column(Integer, primary_key=True)
-    company = Column(String(800), unique=False)
+    query_class = FoodQuery
+    company = Column(String(80), unique=False)
     description = Column(String(800), unique=False)
     cost = Column(Integer)
     date_available = Column(DateTime)
+    date_avalible_upto = Column(DateTime)
+
+

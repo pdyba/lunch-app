@@ -7,7 +7,6 @@
     <meta name="description" content=""/>
     <meta name="author" content="STX Next sp. z o.o."/>
     <meta name="viewport" content="width=device-width; initial-scale=1.0">
-
     <link href="{{ url_for('static', filename='css/normalize.css') }}" media="all" rel="stylesheet" type="text/css" />
     <link href="{{ url_for('static', filename='css/base.css') }}" media="all" rel="stylesheet" type="text/css" />
 
@@ -21,6 +20,7 @@
             <ul>
                 <li id="selected"><a href="{{ url_for('overview') }}">Overview</a></li>
                 <li id="selected"><a href="{{ url_for('create_order') }}">Order</a></li>
+                <li id="selected"><a href="{{ url_for('add_food') }}">Add Food</a></li>
             </ul>
         </div>
         <div id="content">

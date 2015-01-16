@@ -56,6 +56,7 @@ def init_admin():
     from . import models
     admin.add_view(ModelView(models.User, db.session))
     admin.add_view(ModelView(models.Order, db.session))
+    admin.add_view(ModelView(models.Food, db.session))
 
 
 def init():
@@ -68,4 +69,5 @@ app = Flask(__name__)
 db = SQLAlchemy(app)
 admin = Admin(app)
 api = restful.Api(app)
+
 
