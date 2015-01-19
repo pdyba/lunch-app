@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Presence analyzer web app.
-"""
 import os.path
 import logging.config
 

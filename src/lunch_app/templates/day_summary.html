@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>Current Day summary</h1>
+    <h3>Current Orders</h3>
+    <p>
+        {% for order in orders %}
+            {% if make_date(order.date) == get_current_date() %}
+                <li>{{ order.company }} <b>{{ order.cost }} pln </b>
+                    : {{ order.description }} {{ order.arrival_time }}
+                     --- {{ order.user_name }} </li>
+            {% endif %}
+        {% endfor %}
+{% endblock %}

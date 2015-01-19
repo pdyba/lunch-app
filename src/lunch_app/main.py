@@ -3,8 +3,9 @@
 """
 Flask app initialization.
 """
+from functools import wraps
 
-from flask import Flask, g
+from flask import Flask, g, flash
 from flask.ext import restful, login
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
@@ -29,7 +30,7 @@ def init_social_login(app, db):
     def load_user(userid):
         from . import models
         try:
-            return models.User.query.get(id=userid)
+            return models.User.query.get(userid)
         except (TypeError, ValueError):
             pass
 
@@ -69,5 +70,3 @@ app = Flask(__name__)
 db = SQLAlchemy(app)
 admin = Admin(app)
 api = restful.Api(app)
-
-

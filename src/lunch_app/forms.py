@@ -4,11 +4,17 @@ from wtforms import Form, validators, TextAreaField, IntegerField, BooleanField,
 
 from datetime import datetime, date
 
+from .models import Food
+
 
 class OrderForm(Form):
     """
     New Order Creation Form
     """
+
+    # food = SelectField(
+    #     'food',
+    # )
     description = TextAreaField(
         "description",
         validators=[validators.DataRequired("Please enter order description.")]
@@ -37,18 +43,6 @@ class OrderForm(Form):
     today_date = date.today()
     date = DateField(default=today_date, format='%Y-%m-%d')
 
-    def __init__(self, *args, **kwargs):
-        Form.__init__(self, *args, **kwargs)
-        """
-        walidacja ewemntualna czy ta osoba cos juz zamowile tego dnia
-        person = Person.query.filter_by(email=self.email.data.lower()).first()
-        if person:
-            self.email.errors.append("That email is already taken")
-            return False
-        else:
-            return True
-        """
-
 
 class AddFood(Form):
     """
@@ -71,8 +65,16 @@ class AddFood(Form):
         validators=[validators.DataRequired('Please enter cost.')]
     )
     today_date = date.today()
-    date_available = DateField(label='date_available', default=datetime(2015, 1, 1, 11, 1, 1), format='%Y-%m-%d')
-    date_avalible_upto = DateField(label='date_avalible_upto', default=datetime(2015, 1, 1, 11, 1, 1), format="%Y-%m-%d")
+    date_available = DateField(
+        label='date_available',
+        default=datetime(2015, 1, 1, 11, 1, 1),
+        format='%Y-%m-%d',
+    )
+    date_avalible_upto = DateField(
+        label='date_avalible_upto',
+        default=datetime(2015, 1, 1, 11, 1, 1),
+        format="%Y-%m-%d",
+    )
 
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)

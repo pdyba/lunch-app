@@ -92,7 +92,7 @@ def run():
     action_debug = werkzeug.script.make_runserver(
         make_debug,
         use_reloader=True,
-        hostname=os.getenv('IP', 'localhost'),
+        hostname=os.getenv('IP', '0.0.0.0'),
         port=int(os.getenv('PORT', '8080')),
     )
 
