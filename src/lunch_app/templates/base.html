@@ -7,52 +7,84 @@
     <meta name="description" content=""/>
     <meta name="author" content="STX Next sp. z o.o."/>
     <meta name="viewport" content="width=device-width; initial-scale=1.0">
-    <link href="{{ url_for('static', filename='css/normalize.css') }}"
+    <link href="{{ url_for('static', filename='css/normalize_2.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
-    <link href="{{ url_for('static', filename='css/base.css') }}" media="all"
-          rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/foundation.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
 
     {% block script %}
     {% endblock %}
 </head>
 <body>
 <div id="main">
-    <div id="header">
+
+    <ul class="title-area">
         <h1>STX Lunch</h1>
-{% if current_user.is_authenticated()  %}
-        <ul>
-            <li id="selected"><a href="{{ url_for('overview') }}">Overview</a>
-            </li>
-            <li id="selected"><a href="{{ url_for('create_order') }}">Order</a>
-            </li>
-            <li id="selected"><a href="{{ url_for('my_orders') }}">My Orders</a>
-            </li>
-            {% if current_user.is_admin() %}
-            <li id="selected"><a href="{{ url_for('add_food') }}">Add Food</a>
-            </li>
-            <li id="selected"><a href="{{ url_for('day_summary') }}">Day
-                Summary</a></li>
-                {% endif %}
-        </ul>
-{% endif %}
-    </div>
+
+        {% if current_user and current_user.is_authenticated() %}
+            <nav class="top-bar" data-topbar role="navigation">
 
 
-    <div id="messages">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class=flashes>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
-        {% block body %}{% endblock %}
-    </div>
-    <div id="content">
-        {% block content %}
-        {% endblock %}
-    </div>
+                    <ul class="right">
+                        <li class="hi_user">
+                            <h5 style="color: white">Hi! {{ current_user.username }} </h5></li>
+                    </ul>
+
+
+                <section class="top-bar-section">
+                    <ul class="left">
+                        <li {% if page_id == 'overview' %}
+                            class="active" {% endif %}><a
+                                href="{{ url_for('overview') }}">Overview</a>
+                        </li>
+                        <li {% if page_id == 'create_order' %}
+                            class="active" {% endif %}><a
+                                href="{{ url_for('create_order') }}">Order</a>
+                        </li>
+                        <li {% if page_id == 'my_orders' %}
+                            class="active" {% endif %}><a
+                                href="{{ url_for('my_orders') }}">My Orders</a>
+                        </li>
+                        <li {% if page_id == 'info' %}
+                            class="active" {% endif %}><a
+                                href="{{ url_for('info') }}">Info</a>
+                        </li>
+                        {% if current_user.is_admin() %}
+                            <li {% if page_id == 'add_food' %}
+                                class="active" {% endif %}><a
+                                    href="{{ url_for('add_food') }}">Add
+                                Food</a>
+                            </li>
+                            <li {% if page_id == 'day_summary' %}
+                                class="active" {% endif %}><a
+                                    href="{{ url_for('day_summary') }}">Day
+                                Summary</a></li>
+                        {% endif %}
+                    </ul>
+                </section>
+            </nav>
+        {% endif %}
+</div>
+
+
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div data-alert class="alert-box success radius">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            <a href="#" class="close">&times;</a>
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% block body %}{% endblock %}
+
+<div class="row">
+    {% block content %}
+    {% endblock %}
+</div>
 </body>
 </html>

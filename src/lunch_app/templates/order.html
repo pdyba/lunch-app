@@ -1,40 +1,49 @@
 {% extends "base.html" %}
 
+{% set page_id = 'create_order' %}
+
 {% block content %}
 
-<h1>My new order</h1>
-  <h3>Available Meals:</h3>
-      <p>
-      {% for meal in food %}
-      {% if make_date(meal.date_available) == get_current_date() or meal.date_avalible_upto >= get_current_datetime() %}
-          <li>{{ meal.company }}   <b>{{ meal.cost }} pln </b>   : {{ meal.description }}</li>
-  {% endif %}
-      {% endfor %}
-    <form action="" method="post" name="order">
-          {{ form.crsf_token }}
-          {% for field_name, field_errors in form.errors|dictsort if field_errors %}
-                                {% for error in field_errors %}
-                                <br /><span style="margin-left:15px">- {{ error }}</span>
-                                {% endfor %}
-                        {% endfor %}
-      <br>
+    <h1>My new order</h1>
+    <div class="large-6 columns">
 
-          <b>Please enter your Order:</b><br>
-            <br> Selectr from list:
-    <br>
-    or write: <br>
-          {{ form.description }}<br>
-          <br>
-          Cost: {{ form.cost }}<br>
-          <br>
-          Arrival Time: {{ form.arrival_time }}<br>
-          <br>
-          Company: {{ form.company }}<br>
-          <br>
-          I want a copy on my e-mail: {{ form.send_me_a_copy }}<br>
-      </p>
-      <p></p>
-      <p><input type="submit" value="commit"></p>
-  </form>
+
+        <form action="" method="post" name="order">
+            {{ form.crsf_token }}
+            {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+                {% for error in field_errors %}
+                    <br/><span style="margin-left:15px">- {{ error }}</span>
+                {% endfor %}
+            {% endfor %}
+            <br>
+
+            <b>Please enter your Order:</b><br>
+            Select from list:
+            {{ form.meal_from_list }}
+            or write:
+            {{ form.description }}
+            Cost: {{ form.cost }}
+            Arrival Time: {{ form.arrival_time }}
+            Company: {{ form.company }}
+            I want a copy on my e-mail: {{ form.send_me_a_copy }}<br>
+
+            <p><input type="submit" value="commit" class="button"></p>
+        </form>
+    </div>
+    <div class="large-6 columns">
+        <h3>Available Meals:</h3>
+
+        <p>
+            {% for meal in food %}
+
+                <li>{{ meal.company }} <b>{{ meal.cost }} pln </b>
+                    : {{ meal.description }}</li>
+
+            {% endfor %}
+
+    </div>
+    </p>
+    <p></p>
+
 
 {% endblock %}

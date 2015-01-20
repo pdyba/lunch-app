@@ -1,52 +1,47 @@
 {% extends "base.html" %}
 
+{% set page_id = 'add_food' %}
+
 {% block content %}
 
-    <h1>Food Adder</h1>
-    <form action="" method="post" name="order">
-        <p>
+    <div class="large-6 columns">
+        <h1>Food Adder</h1>
+
+        <form action="" method="post" name="order">
+
             {{ form.crsf_token }}
+
             {% for field_name, field_errors in form.errors|dictsort if field_errors %}
                 {% for error in field_errors %}
-                    <br/><span style="margin-left:15px">- {{ error }}</span>
+                    {{ error }}
                 {% endfor %}
             {% endfor %}
-            <br>
-            Company: {{ form.company }}<br><br>
-            <b>Please enter description:</b><br>
-            {{ form.description }}<br>
-            <br>
-            Cost: {{ form.cost }}<br>
-            <br>
-            <script>
-                var select = document.getElementById('company');
-                select.onchange = function () {
-                    if (select.options[select.selectedIndex].value === 'Tomas') {
-                        document.getElementById('date_avalible_upto_wraper').className='hidden';
-                        document.getElementById('date_available_wraper').className='';
-                    }
-                    else {
-                        document.getElementById('date_avalible_upto_wraper').className='';
-                        document.getElementById('date_available_wraper').className='hidden';
-                    }
 
-                }
-            </script>
+            Company: {{ form.company }}
+            <b>Please enter description:</b>
+            {{ form.description }}
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Cost: </label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.cost }}
+            </div>
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Available from:</label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.date_available_from }}
+            </div>
 
-        <div id="date_avalible_upto_wraper">
-            Available up to day: {{ form.date_avalible_upto }}
-        </div>
-        <div id="date_available_wraper" class="hidden">
-            Avalaible on day: {{ form.date_available }}
-        </div>
-
-        <br>
-        <br>
-
-        </p>
-        <p></p>
-
-        <p><input type="submit" value="commit"></p>
-    </form>
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Available to:</label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.date_available_to }}
+            </div>
+            <p><input type="submit" value="commit" class="button"
+                      align="right"></p>
+        </form>
+    </div>
 
 {% endblock %}

@@ -62,8 +62,8 @@ class Food(db.Model):
     company = Column(String(80), unique=False)
     description = Column(String(800), unique=False)
     cost = Column(Integer)
-    date_available = Column(DateTime)
-    date_avalible_upto = Column(DateTime)
+    date_available_from = Column(DateTime)
+    date_available_to = Column(DateTime)
 
     # def available_food(self):
     #     meals = []

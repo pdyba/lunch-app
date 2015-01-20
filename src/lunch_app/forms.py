@@ -1,8 +1,9 @@
 # pylint: disable=missing-docstring
 from wtforms import Form, validators, TextAreaField, IntegerField, BooleanField, \
-    SelectField, DateField
+    SelectField, DateField, PasswordField, TextField, StringField
 
 from datetime import datetime, date
+from wtforms.validators import DataRequired
 
 from .models import Food
 
@@ -12,12 +13,11 @@ class OrderForm(Form):
     New Order Creation Form
     """
 
-    # food = SelectField(
-    #     'food',
-    # )
+    meal_from_list = SelectField(
+        'food',
+    )
     description = TextAreaField(
         "description",
-        validators=[validators.DataRequired("Please enter order description.")]
     )
     cost = IntegerField(
         'cost',
@@ -65,12 +65,12 @@ class AddFood(Form):
         validators=[validators.DataRequired('Please enter cost.')]
     )
     today_date = date.today()
-    date_available = DateField(
+    date_available_from = DateField(
         label='date_available',
         default=datetime(2015, 1, 1, 11, 1, 1),
         format='%Y-%m-%d',
     )
-    date_avalible_upto = DateField(
+    date_available_to = DateField(
         label='date_avalible_upto',
         default=datetime(2015, 1, 1, 11, 1, 1),
         format="%Y-%m-%d",
