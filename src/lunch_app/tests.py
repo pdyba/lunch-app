@@ -19,9 +19,7 @@ from lunch_app.models import Order, Food
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
 MOCK_ADMIN.username = 'test_user'
-
-connection = db.engine.connect()
-transaction = connection.begin()
+MOCK_ADMIN.is_anonymous = False
 
 
 def setUp():
@@ -49,14 +47,12 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         Before each test, set up a environment.
         """
         self.client = main.app.test_client()
-        self.__transaction = connection.begin_nested()
-        self.session = Session(connection)
 
     def tearDown(self):
         """
         Get rid of unused objects after each test.
         """
-        self.session.close()
+        pass
 
     def test_mainpage_view(self):
         """
@@ -72,13 +68,13 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/info')
         self.assertEqual(resp.status_code, 200)
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_my_orders_view(self):
         """
         Test my orders page view.
         """
-        with self.assertRaises(AttributeError):
-            resp = self.client.get('/my_orders')
-            self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/my_orders')
+        self.assertEqual(resp.status_code, 200)
 
     def test_overview_view(self):
         """
@@ -94,20 +90,26 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 200)
-        data = {'cost': 12,
-                'company': 'Pod Koziołkiem',
-                'description': 'dobre_jedzonko',
-                'send_me_a_copy': False,
-                'date': date(2015, 1, 21),
-                'arrival_time': '12:00',
-                'meal_from_list': ' ',
-                }
+        data = {
+            'cost': 12,
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'date': '2015-01-01',
+            'arrival_time': '12:00',
+            'meal_from_list': ' ',
+        }
         resp_2 = self.client.post('/order', data=data)
         order_db = Order.query.filter(
             Order.description == 'dobre_jedzonko'
         ).first()
         self.assertTrue(resp_2.status_code == 302)
+        self.assertEqual(order_db.cost, 12)
+        self.assertEqual(order_db.company, 'Pod Koziołkiem')
         self.assertEqual(order_db.description, 'dobre_jedzonko')
+        self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(order_db.arrival_time, '12:00')
+        self.assertEqual(order_db.meal_from_list, ' ')
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_add_food_view(self):
@@ -116,18 +118,26 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/add_food')
         self.assertEqual(resp.status_code, 200)
-        data = {'cost': 333,
-                'description': 'dobre_jedzonko',
-                'date_available_to': date(2015, 1, 1),
-                'company': 'Pod Koziołkiem',
-                'date_available_from': date(2015, 1, 1),
-                }
+        data = {
+            'cost': 333,
+            'description': 'dobre_jedzonko',
+            'date_available_to': '2015-01-01',
+            'company': 'Pod Koziołkiem',
+            'date_available_from': '2015-01-01',
+        }
         resp_2 = self.client.post('/add_food', data=data)
         food_db = Food.query.filter(
             Food.description == 'dobre_jedzonko'
         ).first()
         self.assertTrue(resp_2.status_code == 302)
+        self.assertEqual(food_db.cost, 333)
         self.assertEqual(food_db.description, 'dobre_jedzonko')
+        self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(
+            food_db.date_available_from,
+            datetime(2015, 1, 1, 0, 0)
+        )
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_day_summary_view(self):
@@ -200,11 +210,10 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
         """
         Tests if permissions decorator works properly
         """
-        with self.assertRaises(AttributeError):
-            resp = self.client.get('add_food')
-            self.assertEqual(resp.status_code, 200)
-            resp_2 = self.client.get('day_summary')
-            self.assertEqual(resp_2.status_code, 200)
+        resp = self.client.get('add_food')
+        self.assertEqual(resp.status_code, 401)
+        resp_2 = self.client.get('day_summary')
+        self.assertEqual(resp_2.status_code, 401)
 
 
 def suite():

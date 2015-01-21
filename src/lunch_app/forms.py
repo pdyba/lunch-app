@@ -1,8 +1,15 @@
 """
 Lunch App Forms
 """
-from wtforms import Form, validators, TextAreaField, IntegerField, BooleanField, \
-    SelectField, DateField
+from wtforms import (
+    Form,
+    validators,
+    TextAreaField,
+    IntegerField,
+    BooleanField,
+    SelectField,
+    DateField,
+)
 
 from datetime import datetime, date
 
@@ -29,7 +36,7 @@ class OrderForm(Form):
         choices=[
             ('12:00', 'Order on 12:00'),
             ('13:00', 'Order on 13:00'),
-            ]
+        ]
     )
     company = SelectField(
         'company',
@@ -37,7 +44,7 @@ class OrderForm(Form):
         choices=[
             ('Pod Koziołkiem', 'Order from Pod Koziołkiem'),
             ('Tomas', 'Order from Tomas'),
-            ]
+        ]
     )
     send_me_a_copy = BooleanField('send_me_a_copy', default=False)
     today_date = date.today()
@@ -54,7 +61,7 @@ class AddFood(Form):
         choices=[
             ('Pod Koziołkiem', 'Pod Koziołkiem'),
             ('Tomas', 'Tomas'),
-            ]
+        ]
     )
     description = TextAreaField(
         "description",
