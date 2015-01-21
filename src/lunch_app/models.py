@@ -35,6 +35,12 @@ class User(db.Model, UserMixin):
         """
         return self.admin
 
+    def is_anonymous(self):
+        """
+        Returns if Users is active.
+        """
+        return not self.active
+
 
 class Order(db.Model):
     """

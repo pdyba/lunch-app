@@ -8,6 +8,7 @@ import datetime
 from flask import redirect, render_template, request, flash
 from flask.ext import login
 from flask.ext.login import current_user
+from flask.ext.mail import Mail, Message
 from sqlalchemy import and_
 
 
@@ -20,6 +21,7 @@ from .permissions import user_is_admin
 import logging
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+mail = Mail(app)
 
 @app.route('/')
 def index():
@@ -66,12 +68,17 @@ def create_order():
         form.populate_obj(order)
         user_name = current_user.username
         order.user_name = user_name
+
         db.session.add(order)
         db.session.commit()
         flash('Order Accepted')
         if form.send_me_a_copy:
-            # TODO define email backend and e_mail
-            pass
+            msg = Message(
+                'Hello',
+                sender='piotr.dyba@stxnext.pl',
+                recipients=current_user.email)
+            msg.body = "This is the email body"
+            mail.send(msg)
         return redirect('order')
     return render_template('order.html', form=form, food=food)
 
@@ -103,6 +110,7 @@ def day_summary():
     """
     day = datetime.date.today()
     today = datetime.datetime.combine(day, datetime.time(00, 00))
+
     orders_t_12 = Order.query.filter(
         and_(
             Order.date == today,
@@ -110,6 +118,10 @@ def day_summary():
             Order.arrival_time == '12:00'
         )
     ).all()
+    orders_t_12_cost = 0
+    for order in orders_t_12:
+        orders_t_12_cost += order.cost
+
     orders_t_13 = Order.query.filter(
         and_(
             Order.date == today,
@@ -117,6 +129,10 @@ def day_summary():
             Order.arrival_time == '13:00'
         )
     ).all()
+    orders_t_13_cost = 0
+    for order in orders_t_13:
+        orders_t_13_cost += order.cost
+
     orders_pk_12 = Order.query.filter(
         and_(
             Order.date == today,
@@ -124,6 +140,10 @@ def day_summary():
             Order.arrival_time == '12:00'
         )
     ).all()
+    orders_pk_12_cost = 0
+    for order in orders_pk_12:
+        orders_pk_12_cost += order.cost
+
     orders_pk_13 = Order.query.filter(
         and_(
             Order.date == today,
@@ -131,12 +151,20 @@ def day_summary():
             Order.arrival_time == '13:00'
         )
     ).all()
+    orders_pk_13_cost = 0
+    for order in orders_pk_13:
+        orders_pk_13_cost += order.cost
+
     return render_template(
         'day_summary.html',
         orders_t_12=orders_t_12,
+        orders_t_12_cost=orders_t_12_cost,
         orders_t_13=orders_t_13,
+        orders_t_13_cost=orders_t_13_cost,
         orders_pk_12=orders_pk_12,
+        orders_pk_12_cost=orders_pk_12_cost,
         orders_pk_13=orders_pk_13,
+        orders_pk_13_cost=orders_pk_13_cost,
     )
 
 

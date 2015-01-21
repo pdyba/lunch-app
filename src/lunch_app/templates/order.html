@@ -10,7 +10,10 @@
             {{ form.crsf_token }}
             {% for field_name, field_errors in form.errors|dictsort if field_errors %}
                 {% for error in field_errors %}
-                    <br/><span style="margin-left:15px">- {{ error }}</span>
+                    <div data-alert class="alert-box alert radius">
+                   {{ error }}
+                    <a href="#" class="close">&times;</a>
+</div>
                 {% endfor %}
             {% endfor %}
             <br>
@@ -24,21 +27,27 @@
             Arrival Time: {{ form.arrival_time }}
             Company: {{ form.company }}
             I want a copy on my e-mail: {{ form.send_me_a_copy }}<br>
+<div class="small-8 columns">
+                 </div>
 
-            <p><input type="submit" value="commit" class="button"></p>
+            <div class="small-4 columns">
+            <input type="submit" value="commit" class="button">
+                </div>
         </form>
+
     </div>
     <div class="large-6 columns">
         <h3>Available Meals:</h3>
 
         <p>
+        <ul class="square">
             {% for meal in food %}
 
                 <li>{{ meal.company }} <b>{{ meal.cost }} pln </b>
                     : {{ meal.description }}</li>
 
             {% endfor %}
-
+         </ul>
     </div>
     </p>
     <p></p>

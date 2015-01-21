@@ -7,17 +7,18 @@ import os.path
 import unittest
 from unittest.mock import Mock, patch
 
-from lunch_app import main
+from lunch_app import main, db, app
 from lunch_app import utils
 
 # pylint: disable=maybe-no-member, too-many-public-methods
 
 # pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
+from lunch_app.models import Order, Food, User
 
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
 MOCK_ADMIN.username = 'test_user'
-MOCK_ADMIN.is_anonymous = False
+MOCK_ADMIN.is_anonymous.return_value = False
 
 
 def setUp():
@@ -88,6 +89,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 200)
+
         data = {
             'cost': 12,
             'company': 'Pod Koziołkiem',
@@ -97,16 +99,43 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'arrival_time': '12:00',
             'meal_from_list': ' ',
         }
-        resp_2 = self.client.post('/order', data=data)
+        resp = self.client.post('/order', data=data)
         order_db = Order.query.filter(
             Order.description == 'dobre_jedzonko'
         ).first()
-        self.assertTrue(resp_2.status_code == 302)
+        self.assertTrue(resp.status_code == 302)
         self.assertEqual(order_db.cost, 12)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
         self.assertEqual(order_db.description, 'dobre_jedzonko')
         self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(order_db.arrival_time, '12:00')
+        self.assertEqual(order_db.meal_from_list, ' ')
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_create_order_from_list(self):
+        """
+        Test create order page.
+        """
+        data = {
+            'cost': 13,
+            'company': 'Pod Koziołkiem',
+            'description': 'xxx',
+            'send_me_a_copy': 'false',
+            'date': '2015-01-02',
+            'arrival_time': '13:00',
+            'meal_from_list': ' ',
+        }
+        resp = self.client.post('/order', data=data)
+
+        order_db = Order.query.filter(
+            Order.description == 'xxx'
+        ).first()
+        self.assertTrue(resp.status_code == 302)
+        self.assertEqual(order_db.cost, 13)
+        self.assertEqual(order_db.company, 'Pod Koziołkiem')
+        self.assertEqual(order_db.description, 'xxx')
+        self.assertEqual(order_db.date, datetime(2015, 1, 2, 0, 0))
+        self.assertEqual(order_db.arrival_time, '13:00')
         self.assertEqual(order_db.meal_from_list, ' ')
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
@@ -223,6 +252,7 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
         Get rid of unused objects after each test.
         """
         pass
+
 
     def test_permissions(self):
         """

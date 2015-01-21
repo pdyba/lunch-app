@@ -7,7 +7,7 @@
     <meta name="description" content=""/>
     <meta name="author" content="STX Next sp. z o.o."/>
     <meta name="viewport" content="width=device-width; initial-scale=1.0">
-    <link href="{{ url_for('static', filename='css/normalize_2.css') }}"
+    <link href="{{ url_for('static', filename='css/normalize2.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/foundation.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
@@ -19,21 +19,20 @@
 </head>
 <body>
 <div id="main">
-
+<div class="large-12 columns">
     <ul class="title-area">
         <h1>STX Lunch</h1>
 
         {% if current_user and current_user.is_authenticated() %}
             <nav class="top-bar" data-topbar role="navigation">
 
-
-                    <ul class="right">
-                        <li class="hi_user">
-                            <h5 style="color: white">Hi! {{ current_user.username }} </h5></li>
-                    </ul>
-
-
                 <section class="top-bar-section">
+                <ul class="right">
+                        <li class="hi_user">
+                            <a>  {{ current_user.username }} </a>
+                        </li>
+
+                    </ul>
                     <ul class="left">
                         <li {% if page_id == 'overview' %}
                             class="active" {% endif %}><a
@@ -67,9 +66,10 @@
             </nav>
         {% endif %}
 </div>
+</div>
 
-
-
+<div class="large-12 columns">
+<div id="messages">
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div data-alert class="alert-box success radius">
@@ -81,7 +81,8 @@
         {% endif %}
     {% endwith %}
     {% block body %}{% endblock %}
-
+</div>
+</div>
 <div class="row">
     {% block content %}
     {% endblock %}
