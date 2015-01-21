@@ -5,21 +5,21 @@ Defines views.
 """
 import datetime
 
-from flask import redirect, render_template, url_for, request, flash, session
+from flask import redirect, render_template, request, flash
 from flask.ext import login
-from flask.ext.login import current_user, login_user
+from flask.ext.login import current_user
 from sqlalchemy import and_
+
 
 from .main import app, db
 from .forms import OrderForm, AddFood
-from .models import Order, Food, User
+from .models import Order, Food
 from .permissions import user_is_admin
 
 
 import logging
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-
 
 @app.route('/')
 def index():
@@ -56,25 +56,14 @@ def create_order():
     ).all()
     food_list = [(" ", " ")]
     for meal in food:
-        food_list.append((
-            (meal.company +
-             "  " +
-             str(meal.cost) + "zl  " +
-             meal.description),
-            (meal.company +
-             "  " +
-             str(meal.cost) +
-             "zl  "
-             + meal.description),
-        ))
+        label = "{meal.company} " \
+                " | {meal.cost} pln | " \
+                "{meal.description}".format(meal=meal)
+        food_list.append((label, label))
     form.meal_from_list.choices = food_list
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
-
-        if order.meal_from_list:
-            order.meal_from_list = order.meal_from_list
-
         user_name = current_user.username
         order.user_name = user_name
         db.session.add(order)
@@ -89,7 +78,7 @@ def create_order():
 
 @app.route('/add_food', methods=['GET', 'POST'])
 @login.login_required
-@user_is_admin(current_user)
+@user_is_admin
 def add_food():
     """
     Add new food page.
@@ -107,7 +96,7 @@ def add_food():
 
 @app.route('/day_summary', methods=['GET', 'POST'])
 @login.login_required
-@user_is_admin(current_user)
+@user_is_admin
 def day_summary():
     """
     Day orders summary.

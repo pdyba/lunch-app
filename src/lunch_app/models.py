@@ -1,16 +1,19 @@
-# pylint: disable=missing-docstring
-from datetime import datetime, date
+"""
+models for lunch app db.
+"""
+from datetime import datetime
 
 from flask.ext.login import UserMixin
-from flask.ext.sqlalchemy import BaseQuery
 
 from sqlalchemy import Column, Integer, String, Boolean, Unicode, DateTime
-from lunch_app import utils
 
 from .main import db
 
 
 class User(db.Model, UserMixin):
+    """
+    User model for lunch app db.
+    """
     __tablename__ = 'user'
     id = Column(Integer, autoincrement=True, primary_key=True)
     active = Column(Boolean, default=True)
@@ -21,13 +24,22 @@ class User(db.Model, UserMixin):
     admin = Column(Boolean, default=False)
 
     def is_active(self):
+        """
+        Returns if Users is active.
+        """
         return self.active
 
     def is_admin(self):
+        """
+        Returns if Users is admin.
+        """
         return self.admin
 
 
 class Order(db.Model):
+    """
+    Order model for lunch app db.
+    """
     __tablename__ = 'order'
     id = Column(Integer, primary_key=True)
     meal_from_list = Column(String(200), unique=False)
@@ -45,6 +57,9 @@ class Order(db.Model):
             arrival_time=None,
             company=None,
             date=None):
+        """
+        Inits orders db.
+        """
         self.description = description
         self.cost = cost
         self.arrival_time = arrival_time
@@ -53,10 +68,16 @@ class Order(db.Model):
             self.date = datetime.today()
 
     def __repr__(self):
+        """
+        Returns orders id.
+        """
         return '<Order %r>' % self.id
 
 
 class Food(db.Model):
+    """
+    Food model for lunch app db.
+    """
     __tablename__ = 'food'
     id = Column(Integer, primary_key=True)
     company = Column(String(80), unique=False)
@@ -64,11 +85,3 @@ class Food(db.Model):
     cost = Column(Integer)
     date_available_from = Column(DateTime)
     date_available_to = Column(DateTime)
-
-    # def available_food(self):
-    #     meals = []
-    #     if utils.make_date(self.date_available) == utils.get_current_date():
-    #         meals.append((self.company, self.description, self.cost))
-    #     if self.date_avalible_upto >= datetime.now():
-    #         meals.append((self.company, self.description, self.cost))
-    #     return meals

@@ -1,6 +1,15 @@
-# pylint: disable=missing-docstring
-from wtforms import Form, validators, TextAreaField, IntegerField, BooleanField, \
-    SelectField, DateField, PasswordField, TextField, StringField
+"""
+Lunch App Forms
+"""
+from wtforms import (
+    Form,
+    validators,
+    TextAreaField,
+    IntegerField,
+    BooleanField,
+    SelectField,
+    DateField,
+)
 
 from datetime import datetime, date
 from wtforms.validators import DataRequired
@@ -29,7 +38,7 @@ class OrderForm(Form):
         choices=[
             ('12:00', 'Order on 12:00'),
             ('13:00', 'Order on 13:00'),
-            ]
+        ]
     )
     company = SelectField(
         'company',
@@ -37,7 +46,7 @@ class OrderForm(Form):
         choices=[
             ('Pod Koziołkiem', 'Order from Pod Koziołkiem'),
             ('Tomas', 'Order from Tomas'),
-            ]
+        ]
     )
     send_me_a_copy = BooleanField('send_me_a_copy', default=False)
     today_date = date.today()
@@ -54,7 +63,7 @@ class AddFood(Form):
         choices=[
             ('Pod Koziołkiem', 'Pod Koziołkiem'),
             ('Tomas', 'Tomas'),
-            ]
+        ]
     )
     description = TextAreaField(
         "description",
@@ -67,12 +76,12 @@ class AddFood(Form):
     today_date = date.today()
     date_available_from = DateField(
         label='date_available',
-        default=datetime(2015, 1, 1, 11, 1, 1),
+        default=datetime(2015, 1, 1, 0, 0, 0),
         format='%Y-%m-%d',
     )
     date_available_to = DateField(
         label='date_avalible_upto',
-        default=datetime(2015, 1, 1, 11, 1, 1),
+        default=datetime(2015, 1, 1, 23, 59, 59),
         format="%Y-%m-%d",
     )
 
