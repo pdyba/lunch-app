@@ -3,7 +3,7 @@
 Startup utilities.
 """
 # pylint: disable=invalid-name, unused-variable disable=missing-docstring
-
+# pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
 import os
 import subprocess
 from functools import partial

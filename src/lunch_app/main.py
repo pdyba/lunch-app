@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
 """
 Flask app initialization.
 """
-from functools import wraps
+# -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
+
 
 from flask import Flask, g, flash
 from flask.ext import restful, login
