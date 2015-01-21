@@ -146,6 +146,27 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/day_summary')
         self.assertEqual(resp.status_code, 200)
+        order = Order()
+        order.date = date.today()
+        order.description = 'Duzy Gruby Nalesnik'
+        order.company = 'Tomas'
+        order.cost = 123
+        order.user_name = 'test_user'
+        order.arrival_time = '12:00'
+        order_2 = Order()
+        order_2.date = date.today()
+        order_2.description = 'Maly Gruby Nalesnik'
+        order_2.company = 'Tomas'
+        order_2.cost = 223
+        order_2.user_name = 'test_user'
+        order_2.arrival_time = '13:00'
+        db.session.add(order)
+        db.session.add(order_2)
+        db.session.commit()
+        resp = self.client.get('/day_summary')
+        self.assertTrue('Maly Gruby Nalesnik' in resp.data.__str__())
+        self.assertTrue('Duzy Gruby Nalesnik' in resp.data.__str__())
+        db.session.close()
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):

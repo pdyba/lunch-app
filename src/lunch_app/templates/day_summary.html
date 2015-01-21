@@ -2,14 +2,29 @@
 
 {% block content %}
 
-    <h1>Current Day summary</h1>
-    <h3>Current Orders</h3>
-    <p>
-        {% for order in orders %}
-            {% if make_date(order.date) == get_current_date() %}
-                <li>{{ order.company }} <b>{{ order.cost }} pln </b>
-                    : {{ order.description }} {{ order.arrival_time }}
-                     --- {{ order.user_name }} </li>
-            {% endif %}
+ <h2>Today Orders</h2>
+    <div class="large-6 columns">
+    <h3>Tomas</h3>
+     <h4>12:00</h4>
+        {% for order in orders_t_12 %}
+                  <li> {{ order.description }} {{ order.meal_from_list }} <b> {{ order.cost }} pln </b></li>
         {% endfor %}
+        <h4>13:00</h4>
+        {% for order in orders_t_13 %}
+                  <li> {{ order.description }} {{ order.meal_from_list }}  <b> {{ order.cost }} pln </b></li>
+        {% endfor %}
+
+    </div>
+    <div class="large-6 columns">
+    <h3>Pod Koziłkiem</h3>
+            <h4>12:00</h4>
+            {% for order in orders_pk_12 %}
+                  <li> {{ order.description }} {{ order.meal_from_list }}  <b> {{ order.cost }} pln </b></li>
+        {% endfor %}
+        <h4>13:00</h4>
+        {% for order in orders_pk_13 %}
+                  <li> {{ order.description }} {{ order.meal_from_list }}  <b> {{ order.cost }} pln </b></li>
+        {% endfor %}
+    </div>
+
 {% endblock %}
