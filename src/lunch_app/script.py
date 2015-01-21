@@ -2,8 +2,8 @@
 """
 Startup utilities.
 """
-# pylint: disable=invalid-name, unused-variable
-
+# pylint: disable=invalid-name, unused-variable disable=missing-docstring
+# pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
 import os
 import subprocess
 from functools import partial
@@ -92,7 +92,7 @@ def run():
     action_debug = werkzeug.script.make_runserver(
         make_debug,
         use_reloader=True,
-        hostname=os.getenv('IP', 'localhost'),
+        hostname=os.getenv('IP', '0.0.0.0'),
         port=int(os.getenv('PORT', '8080')),
     )
 
@@ -116,6 +116,7 @@ def run():
             make_app()
 
         from lunch_app import app, db
+        from lunch_app import models
         db.create_all()
 
     werkzeug.script.run()

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>My orders</h1>
+    <h3>Past orders</h3>
+    <p>
+        {% for order in orders %}
+                <li>{{ order.date }} {{ order.company }} <b>{{ order.cost }}
+                    pln </b> : {{ order.description }} {{ order.arrival_time }}
+                </li>
+        {% endfor %}
+{% endblock %}

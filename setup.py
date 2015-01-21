@@ -31,7 +31,7 @@ setup(
         'Flask-SQLAlchemy',
         'Flask-Login',
         'python-social-auth',
-        'psycopg2',
+     #   'psycopg2',
         'Flask-Admin',
     ],
     entry_points="""

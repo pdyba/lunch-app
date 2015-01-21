@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
 """
 Flask app initialization.
 """
-# pylint: disable=invalid-name
+# -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
 
-import datetime
 
-from flask import Flask, g
+from flask import Flask, g, flash
 from flask.ext import restful, login
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
+
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
 from social.apps.flask_app.default.models import init_social
@@ -30,7 +30,7 @@ def init_social_login(app, db):
     def load_user(userid):
         from . import models
         try:
-            return models.User.query.get(id=userid)
+            return models.User.query.get(userid)
         except (TypeError, ValueError):
             pass
 
@@ -56,6 +56,8 @@ def init_api(app):
 def init_admin():
     from . import models
     admin.add_view(ModelView(models.User, db.session))
+    admin.add_view(ModelView(models.Order, db.session))
+    admin.add_view(ModelView(models.Food, db.session))
 
 
 def init():

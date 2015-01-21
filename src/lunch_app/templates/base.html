@@ -3,28 +3,56 @@
 <head>
     <meta charset=utf-8>
     <title>STX Lunch</title>
-    <meta name="keywords" content="" />
+    <meta name="keywords" content=""/>
     <meta name="description" content=""/>
     <meta name="author" content="STX Next sp. z o.o."/>
     <meta name="viewport" content="width=device-width; initial-scale=1.0">
-
-    <link href="{{ url_for('static', filename='css/normalize.css') }}" media="all" rel="stylesheet" type="text/css" />
-    <link href="{{ url_for('static', filename='css/base.css') }}" media="all" rel="stylesheet" type="text/css" />
+    <link href="{{ url_for('static', filename='css/normalize.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/base.css') }}" media="all"
+          rel="stylesheet" type="text/css"/>
 
     {% block script %}
     {% endblock %}
 </head>
 <body>
-    <div id="main">
-        <div id="header">
-            <h1>STX Lunch</h1>
-            <ul>
-                <li id="selected"><a href="{{ url_for('overview') }}">Overview</a></li>
-            </ul>
-        </div>
-        <div id="content">
+<div id="main">
+    <div id="header">
+        <h1>STX Lunch</h1>
+{% if current_user.is_authenticated()  %}
+        <ul>
+            <li id="selected"><a href="{{ url_for('overview') }}">Overview</a>
+            </li>
+            <li id="selected"><a href="{{ url_for('create_order') }}">Order</a>
+            </li>
+            <li id="selected"><a href="{{ url_for('my_orders') }}">My Orders</a>
+            </li>
+            {% if current_user.is_admin() %}
+            <li id="selected"><a href="{{ url_for('add_food') }}">Add Food</a>
+            </li>
+            <li id="selected"><a href="{{ url_for('day_summary') }}">Day
+                Summary</a></li>
+                {% endif %}
+        </ul>
+{% endif %}
+    </div>
+
+
+    <div id="messages">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        {% block body %}{% endblock %}
+    </div>
+    <div id="content">
         {% block content %}
         {% endblock %}
-        </div>
+    </div>
 </body>
 </html>
