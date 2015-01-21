@@ -106,7 +106,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         order_db = Order.query.filter(
             Order.description == 'dobre_jedzonko'
         ).first()
-        print(resp_2.status_code)
         self.assertTrue(resp_2.status_code == 302)
         self.assertEqual(order_db.description, 'dobre_jedzonko')
 
