@@ -19,6 +19,9 @@ MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
 MOCK_ADMIN.username = 'test_user'
 MOCK_ADMIN.is_anonymous.return_value = False
+MOCK_ADMIN.email = 'piotr.dyba@photojournalist.pl'
+connection_mock = Mock()
+connection_mock.email_mock.return_value = connection_mock
 
 
 def setUp():
@@ -112,15 +115,15 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(order_db.meal_from_list, ' ')
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
-    def test_create_order_from_list(self):
+    def test_create_order_with_email(self):
         """
-        Test create order page.
+        Test create order with send me an email.
         """
         data = {
             'cost': 13,
             'company': 'Pod Koziołkiem',
-            'description': 'xxx',
-            'send_me_a_copy': 'false',
+            'description': 'To jest TESTow zamowienie dla emaila',
+            'send_me_a_copy': 'true',
             'date': '2015-01-02',
             'arrival_time': '13:00',
             'meal_from_list': ' ',
@@ -128,12 +131,15 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.post('/order', data=data)
 
         order_db = Order.query.filter(
-            Order.description == 'xxx'
+            Order.description == 'To jest TESTow zamowienie dla emaila'
         ).first()
         self.assertTrue(resp.status_code == 302)
         self.assertEqual(order_db.cost, 13)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
-        self.assertEqual(order_db.description, 'xxx')
+        self.assertEqual(
+            order_db.description,
+            'To jest TESTow zamowienie dla emaila',
+        )
         self.assertEqual(order_db.date, datetime(2015, 1, 2, 0, 0))
         self.assertEqual(order_db.arrival_time, '13:00')
         self.assertEqual(order_db.meal_from_list, ' ')
@@ -195,6 +201,21 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertTrue('Duzy Gruby Nalesnik' in resp.data.__str__())
         db.session.close()
 
+    def test_order_list_view(self):
+        """
+        Test order list page.
+        """
+        resp = self.client.get('/order_list')
+        self.assertEqual(resp.status_code, 200)
+        data = {'year': '2015'}
+        resp = self.client.post('/order_list', data=data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEquals(resp.location, 'http://localhost/order_list/2015')
+        data = {'year': '2015', 'month': '1'}
+        resp = self.client.post('/order_list', data=data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEquals(resp.location, 'http://localhost/order_list/2015/1')
+
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
     Utils tests.
@@ -252,7 +273,6 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
         Get rid of unused objects after each test.
         """
         pass
-
 
     def test_permissions(self):
         """

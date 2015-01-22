@@ -4,30 +4,33 @@
 Defines views.
 """
 import datetime
+from calendar import monthrange, month_name
 
-from flask import redirect, render_template, request, flash
+from flask import redirect, render_template, request, flash, url_for
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Mail, Message
 from sqlalchemy import and_
-
+from sqlalchemy.sql.expression import extract
 
 from .main import app, db
-from .forms import OrderForm, AddFood
+from .forms import OrderForm, AddFood, OrderEditFrom, MyOrders
 from .models import Order, Food
 from .permissions import user_is_admin
-
 
 import logging
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 mail = Mail(app)
 
+
 @app.route('/')
 def index():
     """
     Main page.
     """
+    if not current_user.is_anonymous():
+        return redirect('order')
     return render_template('index.html')
 
 
@@ -62,7 +65,6 @@ def create_order():
                 " | {meal.cost} pln | " \
                 "{meal.description}".format(meal=meal)
         food_list.append((label, label))
-    form.meal_from_list.choices = food_list
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
@@ -72,12 +74,16 @@ def create_order():
         db.session.add(order)
         db.session.commit()
         flash('Order Accepted')
-        if form.send_me_a_copy:
+        if form.send_me_a_copy.data:
             msg = Message(
-                'Hello',
+                'STXNext Lunch App Your Order '
+                '{date}'.format(date=datetime.date.today()),
                 sender='piotr.dyba@stxnext.pl',
-                recipients=current_user.email)
-            msg.body = "This is the email body"
+                recipients=[current_user.email],
+            )
+            msg.body = "Your today order is: \n {order.description} \n " \
+                       "from {order.company} it cost {order.cost}zl and will " \
+                       "come at {order.arrival_time}".format(order=order)
             mail.send(msg)
         return redirect('order')
     return render_template('order.html', form=form, food=food)
@@ -109,11 +115,13 @@ def day_summary():
     Day orders summary.
     """
     day = datetime.date.today()
-    today = datetime.datetime.combine(day, datetime.time(00, 00))
+    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
+    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
 
     orders_t_12 = Order.query.filter(
         and_(
-            Order.date == today,
+            Order.date >= today_beg,
+            Order.date <= today_end,
             Order.company == 'Tomas',
             Order.arrival_time == '12:00'
         )
@@ -124,7 +132,8 @@ def day_summary():
 
     orders_t_13 = Order.query.filter(
         and_(
-            Order.date == today,
+            Order.date >= today_beg,
+            Order.date <= today_end,
             Order.company == 'Tomas',
             Order.arrival_time == '13:00'
         )
@@ -135,7 +144,8 @@ def day_summary():
 
     orders_pk_12 = Order.query.filter(
         and_(
-            Order.date == today,
+            Order.date >= today_beg,
+            Order.date <= today_end,
             Order.company == 'Pod Koziołkiem',
             Order.arrival_time == '12:00'
         )
@@ -146,7 +156,8 @@ def day_summary():
 
     orders_pk_13 = Order.query.filter(
         and_(
-            Order.date == today,
+            Order.date >= today_beg,
+            Order.date <= today_end,
             Order.company == 'Pod Koziołkiem',
             Order.arrival_time == '13:00'
         )
@@ -179,3 +190,145 @@ def my_orders():
 @login.login_required
 def info():
     return render_template('info.html')
+
+
+@app.route('/order_details/<int:order_id>', methods=['GET', 'POST'])
+@login.login_required
+def order_details(order_id):
+    order = Order.query.filter(Order.id == order_id).first()
+    return render_template('order_details.html', order=order)
+
+
+@app.route('/order_edit/<int:order_id>/', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def edit_order(order_id):
+    order = Order.query.filter(Order.id == order_id).first()
+    form = OrderEditFrom(obj=order)
+    if request.method == 'POST' and form.validate():
+        form.populate_obj(order)
+        db.session.add(order)
+        db.session.commit()
+        flash('Order Edited')
+        return redirect('day_summary')
+    return render_template('order_edit.html', form=form)
+
+
+@app.route('/order_list', methods=['GET', 'POST'])
+@login.login_required
+def order_list():
+    form = MyOrders(request.form)
+    if request.method == 'POST' and form.validate():
+
+        if form.data['month']:
+            return redirect(url_for(
+                'order_list_month_view',
+                year=form.data['year'],
+                month=form.data['month'],
+            ))
+        else:
+            return redirect(url_for('order_list_year_view', year=form.data['year']))
+    return render_template('orders_list.html', form=form)
+
+
+@app.route('/order_list/<int:year>', methods=['GET', 'POST'])
+@login.login_required
+def order_list_year_view(year):
+    year_begin = datetime.datetime(
+        year=year,
+        month=1,
+        day=1,
+        hour=0,
+        minute=0,
+        second=1
+    )
+    year_end = datetime.datetime(
+        year=year,
+        month=12,
+        day=31,
+        hour=23,
+        minute=59,
+        second=59
+    )
+
+    orders = Order.query.filter(
+        and_(
+            Order.date >= year_begin,
+            Order.date <= year_end,
+            Order.user_name == current_user.username,
+        )
+    ).all()
+    year_data = []
+    for month in range(1, 13):
+        monthly_data = {
+            'month_name': month_name[month],
+            'number of orders': 0,
+            'month cost': 0,
+        }
+        for order in orders:
+            month_begin = datetime.datetime(
+                year=year,
+                month=month,
+                day=1,
+                hour=0,
+                minute=0,
+                second=1
+            )
+
+            day = monthrange(year, month)[1]
+            month_end = datetime.datetime(
+                year=year,
+                month=month,
+                day=day,
+                hour=23,
+                minute=59,
+                second=59
+            )
+            if month_begin <= order.date <= month_end:
+                monthly_data['number of orders'] += 1
+                monthly_data['month cost'] += order.cost
+
+        year_data.append(monthly_data)
+
+
+    return render_template('orders_list_year_view.html', year_data=year_data)
+
+
+@app.route('/order_list/<int:year>/<int:month>', methods=['GET', 'POST'])
+@login.login_required
+def order_list_month_view(year, month):
+    month_begin = datetime.datetime(
+        year=year,
+        month=month,
+        day=1,
+        hour=0,
+        minute=0,
+        second=1
+    )
+
+    day = monthrange(year, month)[1]
+    month_end = datetime.datetime(
+        year=year,
+        month=month,
+        day=day,
+        hour=23,
+        minute=59,
+        second=59
+    )
+    pub_date = {'year': year, 'month': month_name[month]}
+    orders = Order.query.filter(
+        and_(
+            Order.date >= month_begin,
+            Order.date <= month_end,
+            Order.user_name == current_user.username,
+        )
+    ).all()
+    orders_cost = 0
+    for order in orders:
+        orders_cost += order.cost
+    return render_template(
+        'orders_list_month_view.html',
+        orders=orders,
+        orders_cost=orders_cost,
+        pub_date=pub_date
+    )

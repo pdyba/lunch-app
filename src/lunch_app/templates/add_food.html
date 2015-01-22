@@ -13,17 +13,17 @@
 
             {% for field_name, field_errors in form.errors|dictsort if field_errors %}
                 {% for error in field_errors %}
-                     <div data-alert class="alert-box alert radius">
-                    {{ error }}
-                    <a href="#" class="close">&times;</a>
-                     </div>
+                    <div data-alert class="alert-box alert radius">
+                        {{ error }}
+                        <a href="#" class="close">&times;</a>
+                    </div>
                 {% endfor %}
             {% endfor %}
-<div class="small-12 columns">
-            Company: {{ form.company }}
-            <b>Please enter description:</b>
+            <div class="small-12 columns">
+                Company: {{ form.company }}
+                <b>Please enter description:</b>
 
-            {{ form.description }}
+                {{ form.description }}
             </div>
             <div class="small-4 columns">
                 <label for="right-label" class="right">Cost: </label>
@@ -43,14 +43,9 @@
             </div>
             <div class="small-8 columns">
                 {{ form.date_available_to }}
-            </div>
-            <div class="small-8 columns">
-                 </div>
 
-            <div class="small-4 columns">
-            <input type="submit" value="commit" class="button"
-                      align="right">
-                </div>
+                <input type="submit" value="commit" class="button right">
+
         </form>
     </div>
 

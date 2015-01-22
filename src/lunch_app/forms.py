@@ -11,7 +11,7 @@ from wtforms import (
     DateField,
 )
 
-from datetime import datetime, date
+from datetime import datetime, date, time
 from wtforms.validators import DataRequired
 
 from .models import Food
@@ -22,9 +22,6 @@ class OrderForm(Form):
     New Order Creation Form
     """
 
-    meal_from_list = SelectField(
-        'food',
-    )
     description = TextAreaField(
         "description",
     )
@@ -49,8 +46,28 @@ class OrderForm(Form):
         ]
     )
     send_me_a_copy = BooleanField('send_me_a_copy', default=False)
-    today_date = date.today()
+    today_date = datetime.now().replace(microsecond=0)
     date = DateField(default=today_date, format='%Y-%m-%d')
+
+
+class OrderEditFrom(OrderForm):
+     user_name = TextAreaField(
+        "description",
+    )
+
+
+class MyOrders(Form):
+    year = IntegerField(
+        'year',
+        validators=[validators.DataRequired('Please enter your cost.')]
+    )
+    month = IntegerField('month', validators=[validators.Optional()])
+
+
+class UserOrders(MyOrders):
+    user = SelectField(
+        'user',
+    )
 
 
 class AddFood(Form):

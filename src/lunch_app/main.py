@@ -11,12 +11,15 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
+from flask.ext.script import Manager
+from flask.ext.migrate import Migrate, MigrateCommand
 
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
 from social.apps.flask_app.default.models import init_social
 
 from .email_conf import MAIL_USERNAME, MAIL_PASSWORD
+
 
 def init_social_login(app, db):
     app.register_blueprint(social_auth)
@@ -65,16 +68,23 @@ def init():
     init_social_login(app, db)
     init_api(app)
     init_admin()
-    app.config.update(
-        MAIL_USE_TLS=False,
-        MAIL_SERVER='smtp.gmail.com',
-        MAIL_PORT=465,
-        MAIL_USE_SSL=True,
-        MAIL_USERNAME=MAIL_USERNAME,
-        MAIL_PASSWORD=MAIL_PASSWORD,
-        )
+
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
 admin = Admin(app)
 api = restful.Api(app)
+
+app.config.update(
+    MAIL_USE_TLS=False,
+    MAIL_SERVER='smtp.gmail.com',
+    MAIL_PORT=465,
+    MAIL_USE_SSL=True,
+    MAIL_USERNAME=MAIL_USERNAME,
+    MAIL_PASSWORD=MAIL_PASSWORD,
+)
+
+migrate = Migrate(app, db)
+
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)

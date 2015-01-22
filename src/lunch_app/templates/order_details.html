@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% set page_id = 'order_details' %}
+
+{% block content %}
+    <div class="large-6 columns">
+        <h3>Order Details</h3>
+
+        <div class="large-4 columns">
+            <b>Date:</b><br>
+            <b>Arrival Time:</b><br>
+            <b>Company:</b><br>
+            <b>Cost:</b><br>
+            <b>Description:</b><br>
+            <b>User:</b><br>
+        </div>
+
+        <div class="large-8 columns">
+            {{ order.date }}<br>
+            {{ order.arrival_time }}<br>
+            {{ order.company }}<br>
+            {{ order.cost }} pln<br>
+            {{ order.description }}<br>
+            {{ order.user_name }}<br>
+        </div>
+
+    </div>
+{% endblock %}

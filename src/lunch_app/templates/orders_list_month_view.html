@@ -4,9 +4,11 @@
 
 {% block content %}
     <div class="large-8 columns">
-        <h1>My orders</h1>
 
-        <h3>Past orders</h3>
+        <h2>Past orders</h2>
+
+        <h3>{{ pub_date['year'] }}: {{ pub_date['month'] }}</h3>
+        <h4> Month cost: {{ orders_cost }} pln</h4>
 
         <p>
             {% for order in orders %}
@@ -20,4 +22,7 @@
                 </li>
             {% endfor %}
     </div>
+
+
+
 {% endblock %}

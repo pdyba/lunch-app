@@ -1,3 +1,5 @@
-# EMAIL SETTINGS
+"""
+Email configuration sample
+"""
 MAIL_USERNAME = 'you@google.com'
-MAIL_PASSWORD ='GooglePasswordHere'
+MAIL_PASSWORD = 'GooglePasswordHere'
