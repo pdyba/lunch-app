@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+# pylint: disable=invalid-name, no-member
 """
 Defines views.
 """
@@ -11,16 +11,15 @@ from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Mail, Message
 from sqlalchemy import and_
-from sqlalchemy.sql.expression import extract
 
 from .main import app, db
-from .forms import OrderForm, AddFood, OrderEditFrom, MyOrders
-from .models import Order, Food
+from .forms import OrderForm, AddFood, OrderEditFrom, UserOrders
+from .models import Order, Food, User
 from .permissions import user_is_admin
 
 import logging
 
-log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+log = logging.getLogger(__name__)
 mail = Mail(app)
 
 
@@ -182,19 +181,35 @@ def day_summary():
 @app.route('/my_orders', methods=['GET', 'POST'])
 @login.login_required
 def my_orders():
+    """
+    Renders all of current user orders.
+    """
     orders = Order.query.filter_by(user_name=current_user.username).all()
-    return render_template('my_orders.html', orders=orders)
+    orders_cost = 0
+    for order in orders:
+        orders_cost += order.cost
+    return render_template(
+        'my_orders.html',
+        orders=orders,
+        orders_cost=orders_cost,
+    )
 
 
 @app.route('/info', methods=['GET', 'POST'])
 @login.login_required
 def info():
+    """
+    Renders info page.
+    """
     return render_template('info.html')
 
 
 @app.route('/order_details/<int:order_id>', methods=['GET', 'POST'])
 @login.login_required
 def order_details(order_id):
+    """
+    Renders orders detail page.
+    """
     order = Order.query.filter(Order.id == order_id).first()
     return render_template('order_details.html', order=order)
 
@@ -203,6 +218,9 @@ def order_details(order_id):
 @login.login_required
 @user_is_admin
 def edit_order(order_id):
+    """
+    Renders order edit page.
+    """
     order = Order.query.filter(Order.id == order_id).first()
     form = OrderEditFrom(obj=order)
     if request.method == 'POST' and form.validate():
@@ -217,23 +235,38 @@ def edit_order(order_id):
 @app.route('/order_list', methods=['GET', 'POST'])
 @login.login_required
 def order_list():
-    form = MyOrders(request.form)
+    """
+    Renders order list page form.
+    """
+    form = UserOrders(request.form)
+    users = User.query.all()
+    user_list = []
+    for user in users:
+        user_list.append((user.id, user.username))
+    form.user.choices = user_list
     if request.method == 'POST' and form.validate():
-
         if form.data['month']:
             return redirect(url_for(
                 'order_list_month_view',
+                user_id=form.user.data,
                 year=form.data['year'],
                 month=form.data['month'],
             ))
         else:
-            return redirect(url_for('order_list_year_view', year=form.data['year']))
+            return redirect(url_for(
+                'order_list_year_view',
+                user_id=form.user.data,
+                year=form.data['year'],
+                ))
     return render_template('orders_list.html', form=form)
 
 
-@app.route('/order_list/<int:year>', methods=['GET', 'POST'])
+@app.route('/order_list/<int:user_id>/<int:year>', methods=['GET', 'POST'])
 @login.login_required
-def order_list_year_view(year):
+def order_list_year_view(year, user_id):
+    """
+    Renders order year list page.
+    """
     year_begin = datetime.datetime(
         year=year,
         month=1,
@@ -250,12 +283,12 @@ def order_list_year_view(year):
         minute=59,
         second=59
     )
-
+    user = User.query.filter(User.id == user_id).first()
     orders = Order.query.filter(
         and_(
             Order.date >= year_begin,
             Order.date <= year_end,
-            Order.user_name == current_user.username,
+            Order.user_name == user.username,
         )
     ).all()
     year_data = []
@@ -290,13 +323,23 @@ def order_list_year_view(year):
 
         year_data.append(monthly_data)
 
+    return render_template(
+        'orders_list_year_view.html',
+        year_data=year_data,
+        user=user,
+        year=year
+    )
 
-    return render_template('orders_list_year_view.html', year_data=year_data)
 
-
-@app.route('/order_list/<int:year>/<int:month>', methods=['GET', 'POST'])
+@app.route('/order_list/<int:user_id>/<int:year>/<int:month>', methods=[
+    'GET',
+    'POST'
+])
 @login.login_required
-def order_list_month_view(year, month):
+def order_list_month_view(year, month, user_id):
+    """
+    Renders order month list page.
+    """
     month_begin = datetime.datetime(
         year=year,
         month=month,
@@ -316,11 +359,12 @@ def order_list_month_view(year, month):
         second=59
     )
     pub_date = {'year': year, 'month': month_name[month]}
+    user = User.query.filter(User.id == user_id).first()
     orders = Order.query.filter(
         and_(
             Order.date >= month_begin,
             Order.date <= month_end,
-            Order.user_name == current_user.username,
+            Order.user_name == user.username,
         )
     ).all()
     orders_cost = 0
@@ -330,5 +374,6 @@ def order_list_month_view(year, month):
         'orders_list_month_view.html',
         orders=orders,
         orders_cost=orders_cost,
-        pub_date=pub_date
+        pub_date=pub_date,
+        user=user
     )

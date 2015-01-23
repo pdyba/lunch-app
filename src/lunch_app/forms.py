@@ -11,10 +11,7 @@ from wtforms import (
     DateField,
 )
 
-from datetime import datetime, date, time
-from wtforms.validators import DataRequired
-
-from .models import Food
+from datetime import datetime, date
 
 
 class OrderForm(Form):
@@ -51,23 +48,22 @@ class OrderForm(Form):
 
 
 class OrderEditFrom(OrderForm):
-     user_name = TextAreaField(
-        "description",
-    )
+    """
+    New Order Eidt Form
+    """
+    user_name = TextAreaField("description")
 
 
-class MyOrders(Form):
+class UserOrders(Form):
+    """
+    New User query Form
+    """
     year = IntegerField(
         'year',
         validators=[validators.DataRequired('Please enter your cost.')]
     )
     month = IntegerField('month', validators=[validators.Optional()])
-
-
-class UserOrders(MyOrders):
-    user = SelectField(
-        'user',
-    )
+    user = SelectField('user_id', coerce=int)
 
 
 class AddFood(Form):

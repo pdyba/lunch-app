@@ -15,7 +15,9 @@
           media="all" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon"
+          href="{{ url_for('static', filename='img/favicon.ico') }}"
+          type="image/x-icon">
 
     {% block script %}
     {% endblock %}
@@ -50,17 +52,18 @@
                                         href="{{ url_for('info') }}">Info</a>
                                 </li>
                                 <li class="has-dropdown not-click {% if page_id == 'orders_lists' %}
-                                    active{% endif %}" ><a
+                                    active{% endif %}"><a
                                         href="{{ url_for('order_list') }}">Order
                                     list
                                 </a>
                                     <ul class="dropdown">
-                                    <li {% if page_id == 'my_orders' %}
-                                    class="active" {% endif %}><a
-                                        href="{{ url_for('my_orders') }}">My ALL
-                                    Orders</a>
-                                    </li>
-                                </ul>
+                                        <li {% if page_id == 'my_orders' %}
+                                            class="active" {% endif %}><a
+                                                href="{{ url_for('my_orders') }}">My
+                                            ALL
+                                            Orders</a>
+                                        </li>
+                                    </ul>
                                 </li>
 
                                 {% if current_user.is_admin() %}

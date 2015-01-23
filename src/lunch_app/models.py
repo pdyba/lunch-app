@@ -49,14 +49,12 @@ class Order(db.Model):
     """
     __tablename__ = 'order'
     id = Column(Integer, primary_key=True)
-    meal_from_list = Column(String(200), unique=False) # do usuniecia
     description = Column(String(800), unique=False)
     cost = Column(Integer)
     arrival_time = Column(Integer)
     company = Column(Integer)
     date = Column(DateTime)
     user_name = Column(String(80), db.ForeignKey('user.name'))
-
 
     def __init__(
             self,

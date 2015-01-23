@@ -13,15 +13,14 @@ from lunch_app import utils
 # pylint: disable=maybe-no-member, too-many-public-methods
 
 # pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
+
 from lunch_app.models import Order, Food, User
 
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
 MOCK_ADMIN.username = 'test_user'
 MOCK_ADMIN.is_anonymous.return_value = False
-MOCK_ADMIN.email = 'piotr.dyba@photojournalist.pl'
-connection_mock = Mock()
-connection_mock.email_mock.return_value = connection_mock
+MOCK_ADMIN.email = 'mock@mock.com'
 
 
 def setUp():
@@ -100,7 +99,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'send_me_a_copy': 'false',
             'date': '2015-01-01',
             'arrival_time': '12:00',
-            'meal_from_list': ' ',
         }
         resp = self.client.post('/order', data=data)
         order_db = Order.query.filter(
@@ -112,7 +110,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(order_db.description, 'dobre_jedzonko')
         self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(order_db.arrival_time, '12:00')
-        self.assertEqual(order_db.meal_from_list, ' ')
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_create_order_with_email(self):
@@ -126,10 +123,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'send_me_a_copy': 'true',
             'date': '2015-01-02',
             'arrival_time': '13:00',
-            'meal_from_list': ' ',
         }
-        resp = self.client.post('/order', data=data)
 
+        resp = self.client.post('/order', data=data)
         order_db = Order.query.filter(
             Order.description == 'To jest TESTow zamowienie dla emaila'
         ).first()
@@ -142,7 +138,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         )
         self.assertEqual(order_db.date, datetime(2015, 1, 2, 0, 0))
         self.assertEqual(order_db.arrival_time, '13:00')
-        self.assertEqual(order_db.meal_from_list, ' ')
+        self.assertEqual(order_db.user_name, 'test_user')
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_add_food_view(self):
@@ -207,14 +203,60 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/order_list')
         self.assertEqual(resp.status_code, 200)
-        data = {'year': '2015'}
+        user = User()
+        user.id = 1
+        user.email = 'e@e.pl'
+        user.username = 'test_user'
+        db.session.add(user)
+        db.session.commit()
+        data = {'year': '2015', 'user': '1'}
+        resp = self.client.post('/order_list', data=data)
+        print(resp.data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEquals(resp.location, 'http://localhost/order_list/1/2015')
+        data = {'year': '2015', 'month': '1', 'user': '1'}
         resp = self.client.post('/order_list', data=data)
         self.assertEqual(resp.status_code, 302)
-        self.assertEquals(resp.location, 'http://localhost/order_list/2015')
-        data = {'year': '2015', 'month': '1'}
-        resp = self.client.post('/order_list', data=data)
-        self.assertEqual(resp.status_code, 302)
-        self.assertEquals(resp.location, 'http://localhost/order_list/2015/1')
+        self.assertEquals(
+            resp.location,
+            'http://localhost/order_list/1/2015/1'
+        )
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_edit_order_view(self):
+        """
+        Test edit order page.
+        """
+        order = Order()
+        order.date = date.today()
+        order.description = 'Duzy Gruby Nalesnik'
+        order.company = 'Tomas'
+        order.cost = 123
+        order.user_name = 'test_user'
+        order.arrival_time = '12:00'
+        db.session.add(order)
+        db.session.commit()
+        resp = self.client.get('/order_edit/1/')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'cost': 12,
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'date': '2015-01-01',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order_edit/1/', data=data)
+        order_db = Order.query.filter(
+            Order.description == 'dobre_jedzonko'
+        ).first()
+        self.assertTrue(resp.status_code == 302)
+        self.assertEqual(order_db.cost, 12)
+        self.assertEqual(order_db.company, 'Pod Koziołkiem')
+        self.assertEqual(order_db.description, 'dobre_jedzonko')
+        self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(order_db.arrival_time, '12:00')
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
