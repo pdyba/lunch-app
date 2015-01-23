@@ -47,7 +47,7 @@ class OrderForm(Form):
     date = DateField(default=today_date, format='%Y-%m-%d')
 
 
-class OrderEditFrom(OrderForm):
+class OrderEditForm(OrderForm):
     """
     New Order Eidt Form
     """

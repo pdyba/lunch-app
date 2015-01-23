@@ -5,8 +5,9 @@ Flask app initialization.
 # pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
 
 
-from flask import Flask, g, flash
+from flask import Flask, g
 from flask.ext import restful, login
+from flask.ext.mail import Mail
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.admin import Admin
@@ -17,8 +18,6 @@ from flask.ext.migrate import Migrate, MigrateCommand
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
 from social.apps.flask_app.default.models import init_social
-
-from .email_conf import MAIL_USERNAME, MAIL_PASSWORD
 
 
 def init_social_login(app, db):
@@ -75,16 +74,9 @@ db = SQLAlchemy(app)
 admin = Admin(app)
 api = restful.Api(app)
 
-app.config.update(
-    MAIL_USE_TLS=False,
-    MAIL_SERVER='smtp.gmail.com',
-    MAIL_PORT=465,
-    MAIL_USE_SSL=True,
-    MAIL_USERNAME=MAIL_USERNAME,
-    MAIL_PASSWORD=MAIL_PASSWORD,
-)
-
 migrate = Migrate(app, db)
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
+
+mail = Mail(app)

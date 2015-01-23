@@ -4,13 +4,9 @@ $().ready(function(){
 
         var current = event.currentTarget;
 
-        var desc = document.getElementById('description');
-        var cost = document.getElementById('cost');
-        var comp = document.getElementById('company');
-
-        desc.value = current.dataset.desc;
-        cost.value = current.dataset.cost;
-        comp.value = current.dataset.comp;
+        $('#description').val(current.dataset.desc);
+        $('#cost').val(current.dataset.cost);
+        $('#company').val(current.dataset.comp);
 
     })
 });

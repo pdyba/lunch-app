@@ -9,18 +9,18 @@ from calendar import monthrange, month_name
 from flask import redirect, render_template, request, flash, url_for
 from flask.ext import login
 from flask.ext.login import current_user
-from flask.ext.mail import Mail, Message
+from flask.ext.mail import Message
 from sqlalchemy import and_
 
-from .main import app, db
-from .forms import OrderForm, AddFood, OrderEditFrom, UserOrders, CompanyOrders
+from .main import app, db, mail
+from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, CompanyOrders
 from .models import Order, Food, User
 from .permissions import user_is_admin
 
 import logging
 
 log = logging.getLogger(__name__)
-mail = Mail(app)
+
 
 
 @app.route('/')
@@ -77,7 +77,6 @@ def create_order():
             msg = Message(
                 'STXNext Lunch App Your Order '
                 '{date}'.format(date=datetime.date.today()),
-                sender='piotr.dyba@stxnext.pl',
                 recipients=[current_user.email],
             )
             msg.body = "Your today order is: \n {order.description} \n " \
@@ -125,9 +124,7 @@ def day_summary():
             Order.arrival_time == '12:00'
         )
     ).all()
-    orders_t_12_cost = 0
-    for order in orders_t_12:
-        orders_t_12_cost += order.cost
+    orders_t_12_cost = sum(order.cost for order in orders_t_12)
 
     orders_t_13 = Order.query.filter(
         and_(
@@ -137,9 +134,7 @@ def day_summary():
             Order.arrival_time == '13:00'
         )
     ).all()
-    orders_t_13_cost = 0
-    for order in orders_t_13:
-        orders_t_13_cost += order.cost
+    orders_t_13_cost = sum(order.cost for order in orders_t_13)
 
     orders_pk_12 = Order.query.filter(
         and_(
@@ -149,9 +144,7 @@ def day_summary():
             Order.arrival_time == '12:00'
         )
     ).all()
-    orders_pk_12_cost = 0
-    for order in orders_pk_12:
-        orders_pk_12_cost += order.cost
+    orders_pk_12_cost = sum(order.cost for order in orders_pk_12)
 
     orders_pk_13 = Order.query.filter(
         and_(
@@ -161,9 +154,7 @@ def day_summary():
             Order.arrival_time == '13:00'
         )
     ).all()
-    orders_pk_13_cost = 0
-    for order in orders_pk_13:
-        orders_pk_13_cost += order.cost
+    orders_pk_13_cost = sum(order.cost for order in orders_pk_13)
 
     return render_template(
         'day_summary.html',
@@ -185,9 +176,7 @@ def my_orders():
     Renders all of current user orders.
     """
     orders = Order.query.filter_by(user_name=current_user.username).all()
-    orders_cost = 0
-    for order in orders:
-        orders_cost += order.cost
+    orders_cost = sum(order.cost for order in orders)
     return render_template(
         'my_orders.html',
         orders=orders,
@@ -221,11 +210,10 @@ def edit_order(order_id):
     """
     Renders order edit page.
     """
-    order = Order.query.filter(Order.id == order_id).first()
-    form = OrderEditFrom(obj=order)
+    order = Order.query.get(order_id)
+    form = OrderEditForm(formdata=request.form, obj=order)
     if request.method == 'POST' and form.validate():
         form.populate_obj(order)
-        db.session.add(order)
         db.session.commit()
         flash('Order Edited')
         return redirect('day_summary')
@@ -367,9 +355,7 @@ def order_list_month_view(year, month, user_id):
             Order.user_name == user.username,
         )
     ).all()
-    orders_cost = 0
-    for order in orders:
-        orders_cost += order.cost
+    orders_cost = sum(order.cost for order in orders)
     return render_template(
         'orders_list_month_view.html',
         orders=orders,
@@ -387,11 +373,11 @@ def company_summary_view():
     """
     form = CompanyOrders(request.form)
     if request.method == 'POST' and form.validate():
-            return redirect(url_for(
-                'company_summary_month_view',
-                year=form.data['year'],
-                month=form.data['month'],
-            ))
+        return redirect(url_for(
+            'company_summary_month_view',
+            year=form.data['year'],
+            month=form.data['month'],
+        ))
     return render_template('company_summary.html', form=form)
 
 
@@ -434,12 +420,8 @@ def company_summary_month_view(year, month):
             Order.company == 'Pod Koziołkiem',
         )
     ).all()
-    orders_tomas_cost = 0
-    for order in orders_tomas:
-        orders_tomas_cost += order.cost
-    orders_koziol_cost = 0
-    for order in orders_koziol:
-        orders_koziol_cost += order.cost
+    orders_tomas_cost = sum(order.cost for order in orders_tomas)
+    orders_koziol_cost = sum(order.cost for order in orders_koziol)
     return render_template(
         'company_summary_month_view.html',
         orders_tomas_cost=orders_tomas_cost,
