@@ -13,7 +13,7 @@ from flask.ext.mail import Mail, Message
 from sqlalchemy import and_
 
 from .main import app, db
-from .forms import OrderForm, AddFood, OrderEditFrom, UserOrders
+from .forms import OrderForm, AddFood, OrderEditFrom, UserOrders, CompanyOrders
 from .models import Order, Food, User
 from .permissions import user_is_admin
 
@@ -376,4 +376,73 @@ def order_list_month_view(year, month, user_id):
         orders_cost=orders_cost,
         pub_date=pub_date,
         user=user
+    )
+
+
+@app.route('/company_summary', methods=['GET', 'POST'])
+@login.login_required
+def company_summary_view():
+    """
+    Renders company query page form.
+    """
+    form = CompanyOrders(request.form)
+    if request.method == 'POST' and form.validate():
+            return redirect(url_for(
+                'company_summary_month_view',
+                year=form.data['year'],
+                month=form.data['month'],
+            ))
+    return render_template('company_summary.html', form=form)
+
+
+@app.route('/company_summary/<int:year>/<int:month>', methods=['GET', 'POST'])
+@login.login_required
+def company_summary_month_view(year, month):
+    """
+    Renders companies month list page.
+    """
+    month_begin = datetime.datetime(
+        year=year,
+        month=month,
+        day=1,
+        hour=0,
+        minute=0,
+        second=1
+    )
+
+    day = monthrange(year, month)[1]
+    month_end = datetime.datetime(
+        year=year,
+        month=month,
+        day=day,
+        hour=23,
+        minute=59,
+        second=59
+    )
+    pub_date = {'year': year, 'month': month_name[month]}
+    orders_tomas = Order.query.filter(
+        and_(
+            Order.date >= month_begin,
+            Order.date <= month_end,
+            Order.company == 'Tomas',
+        )
+    ).all()
+    orders_koziol = Order.query.filter(
+        and_(
+            Order.date >= month_begin,
+            Order.date <= month_end,
+            Order.company == 'Pod Koziołkiem',
+        )
+    ).all()
+    orders_tomas_cost = 0
+    for order in orders_tomas:
+        orders_tomas_cost += order.cost
+    orders_koziol_cost = 0
+    for order in orders_koziol:
+        orders_koziol_cost += order.cost
+    return render_template(
+        'company_summary_month_view.html',
+        orders_tomas_cost=orders_tomas_cost,
+        orders_koziol_cost=orders_koziol_cost,
+        pub_date=pub_date,
     )

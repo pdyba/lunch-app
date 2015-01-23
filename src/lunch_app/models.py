@@ -91,3 +91,14 @@ class Food(db.Model):
     cost = Column(Integer)
     date_available_from = Column(DateTime)
     date_available_to = Column(DateTime)
+
+
+class Finance(db.Model):
+    """
+    Food model did user paid that month
+    """
+    id = Column(Integer, primary_key=True)
+    user_name = Column(String(80), db.ForeignKey('user.name'))
+    month = Column(Integer)
+    year = Column(Integer)
+    did_user_pay = Column(Boolean, default=False)

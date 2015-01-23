@@ -77,6 +77,12 @@
                                         class="active" {% endif %}><a
                                             href="{{ url_for('day_summary') }}">Day
                                         Summary</a></li>
+                                    </li>
+                                    <li {% if page_id == 'company_summary' %}
+                                        class="active" {% endif %}><a
+                                            href="{{ url_for('company_summary_view') }}">
+                                        Company Summary</a>
+                                    </li>
                                 {% endif %}
                             </ul>
                         </section>

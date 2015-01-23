@@ -60,10 +60,24 @@ class UserOrders(Form):
     """
     year = IntegerField(
         'year',
-        validators=[validators.DataRequired('Please enter your cost.')]
+        validators=[validators.DataRequired('Please enter your Year.')]
     )
     month = IntegerField('month', validators=[validators.Optional()])
     user = SelectField('user_id', coerce=int)
+
+
+class CompanyOrders(Form):
+    """
+    New User query Form
+    """
+    year = IntegerField(
+        'year',
+        validators=[validators.DataRequired('Please enter your Year.')]
+    )
+    month = IntegerField(
+        'month',
+        validators=[validators.DataRequired('Please enter your Month.')]
+    )
 
 
 class AddFood(Form):

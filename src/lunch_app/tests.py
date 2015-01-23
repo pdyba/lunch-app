@@ -257,6 +257,23 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(order_db.arrival_time, '12:00')
 
+    def test_company_summary_view(self):
+        """
+        Test company summary page.
+        """
+        resp = self.client.get('/company_summary')
+        self.assertEqual(resp.status_code, 200)
+        data = {'year': '2015', 'month': '1'}
+        resp = self.client.post('/company_summary', data=data)
+        print(resp.data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEquals(
+            resp.location,
+            'http://localhost/company_summary/2015/1',
+        )
+        resp = self.client.get('/company_summary/2015/1')
+        self.assertEqual(resp.status_code, 200)
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
