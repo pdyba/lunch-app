@@ -7,9 +7,9 @@ import os.path
 import unittest
 from unittest.mock import Mock, patch
 
-from lunch_app import main, db, app
-from lunch_app import utils
-from lunch_app.models import Order, Food, User
+from .main import app, db
+from . import main, utils
+from .models import Order, Food, User
 
 # pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
 
@@ -28,11 +28,8 @@ def setUp():
         os.path.dirname(__file__),
         '..', '..', 'parts', 'etc', 'test.cfg',
     )
-    main.app.config.from_pyfile(test_config)
-    main.app.config['WTF_CSRF_ENABLED'] = False
+    app.config.from_pyfile(test_config)
     main.init()
-    db.init_app(app)
-    db.create_all()
 
 
 class LunchBackendViewsTestCase(unittest.TestCase):
@@ -44,14 +41,15 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Before each test, set up a environment.
         """
-
         self.client = main.app.test_client()
+        db.create_all()
 
     def tearDown(self):
         """
         Get rid of unused objects after each test.
         """
-        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
 
     def test_mainpage_view(self):
         """
@@ -202,7 +200,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         db.session.commit()
         data = {'year': '2015', 'user': '1'}
         resp = self.client.post('/order_list', data=data)
-        print(resp.data)
         self.assertEqual(resp.status_code, 302)
         self.assertEquals(resp.location, 'http://localhost/order_list/1/2015')
         data = {'year': '2015', 'month': '1', 'user': '1'}

@@ -64,13 +64,16 @@ def init_admin():
 
 
 def init():
+    db.app = app
+    db.init_app(app)
     init_social_login(app, db)
     init_api(app)
     init_admin()
+    mail.init_app(app)
 
 
 app = Flask(__name__)
-db = SQLAlchemy(app)
+db = SQLAlchemy()
 admin = Admin(app)
 api = restful.Api(app)
 
@@ -79,4 +82,4 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
-mail = Mail(app)
+mail = Mail()
