@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% set page_id = 'order_list_year_view' %}
+
+{% block content %}
+
+    <h2>Year View</h2>
+    <h3>{{ year }}</h3>
+    <h4>{{ user.username }}</h4>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Month</th>
+            <th>Number of Orders</th>
+            <th>Month Cost</th>
+            <th>Is paid</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for month in year_data %}
+            <tr>
+                <td>{{ month['month_name'] }}</td>
+                <td>{{ month['number of orders'] }}</td>
+                <td>{{ month['month cost'] }}</td>
+                <td>Not implemented yet</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

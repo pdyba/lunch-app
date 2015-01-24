@@ -1,13 +1,36 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% set page_id = 'my_orders' %}
 
-    <h1>My orders</h1>
-    <h3>Past orders</h3>
-    <p>
-        {% for order in orders %}
-                <li>{{ order.date }} {{ order.company }} <b>{{ order.cost }}
-                    pln </b> : {{ order.description }} {{ order.arrival_time }}
-                </li>
-        {% endfor %}
+{% block content %}
+    <div class="large-12 columns">
+        <h3>My all orders</h3>
+        <h5>Total cost: {{ orders_cost }} pln</h5>
+        <table>
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Company</th>
+                <th>Cost</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in orders %}
+                <tr>
+
+                    <td>{{ order.date }}</td>
+                    <td>{{ order.company }}</td>
+                    <td>{{ order.cost }} pln</td>
+                    <td>
+                        <a href="{{ url_for('order_details', order_id=order.id) }}">
+                            {{ order.description }} </a>
+                    </td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
 {% endblock %}

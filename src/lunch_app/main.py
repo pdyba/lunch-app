@@ -5,12 +5,15 @@ Flask app initialization.
 # pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
 
 
-from flask import Flask, g, flash
+from flask import Flask, g
 from flask.ext import restful, login
+from flask.ext.mail import Mail
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
+from flask.ext.script import Manager
+from flask.ext.migrate import Migrate, MigrateCommand
 
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
@@ -70,3 +73,10 @@ app = Flask(__name__)
 db = SQLAlchemy(app)
 admin = Admin(app)
 api = restful.Api(app)
+
+migrate = Migrate(app, db)
+
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
+
+mail = Mail(app)

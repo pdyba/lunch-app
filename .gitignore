@@ -62,4 +62,9 @@ target/
 
 # Cloud9
 .c9/
+
+
 .idea/*
+email_conf.py
+buildout_local.cfg
+test.cfg

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% set page_id = 'order_edit' %}
+
+{% block content %}
+
+    <div class="large-6 columns">
+        <h3>Order Details</h3>
+
+        <form method="POST">
+            <b>Date:</b>
+            {{ form.date }}
+            <b>Arrival Time:</b>
+            {{ form.arrival_time }}
+            <b>Company:</b>
+            {{ form.company }}
+            <b>Cost:</b>
+            {{ form.cost }}
+            <b>Description:</b>
+            {{ form.description }}
+            <b>User:</b>
+            {{ form.user_name }}
+
+
+            <input type="submit" value="commit" class="button right">
+
+        </form>
+    </div>
+    </div>
+{% endblock %}

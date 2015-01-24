@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% set page_id = 'company_summary' %}
+
+{% block content %}
+
+    <div class="large-6 columns">
+        <h3>Order list Year View</h3>
+
+        <form method="POST">
+            <b>Year:</b>
+            {{ form.year }}
+            <b>Month:</b>
+            {{ form.month }}
+
+            <input type="submit" value="commit" class="button right">
+
+        </form>
+    </div>
+{% endblock %}

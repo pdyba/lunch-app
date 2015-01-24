@@ -1,9 +1,13 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>STX Lunch</h2>
 
-<ul id="signin">
-    <li><a class="googleplus" href="{{ url_for('social.auth', backend='google-oauth2') }}" title="Google+/Gmail">Google+/Gmail</a></li>
-</ul>
+{% set page_id = 'index' %}
+
+{% block content %}
+
+    <ul id="signin">
+        <li><a class="googleplus"
+               href="{{ url_for('social.auth', backend='google-oauth2') }}"
+               title="Google+/Gmail">Google+/Gmail</a></li>
+    </ul>
 
 {% endblock %}

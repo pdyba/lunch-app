@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
+{% set page_id = 'add_food' %}
+
 {% block content %}
 
- <h1>Food Adder</h1>
+    <div class="large-6 columns">
+        <h1>Food Adder</h1>
 
         <form action="" method="post" name="order">
 
@@ -10,23 +13,40 @@
 
             {% for field_name, field_errors in form.errors|dictsort if field_errors %}
                 {% for error in field_errors %}
-                    {{ error }}
+                    <div data-alert class="alert-box alert radius">
+                        {{ error }}
+                        <a href="#" class="close">&times;</a>
+                    </div>
                 {% endfor %}
             {% endfor %}
+            <div class="small-12 columns">
+                Company: {{ form.company }}
+                <b>Please enter description:</b>
 
-            Company: {{ form.company }}
-            <b>Please enter description:</b>
-            {{ form.description }}
-
+                {{ form.description }}
+            </div>
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Cost: </label>
+            </div>
+            <div class="small-8 columns">
                 {{ form.cost }}
-
+            </div>
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Available from:</label>
+            </div>
+            <div class="small-8 columns">
                 {{ form.date_available_from }}
+            </div>
 
-
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Available to:</label>
+            </div>
+            <div class="small-8 columns">
                 {{ form.date_available_to }}
 
-            <p><input type="submit" value="commit" class="button"
-                      align="right"></p>
+                <input type="submit" value="commit" class="button right">
+
         </form>
+    </div>
 
 {% endblock %}

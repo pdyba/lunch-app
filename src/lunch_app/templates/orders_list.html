@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% set page_id = 'orders_lists' %}
+
+{% block content %}
+
+    <div class="large-6 columns">
+        <h3>Order list Year View</h3>
+
+        <form method="POST">
+            <b>Year:</b>
+            {{ form.year }}
+            <b>Month:</b>
+            {{ form.month }}
+            {% if current_user.is_admin %}
+                <b>User:</b>
+                {{ form.user }}
+            {% endif %}
+
+            <input type="submit" value="commit" class="button right">
+
+        </form>
+    </div>
+{% endblock %}

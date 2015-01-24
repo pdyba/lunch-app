@@ -19,12 +19,8 @@ class OrderForm(Form):
     New Order Creation Form
     """
 
-    meal_from_list = SelectField(
-        'food',
-    )
     description = TextAreaField(
         "description",
-        validators=[validators.DataRequired("Please enter order description.")]
     )
     cost = IntegerField(
         'cost',
@@ -47,8 +43,41 @@ class OrderForm(Form):
         ]
     )
     send_me_a_copy = BooleanField('send_me_a_copy', default=False)
-    today_date = date.today()
+    today_date = datetime.now().replace(microsecond=0)
     date = DateField(default=today_date, format='%Y-%m-%d')
+
+
+class OrderEditForm(OrderForm):
+    """
+    New Order Eidt Form
+    """
+    user_name = TextAreaField("description")
+
+
+class UserOrders(Form):
+    """
+    New User query Form
+    """
+    year = IntegerField(
+        'year',
+        validators=[validators.DataRequired('Please enter your Year.')]
+    )
+    month = IntegerField('month', validators=[validators.Optional()])
+    user = SelectField('user_id', coerce=int)
+
+
+class CompanyOrders(Form):
+    """
+    New User query Form
+    """
+    year = IntegerField(
+        'year',
+        validators=[validators.DataRequired('Please enter your Year.')]
+    )
+    month = IntegerField(
+        'month',
+        validators=[validators.DataRequired('Please enter your Month.')]
+    )
 
 
 class AddFood(Form):

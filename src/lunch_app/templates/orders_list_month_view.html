@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% set page_id = 'my_orders' %}
+
+{% block content %}
+    <div class="large-12 columns">
+
+        <div class="left">
+            <h2>Past orders</h2>
+
+
+            <ul class="breadcrumbs">
+                <li>{{ pub_date['year'] }}: {{ pub_date['month'] }}</li>
+                <li> {{ user.username }}</li>
+                <li> Month cost: {{ orders_cost }} pln</li>
+            </ul>
+        </div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Company</th>
+            <th>Cost</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+
+                <td>{{ order.date }}</td>
+                <td>{{ order.company }}</td>
+                <td>{{ order.cost }} pln</td>
+                <td>
+                    <a href="{{ url_for('order_details', order_id=order.id) }}">
+                        {{ order.description }} </a>
+                </td>
+
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    </div>
+
+
+
+{% endblock %}
