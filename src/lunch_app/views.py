@@ -50,18 +50,12 @@ def create_order():
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
     today_to = datetime.datetime.combine(day, datetime.time(0, 0))
-    food = Food.query.filter(
+    foods = Food.query.filter(
         and_(
             Food.date_available_from <= today_from,
             Food.date_available_to >= today_to,
         )
     ).all()
-    food_list = [(" ", " ")]
-    for meal in food:
-        label = "{meal.company} " \
-                " | {meal.cost} PLN | " \
-                "{meal.description}".format(meal=meal)
-        food_list.append((label, label))
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
@@ -83,7 +77,7 @@ def create_order():
             mail.send(msg)
             flash('Mail send')
         return redirect('order')
-    return render_template('order.html', form=form, food=food)
+    return render_template('order.html', form=form, foods=foods)
 
 
 @app.route('/add_food', methods=['GET', 'POST'])

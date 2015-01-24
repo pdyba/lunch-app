@@ -6,13 +6,12 @@
     <div class="large-12 columns">
 
         <div class="left">
-            <h2>Past orders</h2>
-
+            <h2>Orders</h2>
 
             <ul class="breadcrumbs">
-                <li>{{ pub_date['year'] }}: {{ pub_date['month'] }}</li>
-                <li> {{ user.username }}</li>
-                <li> Month cost: {{ orders_cost }} PLN</li>
+                <li>{{ pub_date['month'] }} {{ pub_date['year'] }}</li>
+                <li>{{ user.username }}</li>
+                <li>Month cost - {{ orders_cost }} PLN</li>
             </ul>
         </div>
     </div>
