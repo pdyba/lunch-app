@@ -70,7 +70,7 @@ def create_order():
                 'Lunch order - {}'.format(datetime.date.today()),
                 recipients=[current_user.email],
             )
-            msg.body = "Today your ordered {order.description} " \
+            msg.body = "Today you ordered {order.description} " \
                        "from {order.company} ({order.cost} PLN).\n" \
                        "It should be delivered at " \
                        "{order.arrival_time}".format(order=order)
