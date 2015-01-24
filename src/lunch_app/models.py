@@ -1,6 +1,8 @@
 """
-models for lunch app db.
+Models for lunch app db.
 """
+# pylint: disable=invalid-name, too-few-public-methods, no-init
+
 from datetime import datetime
 
 from flask.ext.login import UserMixin

@@ -18,9 +18,7 @@ from .models import Order, Food, User
 from .permissions import user_is_admin
 
 import logging
-
 log = logging.getLogger(__name__)
-
 
 
 @app.route('/')

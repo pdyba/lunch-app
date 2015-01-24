@@ -7,11 +7,11 @@ from flask.ext.restful import abort
 from flask.ext.login import current_user
 
 
-def user_is_admin(f):
+def user_is_admin(func):
     """
     Wraper for if users is admin decorator
     """
-    @wraps(f)
+    @wraps(func)
     def wrapped(*args, **kwargs):
         """
         Checks if users is admin decorator
@@ -20,5 +20,5 @@ def user_is_admin(f):
             flash("You shell not pass")
             abort(401)
         else:
-            return f(*args, **kwargs)
+            return func(*args, **kwargs)
     return wrapped

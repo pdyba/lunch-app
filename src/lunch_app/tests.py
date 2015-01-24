@@ -2,6 +2,8 @@
 """
 Presence analyzer unit tests.
 """
+# pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
+
 from datetime import datetime, date, timedelta
 import os.path
 import unittest
@@ -11,7 +13,6 @@ from .main import app, db
 from . import main, utils
 from .models import Order, Food, User
 
-# pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
 
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
@@ -326,7 +327,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         order.user_name = 'test_user'
         order.arrival_time = '12:00'
         db.session.add(order)
-        order_2= Order()
+        order_2 = Order()
         order_2.date = date(2015, 1, 5)
         order_2.description = 'Duzy Gruby Nalesnik'
         order_2.company = 'Pod Koziołkiem'
@@ -340,6 +341,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertTrue('123' in resp.data.__str__())
         self.assertTrue('244' in resp.data.__str__())
         db.session.close()
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
