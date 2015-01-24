@@ -10,7 +10,6 @@ from flask.ext.mail import Mail
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.admin import Admin
-from flask.ext.admin.contrib.sqla import ModelView
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
 
@@ -75,9 +74,10 @@ def init_admin():
     Expose some of models in Admin.
     """
     from . import models
-    admin.add_view(ModelView(models.User, db.session))
-    admin.add_view(ModelView(models.Order, db.session))
-    admin.add_view(ModelView(models.Food, db.session))
+    from .permissions import AdminModelViewWithAuth
+    admin.add_view(AdminModelViewWithAuth(models.User, db.session))
+    admin.add_view(AdminModelViewWithAuth(models.Order, db.session))
+    admin.add_view(AdminModelViewWithAuth(models.Food, db.session))
 
 
 def init():

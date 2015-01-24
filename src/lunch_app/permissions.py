@@ -5,6 +5,7 @@ from functools import wraps
 from flask import flash
 from flask.ext.restful import abort
 from flask.ext.login import current_user
+from flask.ext.admin.contrib.sqla import ModelView
 
 
 def user_is_admin(func):
@@ -22,3 +23,15 @@ def user_is_admin(func):
         else:
             return func(*args, **kwargs)
     return wrapped
+
+
+class AdminModelViewWithAuth(ModelView):
+    """
+    ModelView with authentication.
+    """
+
+    def is_accessible(self):
+        """
+        Return True when user can access Admin.
+        """
+        return not current_user.is_anonymous() and current_user.is_admin()
