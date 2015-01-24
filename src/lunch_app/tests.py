@@ -9,7 +9,7 @@ import os.path
 import unittest
 from unittest.mock import Mock, patch
 
-from .main import app, db
+from .main import app, db, mail
 from . import main, utils
 from .models import Order, Food, User
 
@@ -98,7 +98,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'arrival_time': '12:00',
         }
         resp = self.client.post('/order', data=data)
-        order_db = Order.query.all()[-1]
+        order_db = Order.query.first()
         self.assertTrue(resp.status_code == 302)
         self.assertEqual(order_db.cost, 12)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
@@ -111,27 +111,25 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order with send me an email.
         """
-        data = {
-            'cost': '13',
-            'company': 'Pod Koziołkiem',
-            'description': 'To jest TESTow zamowienie dla emaila',
-            'send_me_a_copy': 'true',
-            'date': '2015-01-02',
-            'arrival_time': '13:00',
-        }
-
-        resp = self.client.post('/order', data=data)
-        order_db = Order.query.first()
-        self.assertTrue(resp.status_code == 302)
-        self.assertEqual(order_db.cost, 13)
-        self.assertEqual(order_db.company, 'Pod Koziołkiem')
-        self.assertEqual(
-            order_db.description,
-            'To jest TESTow zamowienie dla emaila',
-        )
-        self.assertEqual(order_db.date, datetime(2015, 1, 2, 0, 0))
-        self.assertEqual(order_db.arrival_time, '13:00')
-        self.assertEqual(order_db.user_name, 'test_user')
+        with mail.record_messages() as outbox:
+            data = {
+                'cost': '13',
+                'company': 'Pod Koziołkiem',
+                'description': 'To jest TESTow zamowienie dla emaila',
+                'send_me_a_copy': 'true',
+                'date': '2015-01-02',
+                'arrival_time': '13:00',
+            }
+            resp = self.client.post('/order', data=data)
+            self.assertTrue(resp.status_code == 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('Lunch order'))
+            self.assertIn('To jest TESTow zamowienie dla emaila', msg.body)
+            self.assertIn('Pod Koziołkiem', msg.body)
+            self.assertIn('13 PLN', msg.body)
+            self.assertIn('at 13:00', msg.body)
+            self.assertEqual(msg.recipients, ['mock@mock.com'])
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_add_food_view(self):
@@ -202,11 +200,11 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         data = {'year': '2015', 'user': '1'}
         resp = self.client.post('/order_list', data=data)
         self.assertEqual(resp.status_code, 302)
-        self.assertEquals(resp.location, 'http://localhost/order_list/1/2015')
+        self.assertEqual(resp.location, 'http://localhost/order_list/1/2015')
         data = {'year': '2015', 'month': '1', 'user': '1'}
         resp = self.client.post('/order_list', data=data)
         self.assertEqual(resp.status_code, 302)
-        self.assertEquals(
+        self.assertEqual(
             resp.location,
             'http://localhost/order_list/1/2015/1'
         )
@@ -303,7 +301,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         data = {'year': '2015', 'month': '1'}
         resp = self.client.post('/company_summary', data=data)
         self.assertEqual(resp.status_code, 302)
-        self.assertEquals(
+        self.assertEqual(
             resp.location,
             'http://localhost/company_summary/2015/1',
         )
@@ -363,7 +361,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
         """
         Test current date.
         """
-        self.assertEquals(utils.get_current_date(), date.today())
+        self.assertEqual(utils.get_current_date(), date.today())
 
     def test_get_current_datetime(self):
         """
@@ -379,7 +377,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
         """
         Test make date.
         """
-        self.assertEquals(
+        self.assertEqual(
             utils.make_date(datetime.now()),
             date.today()
         )

@@ -73,13 +73,13 @@ def create_order():
         flash('Order Accepted')
         if form.send_me_a_copy.data:
             msg = Message(
-                'STXNext Lunch App Your Order '
-                '{date}'.format(date=datetime.date.today()),
+                'Lunch order - {}'.format(datetime.date.today()),
                 recipients=[current_user.email],
             )
-            msg.body = "Your today order is: \n {order.description} \n " \
-                       "from {order.company} it cost {order.cost}zl and will " \
-                       "come at {order.arrival_time}".format(order=order)
+            msg.body = "Today your ordered {order.description} " \
+                       "from {order.company} ({order.cost} PLN).\n" \
+                       "It should be delivered at " \
+                       "{order.arrival_time}".format(order=order)
             mail.send(msg)
         return redirect('order')
     return render_template('order.html', form=form, food=food)
