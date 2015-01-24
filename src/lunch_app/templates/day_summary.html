@@ -13,14 +13,14 @@
             <h4>12:00</h4>
         </div>
         <div class="large-3 columns">
-            <h4>{{ orders_t_12_cost }} pln</h4>
+            <h4>{{ orders_t_12_cost }} PLN</h4>
         </div>
         {% for order in orders_t_12 %}
 
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
 
                 <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} pln </b></li>
+                    <b> {{ order.cost }} PLN </b></li>
 
             </a></span>
         {% endfor %}
@@ -28,12 +28,12 @@
             <h4>13:00</h4>
         </div>
         <div class="large-3 columns">
-            <h4>{{ orders_t_13_cost }} pln</h4>
+            <h4>{{ orders_t_13_cost }} PLN</h4>
         </div>
         {% for order in orders_t_13 %}
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
                 <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} pln </b></li>
+                    <b> {{ order.cost }} PLN </b></li>
             </a>
         {% endfor %}
 
@@ -45,25 +45,25 @@
             <h4>12:00</h4>
         </div>
         <div class="large-3 columns">
-            <h4>{{ orders_pk_12_cost }} pln</h4>
+            <h4>{{ orders_pk_12_cost }} PLN</h4>
         </div>
         {% for order in orders_pk_12 %}
             <span title="{{ order.user_name }}">
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
                 <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} pln </b></li>
+                    <b> {{ order.cost }} PLN </b></li>
             </a></span>
         {% endfor %}
         <div class="large-9 columns">
             <h4>13:00</h4>
         </div>
         <div class="large-3 columns">
-            <h4>{{ orders_pk_13_cost }} pln</h4>
+            <h4>{{ orders_pk_13_cost }} PLN</h4>
         </div>
         {% for order in orders_pk_13 %}
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
                 <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} pln </b></li>
+                    <b> {{ order.cost }} PLN </b></li>
             </a>
         {% endfor %}
     </div>

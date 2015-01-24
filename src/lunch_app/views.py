@@ -59,7 +59,7 @@ def create_order():
     food_list = [(" ", " ")]
     for meal in food:
         label = "{meal.company} " \
-                " | {meal.cost} pln | " \
+                " | {meal.cost} PLN | " \
                 "{meal.description}".format(meal=meal)
         food_list.append((label, label))
     if request.method == 'POST' and form.validate():
@@ -70,7 +70,7 @@ def create_order():
 
         db.session.add(order)
         db.session.commit()
-        flash('Order Accepted')
+        flash('Order created')
         if form.send_me_a_copy.data:
             msg = Message(
                 'Lunch order - {}'.format(datetime.date.today()),
@@ -81,6 +81,7 @@ def create_order():
                        "It should be delivered at " \
                        "{order.arrival_time}".format(order=order)
             mail.send(msg)
+            flash('Mail send')
         return redirect('order')
     return render_template('order.html', form=form, food=food)
 
@@ -98,7 +99,7 @@ def add_food():
         form.populate_obj(food)
         db.session.add(food)
         db.session.commit()
-        flash('Food Created')
+        flash('Food added')
         return redirect('add_food')
     return render_template('add_food.html', form=form)
 
@@ -213,7 +214,7 @@ def edit_order(order_id):
     if request.method == 'POST' and form.validate():
         form.populate_obj(order)
         db.session.commit()
-        flash('Order Edited')
+        flash('Order changed')
         return redirect('day_summary')
     return render_template('order_edit.html', form=form)
 
