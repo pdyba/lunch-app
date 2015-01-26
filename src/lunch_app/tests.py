@@ -298,7 +298,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
 
     def test_company_summary_view(self):
         """
-        Test company summary page.
+        Test company summary view page.
         """
         resp = self.client.get('/company_summary')
         self.assertEqual(resp.status_code, 200)
@@ -343,6 +343,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertTrue('123' in resp.data.__str__())
         self.assertTrue('244' in resp.data.__str__())
         db.session.close()
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
