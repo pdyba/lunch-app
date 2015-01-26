@@ -23,10 +23,18 @@ class OrderForm(Form):
 
     description = TextAreaField(
         "description",
+        validators=[validators.DataRequired('Please enter your order.')],
     )
     cost = IntegerField(
         'cost',
-        validators=[validators.DataRequired('Please enter your cost.')]
+        validators=[
+            validators.DataRequired('Please enter cost.'),
+            validators.NumberRange(
+                min=0,
+                max=999,
+                message='Cost has to be a positive value',
+                ),
+        ]
     )
     arrival_time = SelectField(
         'arrival_time',
@@ -100,7 +108,14 @@ class AddFood(Form):
     )
     cost = IntegerField(
         'cost',
-        validators=[validators.DataRequired('Please enter cost.')]
+        validators=[
+            validators.DataRequired('Please enter cost.'),
+            validators.NumberRange(
+                min=0,
+                max=999,
+                message='Cost has to be provided and be a positive value',
+                ),
+        ]
     )
     today_date = date.today()
     date_available_from = DateField(
@@ -112,6 +127,15 @@ class AddFood(Form):
         label='date_avalible_upto',
         default=datetime(2015, 1, 1, 23, 59, 59),
         format="%Y-%m-%d",
+    )
+    o_type = SelectField(
+        'o_type',
+        validators=[validators.DataRequired("Please choose company.")],
+        choices=[
+            ('daniednia', 'Danie dnia'),
+            ('tygodniowe', 'Danie tygodniowe'),
+            ('menu', 'Danie z menu'),
+        ]
     )
 
     def __init__(self, *args, **kwargs):

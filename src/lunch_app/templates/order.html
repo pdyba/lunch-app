@@ -6,30 +6,85 @@
 
     <script src="{{ url_for('static', filename='js/order_script.js') }}"></script>
 
+
     <h1>Add order</h1>
 
     <div class="large-6 columns">
         <h3>Available meals</h3>
 
         <p>
+
         <ul class="square">
+            <h5>Tomas</h5>
             {% for meal in foods %}
-                <li>
-                    <a class='meal_menu_link'
-                       data-desc="{{ meal.description }}"
-                       data-cost="{{ meal.cost }}"
-                       data-comp="{{ meal.company }}"
-                       href="#">
-                        {{ meal.company }} - {{ meal.description }} (<b>{{ meal.cost }} PLN </b>)
-                    </a>
-                </li>
+                {% if meal.company == 'Tomas' and meal.o_type != 'menu' %}
+                    <li>
+                 <span data-tooltip aria-haspopup="true" class="has-tip"
+                              title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                            <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
+                        <a class='meal_menu_link'
+                           data-desc="{{ meal.description }}"
+                           data-cost="{{ meal.cost }}"
+                           data-comp="{{ meal.company }}"
+                           href="#">
+                            {{ meal.description }}
+                            (<b>{{ meal.cost }} PLN</b>)
+                        </a>
+                    </li>
+                {% endif %}
             {% endfor %}
+
+            <h5>Pod Koziłkiem</h5>
+            {% for meal in foods %}
+                {% if meal.company == 'Pod Koziołkiem' and meal.o_type != 'menu' %}
+                    <li>
+                <span data-tooltip aria-haspopup="true" class="has-tip"
+                              title="{% if meal.o_type == 'tygodniowe' %}Meal avalaible for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                            <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
+                        <a class='meal_menu_link'
+                           data-desc="{{ meal.description }}"
+                           data-cost="{{ meal.cost }}"
+                           data-comp="{{ meal.company }}"
+                           href="#">
+                            {{ meal.description }}
+                            (<b>{{ meal.cost }} PLN</b>)
+                        </a>
+                    </li>
+
+                {% endif %}
+            {% endfor %}
+
         </ul>
+        <ul class="accordion" data-accordion>
+            <li class="accordion-navigation">
+                <a href="#panel1a">Food from standard Menu</a>
+
+                <div id="panel1a" class="content">
+                    {% for meal in foods %}
+                    {% if meal.o_type == 'menu' %}
+                        <span data-tooltip aria-haspopup="true" class="has-tip"
+                              title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                            <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
+                        <a class='meal_menu_link'
+                           data-desc="{{ meal.description }}"
+                           data-cost="{{ meal.cost }}"
+                           data-comp="{{ meal.company }}"
+                           href="#">
+                            {{ meal.description }}
+                            (<b>{{ meal.cost }} PLN</b>)</a>
+                        <br>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </li>
+        </ul>
+
+
     </div>
 
 
     <div class="large-6 columns">
-        <form action="" method="post" name="order">
+        <form id="myform" action="" method="post" name="order">
             {{ form.crsf_token }}
             {% for field_name, field_errors in form.errors|dictsort if field_errors %}
                 {% for error in field_errors %}
@@ -56,11 +111,24 @@
             </div>
 
             <input type="submit" value="send" class="button right">
-
+            <input id="reset" type="reset" value="reset" class="button left">
         </form>
 
     </div>
 
+    <script src="{{ url_for('static', filename='js/foundation/foundation.accordion.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.tooltip.js') }}"></script>
+
+    <script>
+        $(document).foundation({
+            accordion: {
+                callback: function (accordion) {
+                    console.log(accordion);
+                }
+            }
+
+        });
+    </script>
 
 
 {% endblock %}
