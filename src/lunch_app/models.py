@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Models for lunch app db.
 """
