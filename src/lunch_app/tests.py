@@ -144,6 +144,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'date_available_to': '2015-01-01',
             'company': 'Pod Koziołkiem',
             'date_available_from': '2015-01-01',
+            'o_type': 'daniednia',
         }
         resp_2 = self.client.post('/add_food', data=data)
         food_db = Food.query.first()
@@ -152,6 +153,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(food_db.description, 'dobre_jedzonko')
         self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
         self.assertEqual(
             food_db.date_available_from,
             datetime(2015, 1, 1, 0, 0)

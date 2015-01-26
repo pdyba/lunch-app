@@ -11,7 +11,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.admin import Admin
 from flask.ext.script import Manager
-from flask.ext.migrate import Migrate, MigrateCommand, upgrade, init, migrate as mig
+from flask.ext.migrate import Migrate
 
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends

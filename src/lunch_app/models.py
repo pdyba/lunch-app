@@ -96,8 +96,6 @@ class Food(db.Model):
     o_type = Column(String(100))
 
 
-
-
 class Finance(db.Model):
     """
     Finance model - did user paid that month.
