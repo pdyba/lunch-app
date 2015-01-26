@@ -1,6 +1,8 @@
 """
 Lunch App Forms
 """
+# pylint: disable=too-few-public-methods
+
 from wtforms import (
     Form,
     validators,

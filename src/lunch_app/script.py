@@ -2,8 +2,8 @@
 """
 Startup utilities.
 """
-# pylint: disable=invalid-name, unused-variable disable=missing-docstring
-# pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
+# pylint: disable=invalid-name, unused-variable
+
 import os
 import subprocess
 from functools import partial
@@ -37,7 +37,7 @@ def make_app(global_cfg=None, cfg=DEPLOY_CFG, log_cfg=DEPLOY_INI, debug=False):
     """
     global_cfg = {} if global_cfg is None else global_cfg
     fileConfig(log_cfg)
-    from lunch_app import app, init
+    from .main import app, init
     app.config.from_pyfile(abspath(cfg))
     app.debug = debug
     init()
@@ -115,8 +115,8 @@ def run():
         else:
             make_app()
 
-        from lunch_app import app, db
-        from lunch_app import models
+        from .main import app, db
+        from . import models
         db.create_all()
 
     werkzeug.script.run()

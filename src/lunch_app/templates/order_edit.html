@@ -5,24 +5,24 @@
 {% block content %}
 
     <div class="large-6 columns">
-        <h3>Order Details</h3>
+        <h3>Edit order</h3>
 
         <form method="POST">
-            <b>Date:</b>
+            <b>Date</b>
             {{ form.date }}
-            <b>Arrival Time:</b>
+            <b>Arrival time</b>
             {{ form.arrival_time }}
-            <b>Company:</b>
+            <b>Company</b>
             {{ form.company }}
-            <b>Cost:</b>
+            <b>Cost</b>
             {{ form.cost }}
-            <b>Description:</b>
+            <b>Description</b>
             {{ form.description }}
-            <b>User:</b>
+            <b>User</b>
             {{ form.user_name }}
 
 
-            <input type="submit" value="commit" class="button right">
+            <input type="submit" value="save" class="button right">
 
         </form>
     </div>

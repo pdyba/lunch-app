@@ -4,8 +4,8 @@
 
 {% block content %}
     <div class="large-12 columns">
-        <h3>My all orders</h3>
-        <h5>Total cost: {{ orders_cost }} pln</h5>
+        <h3>My orders</h3>
+        <h5>Total cost - {{ orders_cost }} PLN</h5>
         <table>
             <thead>
             <tr>
@@ -21,7 +21,7 @@
 
                     <td>{{ order.date }}</td>
                     <td>{{ order.company }}</td>
-                    <td>{{ order.cost }} pln</td>
+                    <td>{{ order.cost }} PLN</td>
                     <td>
                         <a href="{{ url_for('order_details', order_id=order.id) }}">
                             {{ order.description }} </a>
