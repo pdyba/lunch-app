@@ -11,7 +11,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.admin import Admin
 from flask.ext.script import Manager
-from flask.ext.migrate import Migrate, MigrateCommand
+from flask.ext.migrate import Migrate
 
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
@@ -99,8 +99,5 @@ admin = Admin(app)
 api = restful.Api(app)
 
 migrate = Migrate(app, db)
-
-manager = Manager(app)
-manager.add_command('db', MigrateCommand)
 
 mail = Mail()
