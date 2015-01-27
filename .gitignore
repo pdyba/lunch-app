@@ -68,3 +68,4 @@ target/
 email_conf.py
 buildout_local.cfg
 test.cfg
+local.cfg

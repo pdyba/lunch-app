@@ -5,7 +5,7 @@
 {% block content %}
 
     <div class="large-6 columns">
-        <h1>Food Adder</h1>
+        <h1>Add food</h1>
 
         <form action="" method="post" name="order">
 
@@ -20,31 +20,34 @@
                 {% endfor %}
             {% endfor %}
             <div class="small-12 columns">
-                Company: {{ form.company }}
-                <b>Please enter description:</b>
-
-                {{ form.description }}
+                Company {{ form.company }}
+                Description {{ form.description }}
             </div>
             <div class="small-4 columns">
-                <label for="right-label" class="right">Cost: </label>
+                <label for="right-label" class="right">Cost</label>
             </div>
             <div class="small-8 columns">
                 {{ form.cost }}
+            </div><div class="small-4 columns">
+                <label for="right-label" class="right">Type</label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.o_type }}
             </div>
             <div class="small-4 columns">
-                <label for="right-label" class="right">Available from:</label>
+                <label for="right-label" class="right">Available from</label>
             </div>
             <div class="small-8 columns">
                 {{ form.date_available_from }}
             </div>
 
             <div class="small-4 columns">
-                <label for="right-label" class="right">Available to:</label>
+                <label for="right-label" class="right">Available to</label>
             </div>
             <div class="small-8 columns">
                 {{ form.date_available_to }}
 
-                <input type="submit" value="commit" class="button right">
+                <input type="submit" value="add" class="button right">
 
         </form>
     </div>

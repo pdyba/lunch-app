@@ -11,10 +11,15 @@
           media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/foundation.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/general_foundicons.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/stx_style.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
+
     <link rel="shortcut icon"
           href="{{ url_for('static', filename='img/favicon.ico') }}"
           type="image/x-icon">
@@ -58,10 +63,10 @@
                                 </a>
                                     <ul class="dropdown">
                                         <li {% if page_id == 'my_orders' %}
-                                            class="active" {% endif %}><a
-                                                href="{{ url_for('my_orders') }}">My
-                                            ALL
-                                            Orders</a>
+                                            class="active" {% endif %}>
+                                            <a href="{{ url_for('my_orders') }}">
+                                                My orders
+                                            </a>
                                         </li>
                                     </ul>
                                 </li>
@@ -71,17 +76,17 @@
                                     <li {% if page_id == 'add_food' %}
                                         class="active" {% endif %}><a
                                             href="{{ url_for('add_food') }}">Add
-                                        Food</a>
+                                        food</a>
                                     </li>
                                     <li {% if page_id == 'day_summary' %}
                                         class="active" {% endif %}><a
                                             href="{{ url_for('day_summary') }}">Day
-                                        Summary</a></li>
+                                        summary</a></li>
                                     </li>
                                     <li {% if page_id == 'company_summary' %}
                                         class="active" {% endif %}><a
                                             href="{{ url_for('company_summary_view') }}">
-                                        Company Summary</a>
+                                        Company summary</a>
                                     </li>
                                 {% endif %}
                             </ul>
@@ -118,8 +123,10 @@
 </body>
 
 <bottom>
-    <div class="large-12 columns">
+    <div class="large-12 columns small-text-right">
 
+<hr>
+        <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
     </div>
 </bottom>
 </html>

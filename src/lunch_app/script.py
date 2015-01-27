@@ -2,8 +2,8 @@
 """
 Startup utilities.
 """
-# pylint: disable=invalid-name, unused-variable disable=missing-docstring
-# pylint: disable=missing-docstring, W0621, C0103, W0612, W0611
+# pylint: disable=invalid-name, unused-variable
+
 import os
 import subprocess
 from functools import partial
@@ -37,20 +37,22 @@ def make_app(global_cfg=None, cfg=DEPLOY_CFG, log_cfg=DEPLOY_INI, debug=False):
     """
     global_cfg = {} if global_cfg is None else global_cfg
     fileConfig(log_cfg)
-    from lunch_app import app, init
+    from .main import app, init
     app.config.from_pyfile(abspath(cfg))
     app.debug = debug
     init()
     return app
 
 
-def make_debug(global_cfg=None, **conf):
+def make_debug(with_debug_layer=True, global_cfg=None, **conf):
     """
     Create and configure Flask app in debug mode.
     """
     global_cfg = {} if global_cfg is None else global_cfg
     from werkzeug.debug import DebuggedApplication
     app = make_app(global_cfg, cfg=DEBUG_CFG, log_cfg=DEBUG_INI, debug=True)
+    if not with_debug_layer:
+        return app
     return DebuggedApplication(app, evalex=True)
 
 
@@ -115,9 +117,24 @@ def run():
         else:
             make_app()
 
-        from lunch_app import app, db
-        from lunch_app import models
+        from .main import app, db
+        from . import models
         db.create_all()
+
+    def action_db_migrate(action=('a', 'start'), debug=False):
+        from flask.ext.migrate import upgrade, init, migrate
+        if debug:
+            app = make_debug(with_debug_layer=False)
+        else:
+            app = make_app()
+
+        with app.app_context():
+            if action == 'init':
+                init()
+            elif action == 'migrate':
+                migrate()
+            elif action == 'upgrade':
+                upgrade()
 
     werkzeug.script.run()
 

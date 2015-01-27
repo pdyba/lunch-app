@@ -18,9 +18,7 @@ from .models import Order, Food, User
 from .permissions import user_is_admin
 
 import logging
-
 log = logging.getLogger(__name__)
-
 
 
 @app.route('/')
@@ -52,18 +50,12 @@ def create_order():
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
     today_to = datetime.datetime.combine(day, datetime.time(0, 0))
-    food = Food.query.filter(
+    foods = Food.query.filter(
         and_(
             Food.date_available_from <= today_from,
             Food.date_available_to >= today_to,
         )
     ).all()
-    food_list = [(" ", " ")]
-    for meal in food:
-        label = "{meal.company} " \
-                " | {meal.cost} pln | " \
-                "{meal.description}".format(meal=meal)
-        food_list.append((label, label))
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
@@ -72,19 +64,20 @@ def create_order():
 
         db.session.add(order)
         db.session.commit()
-        flash('Order Accepted')
+        flash('Order created')
         if form.send_me_a_copy.data:
             msg = Message(
-                'STXNext Lunch App Your Order '
-                '{date}'.format(date=datetime.date.today()),
+                'Lunch order - {}'.format(datetime.date.today()),
                 recipients=[current_user.email],
             )
-            msg.body = "Your today order is: \n {order.description} \n " \
-                       "from {order.company} it cost {order.cost}zl and will " \
-                       "come at {order.arrival_time}".format(order=order)
+            msg.body = "Today you ordered {order.description} " \
+                       "from {order.company} ({order.cost} PLN).\n" \
+                       "It should be delivered at " \
+                       "{order.arrival_time}".format(order=order)
             mail.send(msg)
+            flash('Mail send')
         return redirect('order')
-    return render_template('order.html', form=form, food=food)
+    return render_template('order.html', form=form, foods=foods)
 
 
 @app.route('/add_food', methods=['GET', 'POST'])
@@ -100,7 +93,7 @@ def add_food():
         form.populate_obj(food)
         db.session.add(food)
         db.session.commit()
-        flash('Food Created')
+        flash('Food added')
         return redirect('add_food')
     return render_template('add_food.html', form=form)
 
@@ -215,7 +208,7 @@ def edit_order(order_id):
     if request.method == 'POST' and form.validate():
         form.populate_obj(order)
         db.session.commit()
-        flash('Order Edited')
+        flash('Order changed')
         return redirect('day_summary')
     return render_template('order_edit.html', form=form)
 

@@ -2,16 +2,17 @@
 """
 Presence analyzer unit tests.
 """
+# pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
+
 from datetime import datetime, date, timedelta
 import os.path
 import unittest
 from unittest.mock import Mock, patch
 
-from lunch_app import main, db, app
-from lunch_app import utils
-from lunch_app.models import Order, Food, User
+from .main import app, db, mail
+from . import main, utils
+from .models import Order, Food, User
 
-# pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
 
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
@@ -28,11 +29,8 @@ def setUp():
         os.path.dirname(__file__),
         '..', '..', 'parts', 'etc', 'test.cfg',
     )
-    main.app.config.from_pyfile(test_config)
-    main.app.config['WTF_CSRF_ENABLED'] = False
+    app.config.from_pyfile(test_config)
     main.init()
-    db.init_app(app)
-    db.create_all()
 
 
 class LunchBackendViewsTestCase(unittest.TestCase):
@@ -44,14 +42,15 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Before each test, set up a environment.
         """
-
         self.client = main.app.test_client()
+        db.create_all()
 
     def tearDown(self):
         """
         Get rid of unused objects after each test.
         """
-        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
 
     def test_mainpage_view(self):
         """
@@ -99,7 +98,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'arrival_time': '12:00',
         }
         resp = self.client.post('/order', data=data)
-        order_db = Order.query.all()[-1]
+        order_db = Order.query.first()
         self.assertTrue(resp.status_code == 302)
         self.assertEqual(order_db.cost, 12)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
@@ -112,27 +111,25 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order with send me an email.
         """
-        data = {
-            'cost': '13',
-            'company': 'Pod Koziołkiem',
-            'description': 'To jest TESTow zamowienie dla emaila',
-            'send_me_a_copy': 'true',
-            'date': '2015-01-02',
-            'arrival_time': '13:00',
-        }
-
-        resp = self.client.post('/order', data=data)
-        order_db = Order.query.first()
-        self.assertTrue(resp.status_code == 302)
-        self.assertEqual(order_db.cost, 13)
-        self.assertEqual(order_db.company, 'Pod Koziołkiem')
-        self.assertEqual(
-            order_db.description,
-            'To jest TESTow zamowienie dla emaila',
-        )
-        self.assertEqual(order_db.date, datetime(2015, 1, 2, 0, 0))
-        self.assertEqual(order_db.arrival_time, '13:00')
-        self.assertEqual(order_db.user_name, 'test_user')
+        with mail.record_messages() as outbox:
+            data = {
+                'cost': '13',
+                'company': 'Pod Koziołkiem',
+                'description': 'To jest TESTow zamowienie dla emaila',
+                'send_me_a_copy': 'true',
+                'date': '2015-01-02',
+                'arrival_time': '13:00',
+            }
+            resp = self.client.post('/order', data=data)
+            self.assertTrue(resp.status_code == 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('Lunch order'))
+            self.assertIn('To jest TESTow zamowienie dla emaila', msg.body)
+            self.assertIn('Pod Koziołkiem', msg.body)
+            self.assertIn('13 PLN', msg.body)
+            self.assertIn('at 13:00', msg.body)
+            self.assertEqual(msg.recipients, ['mock@mock.com'])
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_add_food_view(self):
@@ -147,6 +144,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'date_available_to': '2015-01-01',
             'company': 'Pod Koziołkiem',
             'date_available_from': '2015-01-01',
+            'o_type': 'daniednia',
         }
         resp_2 = self.client.post('/add_food', data=data)
         food_db = Food.query.first()
@@ -155,6 +153,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(food_db.description, 'dobre_jedzonko')
         self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
         self.assertEqual(
             food_db.date_available_from,
             datetime(2015, 1, 1, 0, 0)
@@ -202,13 +201,12 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         db.session.commit()
         data = {'year': '2015', 'user': '1'}
         resp = self.client.post('/order_list', data=data)
-        print(resp.data)
         self.assertEqual(resp.status_code, 302)
-        self.assertEquals(resp.location, 'http://localhost/order_list/1/2015')
+        self.assertEqual(resp.location, 'http://localhost/order_list/1/2015')
         data = {'year': '2015', 'month': '1', 'user': '1'}
         resp = self.client.post('/order_list', data=data)
         self.assertEqual(resp.status_code, 302)
-        self.assertEquals(
+        self.assertEqual(
             resp.location,
             'http://localhost/order_list/1/2015/1'
         )
@@ -305,7 +303,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         data = {'year': '2015', 'month': '1'}
         resp = self.client.post('/company_summary', data=data)
         self.assertEqual(resp.status_code, 302)
-        self.assertEquals(
+        self.assertEqual(
             resp.location,
             'http://localhost/company_summary/2015/1',
         )
@@ -329,7 +327,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         order.user_name = 'test_user'
         order.arrival_time = '12:00'
         db.session.add(order)
-        order_2= Order()
+        order_2 = Order()
         order_2.date = date(2015, 1, 5)
         order_2.description = 'Duzy Gruby Nalesnik'
         order_2.company = 'Pod Koziołkiem'
@@ -365,7 +363,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
         """
         Test current date.
         """
-        self.assertEquals(utils.get_current_date(), date.today())
+        self.assertEqual(utils.get_current_date(), date.today())
 
     def test_get_current_datetime(self):
         """
@@ -381,7 +379,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
         """
         Test make date.
         """
-        self.assertEquals(
+        self.assertEqual(
             utils.make_date(datetime.now()),
             date.today()
         )

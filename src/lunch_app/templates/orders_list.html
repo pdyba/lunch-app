@@ -5,19 +5,19 @@
 {% block content %}
 
     <div class="large-6 columns">
-        <h3>Order list Year View</h3>
+        <h3>Order list</h3>
 
         <form method="POST">
-            <b>Year:</b>
+            <b>Year</b>
             {{ form.year }}
-            <b>Month:</b>
+            <b>Month</b>
             {{ form.month }}
             {% if current_user.is_admin %}
-                <b>User:</b>
+                <b>User</b>
                 {{ form.user }}
             {% endif %}
 
-            <input type="submit" value="commit" class="button right">
+            <input type="submit" value="submit" class="button right">
 
         </form>
     </div>

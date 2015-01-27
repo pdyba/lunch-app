@@ -33,6 +33,9 @@ setup(
         'python-social-auth',
      #   'psycopg2',
         'Flask-Admin',
+        'Flask-Mail',
+        'Flask-Script',
+        'Flask-Migrate',
     ],
     entry_points="""
     [console_scripts]
