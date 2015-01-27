@@ -4,18 +4,22 @@ Flask app initialization.
 """
 # pylint: disable=invalid-name, unused-variable, unused-import
 
-from flask import Flask, g
-from flask.ext import restful, login
-from flask.ext.mail import Mail
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, current_user
-from flask.ext.admin import Admin
-from flask.ext.script import Manager
-from flask.ext.migrate import Migrate
+import os.path
 
+from flask import Flask, g
+
+from flask.ext import restful, login
+from flask.ext.admin import Admin
+from flask.ext.edits import Edits
+from flask.ext.login import LoginManager, current_user
+from flask.ext.mail import Mail
+from flask.ext.migrate import Migrate
+from flask.ext.script import Manager
+from flask.ext.sqlalchemy import SQLAlchemy
+
+from social.apps.flask_app.default.models import init_social
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
-from social.apps.flask_app.default.models import init_social
 
 
 def init_social_login():
@@ -101,3 +105,8 @@ api = restful.Api(app)
 migrate = Migrate(app, db)
 
 mail = Mail()
+
+app.config['EDITS_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'edits.json')
+app.config['EDITS_URL'] = '/edits'
+edits = Edits(app)
+app.jinja_env.add_extension('flask.ext.edits.EditableExtension')
