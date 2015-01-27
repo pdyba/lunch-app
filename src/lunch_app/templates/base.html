@@ -16,7 +16,10 @@
     <link href="{{ url_for('static', filename='css/stx_style.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
+
     <link rel="shortcut icon"
           href="{{ url_for('static', filename='img/favicon.ico') }}"
           type="image/x-icon">
@@ -120,10 +123,10 @@
 </body>
 
 <bottom>
-    <div class="large-12 columns">
+    <div class="large-12 columns small-text-right">
 
 <hr>
-        <h6>Created by STX</h6>
+        <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
     </div>
 </bottom>
 </html>
