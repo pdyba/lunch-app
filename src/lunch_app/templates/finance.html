@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% set page_id = 'finance' %}
+
+{% block content %}
+
+    <h3>Finance</h3>
+
+    <div class="large-12 columns">
+
+        <div class="left">
+
+            <ul class="breadcrumbs">
+                <li>{{ pub_date['month'] }} {{ pub_date['year'] }}</li>
+
+            </ul>
+        </div>
+    </div>
+    <form method="POST">
+    <table>
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Number of Orders</th>
+            <th>Month Cost</th>
+            <th>Paid?</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for record in finance_data %}
+            <tr>
+
+                <td>{{ record['username'] }}</td>
+                <td>{{ record['number_of_orders'] }}</td>
+                <td>{{ record['month_cost'] }} PLN</td>
+                <td>{{ record['did_user_pay'].did_user_pay }}</td>
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+    </table>
+    <input type="submit" value="send" class="button right">
+    </form>
+    </div>
+
+{% endblock %}

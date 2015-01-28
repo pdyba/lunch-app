@@ -141,3 +141,9 @@ class AddFood(Form):
 
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
+
+class DidUserPayForm(Form):
+    """
+    Did user Pay bool field
+    """
+    did_user_pay = BooleanField('did_user_pay', default=False)

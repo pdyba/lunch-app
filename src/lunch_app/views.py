@@ -13,8 +13,9 @@ from flask.ext.mail import Message
 from sqlalchemy import and_
 
 from .main import app, db, mail
-from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, CompanyOrders
-from .models import Order, Food, User
+from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, CompanyOrders, \
+    DidUserPayForm
+from .models import Order, Food, User, Finance
 from .permissions import user_is_admin
 
 import logging
@@ -455,20 +456,59 @@ def finance():
     ).all()
     finance_data = []
     for user in users:
+        form = DidUserPayForm(formdata=request.form)
         user_data = {
-            'user_id': 'username',
-            'number of orders': 0,
-            'month cost': 0,
+            'username': user.username,
+            'number_of_orders': 0,
+            'month_cost': 0,
+            'did_user_pay': form,
         }
         for order in orders:
             if user.username == order.user_name:
-                user_data['number of orders'] += 1
-                user_data['month cost'] += order.cost
+                user_data['number_of_orders'] += 1
+                user_data['month_cost'] += order.cost
+        finance_query = Finance.query.filter(
+            and_(
+                Finance.month == this_month.month,
+                Finance.year == this_month.year,
+                Finance.user_name == user.username,
+            )
+        ).first()
+        if finance_query and finance_query.did_user_pay:
+            form = DidUserPayForm(formdata=request.form, obj=finance_query)
+            user_data['did_user_pay'] = form
+        if user_data['month_cost'] != 0:
+            finance_data.append(user_data)
 
-        finance_data.append(user_data)
+    pub_date = {'year': this_month.year, 'month': month_name[this_month.month]}
+    finance_record = Finance()
+
+    if request.method == 'POST':
+        for row in finance_data:
+            if row['did_user_pay'].validate():
+                finance_record.did_user_pay = form.did_user_pay.data
+                finance_record.month = this_month.month
+                finance_record.year = this_month.year
+                finance_record.user_name = row['username']
+                finance_querry = Finance.query.filter(
+                    and_(
+                        Finance.month == this_month.month,
+                        Finance.year == this_month.year,
+                        Finance.user_name == row['username'],
+                    )
+                ).first()
+                if finance_querry:
+                    import pdb; pdb.set_trace()
+                    finance_querry.did_user_pay = finance_record.did_user_pay
+                    db.session.commit()
+                else:
+                    db.session.add(finance_record)
+                    db.session.commit()
+                flash('Finances changes submitted successfully')
+        return redirect('finance')
 
     return render_template(
         'finance.html',
         finance_data=finance_data,
-
+        pub_date=pub_date,
     )

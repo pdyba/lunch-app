@@ -9,7 +9,7 @@ from datetime import datetime
 from flask.ext.login import UserMixin
 
 from sqlalchemy import Column
-from sqlalchemy.types import Integer, String, Boolean, Unicode, DateTime
+from sqlalchemy.types import Integer, String, Boolean, Unicode, DateTime, Time
 
 from .main import db
 
@@ -54,8 +54,8 @@ class Order(db.Model):
     id = Column(Integer, primary_key=True)
     description = Column(String(800), unique=False)
     cost = Column(Integer)
-    arrival_time = Column(Integer)
-    company = Column(Integer)
+    arrival_time = Column(String(5))
+    company = Column(String(80))
     date = Column(DateTime)
     user_name = Column(String(80), db.ForeignKey('user.name'))
 
@@ -103,7 +103,7 @@ class Finance(db.Model):
     """
     __tablename__ = 'finance'
     id = Column(Integer, primary_key=True)
-    user_name = Column(String(80), db.ForeignKey('user.name'))
+    user_name = Column(String(80), db.ForeignKey('user.username'))
     month = Column(Integer)
     year = Column(Integer)
     did_user_pay = Column(Boolean, default=False)
