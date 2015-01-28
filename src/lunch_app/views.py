@@ -360,6 +360,7 @@ def order_list_month_view(year, month, user_id):
 
 @app.route('/company_summary', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def company_summary_view():
     """
     Renders company query page form.
@@ -376,6 +377,7 @@ def company_summary_view():
 
 @app.route('/company_summary/<int:year>/<int:month>', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def company_summary_month_view(year, month):
     """
     Renders companies month list page.
@@ -420,4 +422,53 @@ def company_summary_month_view(year, month):
         orders_tomas_cost=orders_tomas_cost,
         orders_koziol_cost=orders_koziol_cost,
         pub_date=pub_date,
+    )
+
+@app.route('/finance', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def finance():
+    this_month = datetime.date.today()
+    month_begin = datetime.datetime(
+        year=this_month.year,
+        month=this_month.month,
+        day=1,
+        hour=0,
+        minute=0,
+        second=1
+    )
+    day = monthrange(this_month.year, this_month.month)[1]
+    month_end = datetime.datetime(
+        year=this_month.year,
+        month=this_month.month,
+        day=day,
+        hour=23,
+        minute=59,
+        second=59
+    )
+    users = User.query.all()
+    orders = Order.query.filter(
+        and_(
+            Order.date >= month_begin,
+            Order.date <= month_end,
+        )
+    ).all()
+    finance_data = []
+    for user in users:
+        user_data = {
+            'user_id': 'username',
+            'number of orders': 0,
+            'month cost': 0,
+        }
+        for order in orders:
+            if user.username == order.user_name:
+                user_data['number of orders'] += 1
+                user_data['month cost'] += order.cost
+
+        finance_data.append(user_data)
+
+    return render_template(
+        'finance.html',
+        finance_data=finance_data,
+
     )

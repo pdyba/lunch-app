@@ -3,6 +3,7 @@
 Flask app initialization.
 """
 # pylint: disable=invalid-name, unused-variable, unused-import
+from collections import OrderedDict
 
 import os.path
 
@@ -109,4 +110,7 @@ mail = Mail()
 app.config['EDITS_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'edits.json')
 app.config['EDITS_URL'] = '/edits'
 edits = Edits(app)
-app.jinja_env.add_extension('flask.ext.edits.EditableExtension')
+app.config['EDITS_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'edits.json')
+app.config['EDITS_URL'] = '/edits'
+
+
