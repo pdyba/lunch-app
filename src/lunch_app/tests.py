@@ -74,6 +74,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/my_orders')
         self.assertEqual(resp.status_code, 200)
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_overview_view(self):
         """
         Test overview page.
@@ -94,7 +95,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'company': 'Pod Koziołkiem',
             'description': 'dobre_jedzonko',
             'send_me_a_copy': 'false',
-            'date': '2015-01-01',
             'arrival_time': '12:00',
         }
         resp = self.client.post('/order', data=data)
@@ -103,7 +103,11 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(order_db.cost, 12)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
         self.assertEqual(order_db.description, 'dobre_jedzonko')
-        self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
+        self.assertAlmostEqual(
+            order_db.date,
+            datetime.now(),
+            delta=(timedelta(seconds=1)),
+        )
         self.assertEqual(order_db.arrival_time, '12:00')
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
@@ -282,8 +286,8 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'company': 'Pod Koziołkiem',
             'description': 'dobre_jedzonko',
             'send_me_a_copy': 'false',
-            'date': '2015-01-01',
             'arrival_time': '12:00',
+            'date': '2015-01-01',
         }
         resp = self.client.post('/order_edit/1/', data=data)
         order_db = Order.query.first()
@@ -291,9 +295,10 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(order_db.cost, 12)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
         self.assertEqual(order_db.description, 'dobre_jedzonko')
-        self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(order_db.arrival_time, '12:00')
+        self.assertEqual(order_db.date, datetime(2015, 1, 1))
 
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_company_summary_view(self):
         """
         Test company summary view page.
@@ -310,6 +315,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/company_summary/2015/1')
         self.assertEqual(resp.status_code, 200)
 
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_company_summary_month_view(self):
         """
         Test company summary month page.

@@ -54,8 +54,6 @@ class OrderForm(Form):
         ]
     )
     send_me_a_copy = BooleanField('send_me_a_copy', default=False)
-    today_date = datetime.now().replace(microsecond=0)
-    date = DateField(default=today_date, format='%Y-%m-%d')
 
 
 class OrderEditForm(OrderForm):
@@ -63,6 +61,7 @@ class OrderEditForm(OrderForm):
     New Order Eidt Form
     """
     user_name = TextAreaField("description")
+    date = DateField("date")
 
 
 class UserOrders(Form):
@@ -118,7 +117,6 @@ class AddFood(Form):
                 ),
         ]
     )
-    today_date = date.today()
     date_available_from = DateField(
         label='date_available',
         default=datetime(2015, 1, 1, 0, 0, 0),
@@ -142,15 +140,17 @@ class AddFood(Form):
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
 
+
 class DidUserPayForm(Form):
     """
     Did user Pay bool field
     """
-    did_user_pay =  SelectField(
+    did_user_pay = SelectField(
         'did_user_pay',
         choices=[('1', 'Tak'), ('0', 'Nie')],
-        default='0'
+        default='0',
     )
+
 
 class MailTextForm(Form):
     """
@@ -184,10 +184,6 @@ class MailTextForm(Form):
 
 class UserDailyReminderForm(Form):
     """
-    Did user Pay bool field
+    Did user Pay field
     """
-    i_want_daily_reminder = SelectField(
-        'i_want_daily_reminder',
-        choices=[('1', 'Tak'), ('0', 'Nie')],
-        default='0'
-    )
+    i_want_daily_reminder = BooleanField('i_want_daily_reminder', default=False)

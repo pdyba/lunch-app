@@ -42,11 +42,13 @@ def overview():
     """
 
     user = User.query.filter(User.username == current_user.username).first()
-    form = UserDailyReminderForm(request.form, obj=user.i_want_daily_reminder)
+    form = UserDailyReminderForm(formdata=request.form, obj=user)
+
     if request.method == 'POST' and form.validate():
         import pdb; pdb.set_trace()
         user.i_want_daily_reminder = form.i_want_daily_reminder.data
         db.session.commit()
+        return redirect('overview')
     return render_template('overview.html', form=form)
 
 
@@ -472,7 +474,7 @@ def finance():
             'username': user.username,
             'number_of_orders': 0,
             'month_cost': 0,
-            'did_user_pay': DidUserPayForm(formdata=request.form),
+            'did_user_pay': False,
         }
         for order in orders:
             if user.username == order.user_name:
@@ -486,39 +488,35 @@ def finance():
             )
         ).first()
         if finance_query and finance_query.did_user_pay:
-            finance_data[user.username]['did_user_pay'] = DidUserPayForm(
-                formdata=request.form, obj=finance_query)
+            finance_data[user.username]['did_user_pay'] = True
         if finance_data[user.username]['month_cost'] == 0:
             del finance_data[user.username]
 
     pub_date = {'year': this_month.year, 'month': month_name[this_month.month]}
+
     finance_record = Finance()
 
     if request.method == 'POST':
         for row in finance_data.values():
-            if row['did_user_pay'].validate():
-                finance_record.did_user_pay = row[
-                    'did_user_pay'].did_user_pay.data
-                finance_record.month = this_month.month
-                finance_record.year = this_month.year
-                finance_record.user_name = row['username']
-                finance_querry = Finance.query.filter(
-                    and_(
-                        Finance.month == this_month.month,
-                        Finance.year == this_month.year,
-                        Finance.user_name == row['username'],
-                    )
-                ).first()
-                if finance_querry:
-                    import pdb;
-
-                    pdb.set_trace()
-                    finance_querry.did_user_pay = finance_record.did_user_pay
-                    db.session.commit()
-                else:
-                    db.session.add(finance_record)
-                    db.session.commit()
-                flash('Finances changes submitted successfully')
+            finance_record.did_user_pay = request.form.get('did_user_pay_'+row['username'], 'off') == 'on'
+            finance_record.month = this_month.month
+            finance_record.year = this_month.year
+            finance_record.user_name = row['username']
+            finance_querry = Finance.query.filter(
+                and_(
+                    Finance.month == this_month.month,
+                    Finance.year == this_month.year,
+                    Finance.user_name == row['username'],
+                )
+            ).first()
+            if finance_querry:
+                # import pdb; pdb.set_trace()
+                finance_querry.did_user_pay = finance_record.did_user_pay
+                db.session.commit()
+            else:
+                db.session.add(finance_record)
+                db.session.commit()
+            flash('Finances changes submitted successfully')
         return redirect('finance')
 
     return render_template(
@@ -621,16 +619,38 @@ def finance_mail_all():
                                                this_month.year),
                 recipients=[record['username']],
             )
-            msg.body = "In {} you ordered {} meals" \
-                       " for {} PLN.\n {}".format(
+            msg.body = "In {} you ordered {} meals for {} PLN.\n {}".format(
                 month_name[this_month.month],
                 record['number_of_orders'],
                 record['month_cost'],
                 message_text.monthly_pay_summary,
-            )
+                )
             mail.send(msg)
             flash('Mail send')
         return redirect('finance_mail_all')
 
-    pub_date = {'year': this_month.year, 'month': month_name[this_month.month]}
     return render_template('finance_mail_all.html', finance_data=finance_data)
+
+
+@app.route('/payment_remind/<string:username>/<int:slack>', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def payment_remind(username, slack=0):
+    """
+    Renders mail all page.
+    """
+    this_month = datetime.date.today()
+    message_text = MailText.query.first()
+    msg = Message(
+        'Lunch {} / {} payment reminder'.format(
+            month_name[this_month.month],
+            this_month.year),
+        recipients=[username],
+    )
+    if slack == 1:
+        msg.body = message_text.pay_slacker_reminder
+    else:
+        msg.body = message_text.pay_reminder
+    mail.send(msg)
+    flash('Mail send')
+    return redirect('finance')

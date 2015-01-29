@@ -57,7 +57,7 @@ class Order(db.Model):
     cost = Column(Integer)
     arrival_time = Column(String(5))
     company = Column(String(80))
-    date = Column(DateTime)
+    date = Column(DateTime, default=datetime.utcnow)
     user_name = Column(String(80), db.ForeignKey('user.name'))
 
     def __init__(
@@ -120,4 +120,3 @@ class MailText(db.Model):
     monthly_pay_summary = Column(String(800), unique=False)
     pay_reminder = Column(String(800), unique=False)
     pay_slacker_reminder = Column(String(800), unique=False)
-

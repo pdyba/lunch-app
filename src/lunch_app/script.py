@@ -122,6 +122,15 @@ def run():
         db.create_all()
 
     def action_db_migrate(action=('a', 'start'), debug=False):
+        """Migrate database.
+        db_migrate action:
+        init
+        migrate
+        upgrade
+
+        Options:
+        - '--debug' use debug configuration
+        """
         from flask.ext.migrate import upgrade, init, migrate
         if debug:
             app = make_debug(with_debug_layer=False)

@@ -107,10 +107,14 @@ migrate = Migrate(app, db)
 
 mail = Mail()
 
-app.config['EDITS_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'edits.json')
+app.config['EDITS_PATH'] = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'edits.json'
+)
 app.config['EDITS_URL'] = '/edits'
 edits = Edits(app)
-app.config['EDITS_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'edits.json')
+app.config['EDITS_PATH'] = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'edits.json',
+)
 app.config['EDITS_URL'] = '/edits'
-
-
