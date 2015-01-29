@@ -1,0 +1,16 @@
+<dl class="sub-nav">
+    <dt>Finance:</dt>
+
+    <dd {% if page_id == 'finance_main' %}
+        class="active" {% endif %}><a href="{{ url_for('finance') }}">Summary</a></dd>
+    <dd {% if page_id == 'finance_unpaid' %}
+        class="active" {% endif %}><a href="#">Not Paid</a></dd>
+<dd {% if page_id == 'finance_mail_text' %}
+        class="active" {% endif %}><a href="{{ url_for('finance_mail_text') }}">Mail Text</a></dd>
+    <dd {% if page_id == 'finance_mail_all' %}
+        class="active" {% endif %}><a href="{{ url_for('finance_mail_all') }}">Mail All</a></dd>
+
+    <dd {% if page_id == 'finance_search' %}
+        class="active" {% endif %}><a href="#">Search</a></dd>
+
+</dl>

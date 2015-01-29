@@ -20,7 +20,7 @@
                 {% if meal.company == 'Tomas' and meal.o_type != 'menu' %}
                     <li>
                  <span data-tooltip aria-haspopup="true" class="has-tip"
-                              title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                       title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
                         <a class='meal_menu_link'
                            data-desc="{{ meal.description }}"
@@ -39,7 +39,7 @@
                 {% if meal.company == 'Pod Koziołkiem' and meal.o_type != 'menu' %}
                     <li>
                 <span data-tooltip aria-haspopup="true" class="has-tip"
-                              title="{% if meal.o_type == 'tygodniowe' %}Meal avalaible for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                      title="{% if meal.o_type == 'tygodniowe' %}Meal avalaible for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
                         <a class='meal_menu_link'
                            data-desc="{{ meal.description }}"
@@ -61,18 +61,19 @@
 
                 <div id="panel1a" class="content">
                     {% for meal in foods %}
-                    {% if meal.o_type == 'menu' %}
-                        <span data-tooltip aria-haspopup="true" class="has-tip"
-                              title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                        {% if meal.o_type == 'menu' %}
+                            <span data-tooltip aria-haspopup="true"
+                                  class="has-tip"
+                                  title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
-                        <a class='meal_menu_link'
-                           data-desc="{{ meal.description }}"
-                           data-cost="{{ meal.cost }}"
-                           data-comp="{{ meal.company }}"
-                           href="#">
-                            {{ meal.description }}
-                            (<b>{{ meal.cost }} PLN</b>)</a>
-                        <br>
+                            <a class='meal_menu_link'
+                               data-desc="{{ meal.description }}"
+                               data-cost="{{ meal.cost }}"
+                               data-comp="{{ meal.company }}"
+                               href="#">
+                                {{ meal.description }}
+                                (<b>{{ meal.cost }} PLN</b>)</a>
+                            <br>
                         {% endif %}
                     {% endfor %}
                 </div>

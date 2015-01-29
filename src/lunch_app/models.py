@@ -26,6 +26,7 @@ class User(db.Model, UserMixin):
     password = Column(String(200), default='')
     username = Column(String(200))
     admin = Column(Boolean, default=False)
+    i_want_daily_reminder = Column(Boolean, default=False)
 
     def is_active(self):
         """
@@ -107,3 +108,16 @@ class Finance(db.Model):
     month = Column(Integer)
     year = Column(Integer)
     did_user_pay = Column(Boolean, default=False)
+
+
+class MailText(db.Model):
+    """
+    Mail text messages data base.
+    """
+    __tablename__ = 'mail_text_msg'
+    id = Column(Integer, primary_key=True)
+    daily_reminder = Column(String(800), unique=False)
+    monthly_pay_summary = Column(String(800), unique=False)
+    pay_reminder = Column(String(800), unique=False)
+    pay_slacker_reminder = Column(String(800), unique=False)
+

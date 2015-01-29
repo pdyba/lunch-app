@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 
-{% set page_id = 'finance' %}
+{% set page_id = 'finance_main' %}
 
 {% block content %}
 
-    <h3>Finance</h3>
+
 
     <div class="large-12 columns">
+
+        {% include "finance_base.html" %}
 
         <div class="left">
 
@@ -17,32 +19,32 @@
         </div>
     </div>
     <form method="POST">
-    <table>
-        <thead>
-        <tr>
-            <th>Username</th>
-            <th>Number of Orders</th>
-            <th>Month Cost</th>
-            <th>Paid?</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for record in finance_data %}
+        <table>
+            <thead>
             <tr>
-
-                <td>{{ record['username'] }}</td>
-                <td>{{ record['number_of_orders'] }}</td>
-                <td>{{ record['month_cost'] }} PLN</td>
-                <td>{{ record['did_user_pay'].did_user_pay }}</td>
-                </td>
-
+                <th>Username</th>
+                <th>Number of Orders</th>
+                <th>Month Cost</th>
+                <th>Paid?</th>
             </tr>
+            </thead>
+            <tbody>
+            {% for record in finance_data.values() %}
+                <tr>
 
-        {% endfor %}
+                    <td>{{ record['username'] }}</td>
+                    <td>{{ record['number_of_orders'] }}</td>
+                    <td>{{ record['month_cost'] }} PLN</td>
+                    <td>{{ record['did_user_pay'].did_user_pay }}</td>
+                    </td>
 
-        </tbody>
-    </table>
-    <input type="submit" value="send" class="button right">
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+        <input type="submit" value="send" class="button right">
     </form>
     </div>
 

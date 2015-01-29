@@ -146,4 +146,48 @@ class DidUserPayForm(Form):
     """
     Did user Pay bool field
     """
-    did_user_pay = BooleanField('did_user_pay', default=False)
+    did_user_pay =  SelectField(
+        'did_user_pay',
+        choices=[('1', 'Tak'), ('0', 'Nie')],
+        default='0'
+    )
+
+class MailTextForm(Form):
+    """
+    Did user Pay bool field
+    """
+    daily_reminder = TextAreaField(
+        "daily_reminder",
+        validators=[validators.DataRequired(
+            "Please enter daily reminder text."
+        )]
+    )
+    monthly_pay_summary = TextAreaField(
+        "monthly_pay_summary",
+        validators=[validators.DataRequired(
+            "Please enter monthly pay summary text."
+        )]
+    )
+    pay_reminder = TextAreaField(
+        "pay_reminder",
+        validators=[validators.DataRequired(
+            "Please enter pay reminder text."
+        )]
+    )
+    pay_slacker_reminder = TextAreaField(
+        "pay_slacker_reminder",
+        validators=[validators.DataRequired(
+            "Please enter pay reminder text for slackers."
+        )]
+    )
+
+
+class UserDailyReminderForm(Form):
+    """
+    Did user Pay bool field
+    """
+    i_want_daily_reminder = SelectField(
+        'i_want_daily_reminder',
+        choices=[('1', 'Tak'), ('0', 'Nie')],
+        default='0'
+    )

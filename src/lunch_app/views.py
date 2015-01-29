@@ -11,14 +11,16 @@ from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
 from sqlalchemy import and_
+from sqlalchemy.exc import OperationalError
 
 from .main import app, db, mail
-from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, CompanyOrders, \
-    DidUserPayForm
-from .models import Order, Food, User, Finance
+from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, \
+    CompanyOrders, DidUserPayForm, MailTextForm, UserDailyReminderForm
+from .models import Order, Food, User, Finance, MailText
 from .permissions import user_is_admin
 
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -32,13 +34,20 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/overview')
+@app.route('/overview', methods=['GET', 'POST'])
 @login.login_required
 def overview():
     """
     Overview page.
     """
-    return render_template('overview.html')
+
+    user = User.query.filter(User.username == current_user.username).first()
+    form = UserDailyReminderForm(request.form, obj=user.i_want_daily_reminder)
+    if request.method == 'POST' and form.validate():
+        import pdb; pdb.set_trace()
+        user.i_want_daily_reminder = form.i_want_daily_reminder.data
+        db.session.commit()
+    return render_template('overview.html', form=form)
 
 
 @app.route('/order', methods=['GET', 'POST'])
@@ -62,7 +71,6 @@ def create_order():
         form.populate_obj(order)
         user_name = current_user.username
         order.user_name = user_name
-
         db.session.add(order)
         db.session.commit()
         flash('Order created')
@@ -115,7 +123,7 @@ def day_summary():
             Order.date >= today_beg,
             Order.date <= today_end,
             Order.company == 'Tomas',
-            Order.arrival_time == '12:00'
+            Order.arrival_time == '12:00',
         )
     ).all()
     orders_t_12_cost = sum(order.cost for order in orders_t_12)
@@ -125,7 +133,7 @@ def day_summary():
             Order.date >= today_beg,
             Order.date <= today_end,
             Order.company == 'Tomas',
-            Order.arrival_time == '13:00'
+            Order.arrival_time == '13:00',
         )
     ).all()
     orders_t_13_cost = sum(order.cost for order in orders_t_13)
@@ -135,7 +143,7 @@ def day_summary():
             Order.date >= today_beg,
             Order.date <= today_end,
             Order.company == 'Pod Koziołkiem',
-            Order.arrival_time == '12:00'
+            Order.arrival_time == '12:00',
         )
     ).all()
     orders_pk_12_cost = sum(order.cost for order in orders_pk_12)
@@ -145,7 +153,7 @@ def day_summary():
             Order.date >= today_beg,
             Order.date <= today_end,
             Order.company == 'Pod Koziołkiem',
-            Order.arrival_time == '13:00'
+            Order.arrival_time == '13:00',
         )
     ).all()
     orders_pk_13_cost = sum(order.cost for order in orders_pk_13)
@@ -239,7 +247,7 @@ def order_list():
                 'order_list_year_view',
                 user_id=form.user.data,
                 year=form.data['year'],
-                ))
+            ))
     return render_template('orders_list.html', form=form)
 
 
@@ -425,10 +433,14 @@ def company_summary_month_view(year, month):
         pub_date=pub_date,
     )
 
+
 @app.route('/finance', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
 def finance():
+    """
+    Renders finance page.
+    """
     this_month = datetime.date.today()
     month_begin = datetime.datetime(
         year=this_month.year,
@@ -454,19 +466,18 @@ def finance():
             Order.date <= month_end,
         )
     ).all()
-    finance_data = []
+    finance_data = {}
     for user in users:
-        form = DidUserPayForm(formdata=request.form)
-        user_data = {
+        finance_data[user.username] = {
             'username': user.username,
             'number_of_orders': 0,
             'month_cost': 0,
-            'did_user_pay': form,
+            'did_user_pay': DidUserPayForm(formdata=request.form),
         }
         for order in orders:
             if user.username == order.user_name:
-                user_data['number_of_orders'] += 1
-                user_data['month_cost'] += order.cost
+                finance_data[user.username]['number_of_orders'] += 1
+                finance_data[user.username]['month_cost'] += order.cost
         finance_query = Finance.query.filter(
             and_(
                 Finance.month == this_month.month,
@@ -475,18 +486,19 @@ def finance():
             )
         ).first()
         if finance_query and finance_query.did_user_pay:
-            form = DidUserPayForm(formdata=request.form, obj=finance_query)
-            user_data['did_user_pay'] = form
-        if user_data['month_cost'] != 0:
-            finance_data.append(user_data)
+            finance_data[user.username]['did_user_pay'] = DidUserPayForm(
+                formdata=request.form, obj=finance_query)
+        if finance_data[user.username]['month_cost'] == 0:
+            del finance_data[user.username]
 
     pub_date = {'year': this_month.year, 'month': month_name[this_month.month]}
     finance_record = Finance()
 
     if request.method == 'POST':
-        for row in finance_data:
+        for row in finance_data.values():
             if row['did_user_pay'].validate():
-                finance_record.did_user_pay = form.did_user_pay.data
+                finance_record.did_user_pay = row[
+                    'did_user_pay'].did_user_pay.data
                 finance_record.month = this_month.month
                 finance_record.year = this_month.year
                 finance_record.user_name = row['username']
@@ -498,7 +510,9 @@ def finance():
                     )
                 ).first()
                 if finance_querry:
-                    import pdb; pdb.set_trace()
+                    import pdb;
+
+                    pdb.set_trace()
                     finance_querry.did_user_pay = finance_record.did_user_pay
                     db.session.commit()
                 else:
@@ -512,3 +526,111 @@ def finance():
         finance_data=finance_data,
         pub_date=pub_date,
     )
+
+
+@app.route('/finance_mail_text', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def finance_mail_text():
+    """
+    Renders mail all page.
+    """
+    try:
+        mail_data = MailText.query.first()
+    except OperationalError:
+        mail_data = None
+    form = MailTextForm(formdata=request.form, obj=mail_data)
+
+    if request.method == 'POST' and form.validate():
+        texts = MailText()
+        form.populate_obj(texts)
+        if mail_data is None:
+            db.session.add(texts)
+        db.session.commit()
+        flash('Messages text updated')
+        return redirect('finance_mail_text')
+
+    return render_template(
+        'finance_mail_text.html',
+        form=form,
+    )
+
+
+@app.route('/finance_mail_all', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def finance_mail_all():
+    """
+    Renders mail all page.
+    """
+    this_month = datetime.date.today()
+    month_begin = datetime.datetime(
+        year=this_month.year,
+        month=this_month.month,
+        day=1,
+        hour=0,
+        minute=0,
+        second=1
+    )
+    day = monthrange(this_month.year, this_month.month)[1]
+    month_end = datetime.datetime(
+        year=this_month.year,
+        month=this_month.month,
+        day=day,
+        hour=23,
+        minute=59,
+        second=59
+    )
+    users = User.query.all()
+    orders = Order.query.filter(
+        and_(
+            Order.date >= month_begin,
+            Order.date <= month_end,
+        )
+    ).all()
+    finance_data = {}
+    for user in users:
+        finance_data[user.username] = {
+            'username': user.username,
+            'number_of_orders': 0,
+            'month_cost': 0,
+            'did_user_pay': DidUserPayForm(formdata=request.form),
+        }
+        for order in orders:
+            if user.username == order.user_name:
+                finance_data[user.username]['number_of_orders'] += 1
+                finance_data[user.username]['month_cost'] += order.cost
+        finance_query = Finance.query.filter(
+            and_(
+                Finance.month == this_month.month,
+                Finance.year == this_month.year,
+                Finance.user_name == user.username,
+            )
+        ).first()
+        if finance_query and finance_query.did_user_pay:
+            finance_data[user.username]['did_user_pay'] = DidUserPayForm(
+                formdata=request.form, obj=finance_query)
+        if finance_data[user.username]['month_cost'] == 0:
+            del finance_data[user.username]
+
+    if request.method == 'POST':
+        message_text = MailText.query.first()
+        for record in finance_data.values():
+            msg = Message(
+                'Lunch {} / {} summary'.format(month_name[this_month.month],
+                                               this_month.year),
+                recipients=[record['username']],
+            )
+            msg.body = "In {} you ordered {} meals" \
+                       " for {} PLN.\n {}".format(
+                month_name[this_month.month],
+                record['number_of_orders'],
+                record['month_cost'],
+                message_text.monthly_pay_summary,
+            )
+            mail.send(msg)
+            flash('Mail send')
+        return redirect('finance_mail_all')
+
+    pub_date = {'year': this_month.year, 'month': month_name[this_month.month]}
+    return render_template('finance_mail_all.html', finance_data=finance_data)
