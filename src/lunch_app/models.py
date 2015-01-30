@@ -9,7 +9,7 @@ from datetime import datetime
 from flask.ext.login import UserMixin
 
 from sqlalchemy import Column
-from sqlalchemy.types import Integer, String, Boolean, Unicode, DateTime, Time
+from sqlalchemy.types import Integer, String, Boolean, Unicode, DateTime
 
 from .main import db
 
@@ -66,7 +66,7 @@ class Order(db.Model):
             cost=None,
             arrival_time=None,
             company=None,
-            date=None):
+    ):
         """
         Inits orders db.
         """

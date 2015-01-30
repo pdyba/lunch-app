@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 
 from .main import app, db, mail
 from . import main, utils
-from .models import Order, Food, User
+from .models import Order, Food, User, Finance, MailText
 
 
 MOCK_ADMIN = Mock()
@@ -31,6 +31,78 @@ def setUp():
     )
     app.config.from_pyfile(test_config)
     main.init()
+
+
+def fill_db():
+    """
+    Fill the database for tests
+    """
+    user = User()
+    user.email = 'e@e.pl'
+    user.username = 'test_user'
+    db.session.add(user)
+    user_2 = User()
+    user_2.email = 'd@d.pl'
+    user_2.username = 'test@user.pl'
+    db.session.add(user_2)
+    user_3 = User()
+    user_3.email = 'x@x.pl'
+    user_3.username = 'x@x.pl'
+    db.session.add(user_3)
+    order = Order()
+    order.date = date(2015, 1, 5)
+    order.description = 'Duzy Gruby Nalesnik'
+    order.company = 'Tomas'
+    order.cost = 123
+    order.user_name = 'test_user'
+    order.arrival_time = '12:00'
+    db.session.add(order)
+    order_2 = Order()
+    order_2.description = 'Duzy Gruby Nalesnik'
+    order_2.company = 'Pod Koziołkiem'
+    order_2.cost = 244
+    order_2.user_name = 'test_user'
+    order_2.arrival_time = '12:00'
+    db.session.add(order_2)
+    order_3 = Order()
+    order_3.description = 'Duzy Gruby Nalesnik'
+    order_3.company = 'Pod Koziołkiem'
+    order_3.cost = 244
+    order_3.user_name = 'test@user.pl'
+    order_3.arrival_time = '12:00'
+    db.session.add(order_3)
+    order_4 = Order()
+    order_4.description = 'Maly Gruby Nalesnik'
+    order_4.company = 'Pod Koziołkiem'
+    order_4.cost = 1
+    order_4.user_name = 'x@x.pl'
+    order_4.arrival_time = '12:00'
+    db.session.add(order_4)
+    finance = Finance()
+    finance.user_name = 'test_user'
+    finance.month = 1
+    finance.year = 2015
+    finance.did_user_pay = True
+    finance_2 = Finance()
+    finance_2.user_name = 'test@user.pl'
+    finance_2.month = 1
+    finance_2.year = 2015
+    finance_2.did_user_pay = False
+    finance_3 = Finance()
+    finance_3.user_name = 'x@x.pl'
+    finance_3.month = 1
+    finance_3.year = 2015
+    finance_3.did_user_pay = False
+    db.session.add(finance)
+    db.session.add(finance_3)
+    db.session.add(finance_2)
+    mailtxt = MailText()
+    mailtxt.daily_reminder = "daili1"
+    mailtxt.monthly_pay_summary = "monthly2"
+    mailtxt.pay_reminder = "reminder3"
+    mailtxt.pay_slacker_reminder = 'slacker4'
+    db.session.add(mailtxt)
+    db.session.commit()
 
 
 class LunchBackendViewsTestCase(unittest.TestCase):
@@ -170,23 +242,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/day_summary')
         self.assertEqual(resp.status_code, 200)
-        order = Order()
-        order.date = date.today()
-        order.description = 'Duzy Gruby Nalesnik'
-        order.company = 'Tomas'
-        order.cost = 123
-        order.user_name = 'test_user'
-        order.arrival_time = '12:00'
-        order_2 = Order()
-        order_2.date = date.today()
-        order_2.description = 'Maly Gruby Nalesnik'
-        order_2.company = 'Tomas'
-        order_2.cost = 223
-        order_2.user_name = 'test_user'
-        order_2.arrival_time = '13:00'
-        db.session.add(order)
-        db.session.add(order_2)
-        db.session.commit()
+        fill_db()
         resp = self.client.get('/day_summary')
         self.assertTrue('Maly Gruby Nalesnik' in resp.data.__str__())
         self.assertTrue('Duzy Gruby Nalesnik' in resp.data.__str__())
@@ -198,11 +254,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/order_list')
         self.assertEqual(resp.status_code, 200)
-        user = User()
-        user.email = 'e@e.pl'
-        user.username = 'test_user'
-        db.session.add(user)
-        db.session.commit()
+        fill_db()
         data = {'year': '2015', 'user': '1'}
         resp = self.client.post('/order_list', data=data)
         self.assertEqual(resp.status_code, 302)
@@ -219,20 +271,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test order list month page.
         """
-        user = User()
-        user.email = 'e@e.pl'
-        user.username = 'test_user'
-        db.session.add(user)
-        db.session.commit()
-        order = Order()
-        order.date = date(2015, 1, 5)
-        order.description = 'Duzy Gruby Nalesnik'
-        order.company = 'Tomas'
-        order.cost = 123
-        order.user_name = 'test_user'
-        order.arrival_time = '12:00'
-        db.session.add(order)
-        db.session.commit()
+        fill_db()
         resp = self.client.get('/order_list/1/2015/1')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('Duzy Gruby Nalesnik' in resp.data.__str__())
@@ -244,20 +283,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test order list year page.
         """
-        user = User()
-        user.email = 'e@e.pl'
-        user.username = 'test_user'
-        db.session.add(user)
-        db.session.commit()
-        order = Order()
-        order.date = date(2015, 1, 5)
-        order.description = 'Duzy Gruby Nalesnik'
-        order.company = 'Tomas'
-        order.cost = 123
-        order.user_name = 'test_user'
-        order.arrival_time = '12:00'
-        db.session.add(order)
-        db.session.commit()
+        fill_db()
         resp = self.client.get('/order_list/1/2015/1')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('January' in resp.data.__str__())
@@ -270,15 +296,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test edit order page.
         """
-        order = Order()
-        order.date = date.today()
-        order.description = 'Duzy Gruby Nalesnik'
-        order.company = 'Tomas'
-        order.cost = 123
-        order.user_name = 'test_user'
-        order.arrival_time = '12:00'
-        db.session.add(order)
-        db.session.commit()
+        fill_db()
         resp = self.client.get('/order_edit/1/')
         self.assertEqual(resp.status_code, 200)
         data = {
@@ -320,33 +338,138 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test company summary month page.
         """
-        user = User()
-        user.email = 'e@e.pl'
-        user.username = 'test_user'
-        db.session.add(user)
-        db.session.commit()
-        order = Order()
-        order.date = date(2015, 1, 5)
-        order.description = 'Duzy Gruby Nalesnik'
-        order.company = 'Tomas'
-        order.cost = 123
-        order.user_name = 'test_user'
-        order.arrival_time = '12:00'
-        db.session.add(order)
-        order_2 = Order()
-        order_2.date = date(2015, 1, 5)
-        order_2.description = 'Duzy Gruby Nalesnik'
-        order_2.company = 'Pod Koziołkiem'
-        order_2.cost = 244
-        order_2.user_name = 'test_user'
-        order_2.arrival_time = '12:00'
-        db.session.add(order_2)
-        db.session.commit()
+        fill_db()
         resp = self.client.get('/company_summary/2015/1')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('123' in resp.data.__str__())
-        self.assertTrue('244' in resp.data.__str__())
+        self.assertTrue('489' in resp.data.__str__())
         db.session.close()
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_finance_view(self):
+        """
+        Test finance page.
+        """
+        fill_db()
+        # all users test
+        resp = self.client.get('/finance/2015/1/0')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('test_user' in resp.data.__str__())
+        self.assertTrue('test@user.pl' in resp.data.__str__())
+        self.assertTrue('checked=checked' in resp.data.__str__())
+
+        # paid user test
+        resp = self.client.get('/finance/2015/1/1')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('test_user' in resp.data.__str__())
+        self.assertTrue('checked=checked' in resp.data.__str__())
+        self.assertTrue('367' in resp.data.__str__())
+
+        # unpaid user test
+        resp = self.client.get('/finance/2015/1/2')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('test@user.pl' in resp.data.__str__())
+        self.assertTrue('244' in resp.data.__str__())
+        self.assertTrue('checked=checked' not in resp.data.__str__())
+
+        # unpaid user changed to paid test
+        data = {
+            'did_user_pay_test@user.pl': 'on'
+        }
+        resp_2 = self.client.post('/finance/2015/1/2', data=data)
+        self.assertEqual(resp_2.status_code, 302)
+        resp = self.client.get('/finance/2015/1/2')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('test@user.pl' not in resp.data.__str__())
+        resp = self.client.get('/finance/2015/1/1')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('test@user.pl' in resp.data.__str__())
+        db.session.close()
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_finance_mail_text_view(self):
+        """
+        Test finance emial text page.
+        """
+        fill_db()
+        resp = self.client.get('/finance_mail_text')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue('daili1' in resp.data.__str__())
+        self.assertTrue('monthly2' in resp.data.__str__())
+        self.assertTrue('reminder3' in resp.data.__str__())
+        self.assertTrue('slacker4' in resp.data.__str__())
+        data = {
+            'daily_reminder': 'Nowy Daily Reminder',
+            'monthly_pay_summary': 'Ciekawszy Montlhy Reminder',
+            'pay_reminder': 'Fajniejszy Reminder',
+            'pay_slacker_reminder': 'Leniwy przypominacz',
+        }
+        resp = self.client.post('/finance_mail_text', data=data)
+        self.assertEqual(resp.status_code, 302)
+        msg_text_db = MailText.query.get(1)
+        self.assertEqual(
+            msg_text_db.daily_reminder,
+            'Nowy Daily Reminder',
+        )
+        self.assertEqual(
+            msg_text_db.monthly_pay_summary,
+            'Ciekawszy Montlhy Reminder',
+        )
+        self.assertEqual(
+            msg_text_db.pay_reminder,
+            'Fajniejszy Reminder',
+        )
+        self.assertEqual(
+            msg_text_db.pay_slacker_reminder,
+            'Leniwy przypominacz',
+        )
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_finance_mail_all_view(self):
+        """
+        Test finance emial to all view.
+        """
+        fill_db()
+        resp = self.client.get('/finance_mail_all')
+        self.assertEqual(resp.status_code, 200)
+        with mail.record_messages() as outbox:
+            resp = self.client.post('/finance_mail_all')
+            self.assertTrue(resp.status_code == 302)
+            self.assertEqual(len(outbox), 3)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('Lunch'))
+            self.assertIn('January', msg.body)
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_payment_remind_view(self):
+        """
+        Test finance remind send email.
+        """
+        fill_db()
+        with mail.record_messages() as outbox:
+            resp = self.client.post('/payment_remind/x@x.pl/0')
+            self.assertTrue(resp.status_code == 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('Lunch'))
+            self.assertIn('reminder3', msg.body)
+            self.assertEqual(msg.recipients, ['x@x.pl'])
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_finance_search_view(self):
+        """
+        Test finance serach view.
+        """
+        fill_db()
+        resp = self.client.get('/finance_search')
+        self.assertEqual(resp.status_code, 200)
+        data = {'year': '2015', 'month': '1', 'did_pay': '0'}
+        resp = self.client.post('/finance_search', data=data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(
+            resp.location,
+            'http://localhost/finance/2015/1/0',
+        )
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
@@ -388,6 +511,24 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
         self.assertEqual(
             utils.make_date(datetime.now()),
             date.today()
+        )
+
+    def test_next_month(self):
+        """
+        Test next month function
+        """
+        self.assertEqual(
+            utils.next_month(2015, 12),
+            (2016, 1),
+        )
+
+    def test_previous_month(self):
+        """
+        Test previous month function
+        """
+        self.assertEqual(
+            utils.previous_month(2015, 1),
+            (2014, 12),
         )
 
 

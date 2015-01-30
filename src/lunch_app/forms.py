@@ -14,7 +14,7 @@ from wtforms import (
     DateField,
 )
 
-from datetime import datetime, date
+from datetime import datetime
 
 
 class OrderForm(Form):
@@ -189,3 +189,22 @@ class UserDailyReminderForm(Form):
     i_want_daily_reminder = BooleanField(
         'i_want_daily_reminder',
     )
+
+
+class FinanceSearchForm(Form):
+    """
+    Finance search form
+    """
+    year = IntegerField(
+        'year',
+        validators=[validators.DataRequired('Please enter your Year.')]
+    )
+    month = IntegerField(
+        'month',
+        validators=[validators.DataRequired('Please enter your Month.')]
+    )
+    did_pay = SelectField('did_pay', choices=[
+        ('0', 'All'),
+        ('1', 'Paid'),
+        ('2', 'Unpaid'),
+        ])

@@ -14,8 +14,17 @@ from sqlalchemy import and_
 from sqlalchemy.exc import OperationalError
 
 from .main import app, db, mail
-from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, \
-    CompanyOrders, DidUserPayForm, MailTextForm, UserDailyReminderForm
+from .forms import (
+    OrderForm,
+    AddFood,
+    OrderEditForm,
+    UserOrders,
+    CompanyOrders,
+    DidUserPayForm,
+    MailTextForm,
+    UserDailyReminderForm,
+    FinanceSearchForm,
+)
 from .models import Order, Food, User, Finance, MailText
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
@@ -441,7 +450,10 @@ def company_summary_month_view(year, month):
     )
 
 
-@app.route('/finance/<int:year>/<int:month>/<int:did_pay>', methods=['GET', 'POST'])
+@app.route('/finance/<int:year>/<int:month>/<int:did_pay>', methods=[
+    'GET',
+    'POST',
+    ])
 @login.login_required
 @user_is_admin
 def finance(year, month, did_pay):
@@ -498,9 +510,9 @@ def finance(year, month, did_pay):
             finance_data[user.username]['did_user_pay'] = True
         if finance_data[user.username]['month_cost'] == 0:
             del finance_data[user.username]
-        elif did_pay == 1 and finance_data[user.username]['did_user_pay']:
+        elif did_pay == 2 and finance_data[user.username]['did_user_pay']:
             del finance_data[user.username]
-        elif did_pay == 2 and not finance_data[user.username]['did_user_pay']:
+        elif did_pay == 1 and not finance_data[user.username]['did_user_pay']:
             del finance_data[user.username]
 
     pub_date = {'year': year, 'month': month_name[month]}
@@ -530,7 +542,12 @@ def finance(year, month, did_pay):
                 db.session.add(finance_record)
                 db.session.commit()
             flash('Finances changes submitted successfully')
-        return redirect(url_for('finance', year=year, month=month, did_pay=did_pay))
+        return redirect(url_for(
+            'finance',
+            year=year,
+            month=month,
+            did_pay=did_pay,
+        ))
     p_year, p_month = previous_month(year, month)
     n_year, n_month = next_month(year, month)
     links = {
@@ -561,11 +578,14 @@ def finance_mail_text():
     form = MailTextForm(formdata=request.form, obj=mail_data)
 
     if request.method == 'POST' and form.validate():
-        texts = MailText()
-        form.populate_obj(texts)
+        # import pdb; pdb.set_trace()
         if mail_data is None:
+            texts = MailText()
+            form.populate_obj(texts)
             db.session.add(texts)
-        db.session.commit()
+        else:
+            form.populate_obj(mail_data)
+            db.session.commit()
         flash('Messages text updated')
         return redirect('finance_mail_text')
 
@@ -653,7 +673,10 @@ def finance_mail_all():
     return render_template('finance_mail_all.html', finance_data=finance_data)
 
 
-@app.route('/payment_remind/<string:username>/<int:slack>', methods=['GET', 'POST'])
+@app.route('/payment_remind/<string:username>/<int:slack>', methods=[
+    'GET',
+    'POST',
+    ])
 @login.login_required
 @user_is_admin
 def payment_remind(username, slack=0):
@@ -675,3 +698,22 @@ def payment_remind(username, slack=0):
     mail.send(msg)
     flash('Mail send')
     return redirect('finance')
+
+
+@app.route('/finance_search', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def finance_search_view():
+    """
+    Renders company query page form.
+    """
+    form = FinanceSearchForm(request.form)
+    if request.method == 'POST' and form.validate():
+
+        return redirect(url_for(
+            'finance',
+            year=form.data['year'],
+            month=form.data['month'],
+            did_pay=form.data['did_pay']
+        ))
+    return render_template('finance_search.html', form=form)

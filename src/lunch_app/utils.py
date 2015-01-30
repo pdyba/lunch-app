@@ -18,12 +18,14 @@ def get_current_date():
     """
     return datetime.date.today()
 
+
 def get_current_month():
     """
     Returns current date as date type for jinjna.
     """
     date = datetime.date.today()
     return date.month
+
 
 def get_current_year():
     """
@@ -39,6 +41,7 @@ def make_date(new_date):
     """
     return new_date.date()
 
+
 def next_month(year, month):
     """
     Returns next month
@@ -50,6 +53,7 @@ def next_month(year, month):
     else:
         month += 1
     return year, month
+
 
 def previous_month(year, month):
     """
