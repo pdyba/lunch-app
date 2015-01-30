@@ -186,4 +186,6 @@ class UserDailyReminderForm(Form):
     """
     Did user Pay field
     """
-    i_want_daily_reminder = BooleanField('i_want_daily_reminder', default=False)
+    i_want_daily_reminder = BooleanField(
+        'i_want_daily_reminder',
+    )

@@ -19,6 +19,8 @@ from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, \
 from .models import Order, Food, User, Finance, MailText
 from .permissions import user_is_admin
 
+from  werkzeug.exceptions import BadRequestKeyError
+
 import logging
 
 log = logging.getLogger(__name__)
@@ -43,13 +45,16 @@ def overview():
 
     user = User.query.filter(User.username == current_user.username).first()
     form = UserDailyReminderForm(formdata=request.form, obj=user)
-
     if request.method == 'POST' and form.validate():
         import pdb; pdb.set_trace()
-        user.i_want_daily_reminder = form.i_want_daily_reminder.data
+        try:
+            user.i_want_daily_reminder = \
+                (request.form['i_want_daily_reminder'] == 'y') is True
+        except BadRequestKeyError:
+            user.i_want_daily_reminder = False
         db.session.commit()
         return redirect('overview')
-    return render_template('overview.html', form=form)
+    return render_template('overview.html', form=form, user=user)
 
 
 @app.route('/order', methods=['GET', 'POST'])

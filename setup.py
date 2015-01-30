@@ -36,8 +36,6 @@ setup(
         'Flask-Mail',
         'Flask-Script',
         'Flask-Migrate',
-        'flask-edits',
-        'flask-foundation',
     ],
     entry_points="""
     [console_scripts]
