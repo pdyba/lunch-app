@@ -32,8 +32,8 @@ class OrderForm(Form):
         validators=[
             validators.DataRequired('Please enter cost.'),
             validators.NumberRange(
-                min=0,
-                max=999,
+                min=0.01,
+                max=999.99,
                 message='Cost has to be a positive value',
                 ),
         ]
@@ -112,8 +112,8 @@ class AddFood(Form):
         validators=[
             validators.DataRequired('Please enter cost.'),
             validators.NumberRange(
-                min=0,
-                max=999,
+                min=0.01,
+                max=999.99,
                 message='Cost has to be provided and be a positive value',
                 ),
         ]
