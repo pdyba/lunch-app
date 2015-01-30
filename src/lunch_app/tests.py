@@ -106,7 +106,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertAlmostEqual(
             order_db.date,
             datetime.now(),
-            delta=(timedelta(seconds=1)),
+            delta=timedelta(seconds=1),
         )
         self.assertEqual(order_db.arrival_time, '12:00')
 
