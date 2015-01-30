@@ -2,15 +2,17 @@
     <dt>Finance:</dt>
 
     <dd {% if page_id == 'finance_main' %}
-        class="active" {% endif %}><a href="{{ url_for('finance') }}">Summary</a></dd>
+        class="active" {% endif %}><a href="{{ url_for('finance', year=2015, month=1, did_pay=0) }}">Summary</a></dd>
     <dd {% if page_id == 'finance_unpaid' %}
-        class="active" {% endif %}><a href="#">Not Paid</a></dd>
-<dd {% if page_id == 'finance_mail_text' %}
+        class="active" {% endif %}><a href="{{ url_for('finance', year=2015, month=get_current_date.month, did_pay=1) }}">Paid</a></dd>
+    <dd {% if page_id == 'finance_unpaid' %}
+        class="active" {% endif %}><a href="{{ url_for('finance', year=2015, month=1, did_pay=2) }}">Not Paid</a></dd>
+    <dd {% if page_id == 'finance_mail_text' %}
         class="active" {% endif %}><a href="{{ url_for('finance_mail_text') }}">Mail Text</a></dd>
     <dd {% if page_id == 'finance_mail_all' %}
         class="active" {% endif %}><a href="{{ url_for('finance_mail_all') }}">Mail All</a></dd>
-
     <dd {% if page_id == 'finance_search' %}
         class="active" {% endif %}><a href="#">Search</a></dd>
+
 
 </dl>

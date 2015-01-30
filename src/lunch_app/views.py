@@ -18,8 +18,9 @@ from .forms import OrderForm, AddFood, OrderEditForm, UserOrders, \
     CompanyOrders, DidUserPayForm, MailTextForm, UserDailyReminderForm
 from .models import Order, Food, User, Finance, MailText
 from .permissions import user_is_admin
+from .utils import next_month, previous_month
 
-from  werkzeug.exceptions import BadRequestKeyError
+from werkzeug.exceptions import BadRequestKeyError
 
 import logging
 
@@ -46,7 +47,6 @@ def overview():
     user = User.query.filter(User.username == current_user.username).first()
     form = UserDailyReminderForm(formdata=request.form, obj=user)
     if request.method == 'POST' and form.validate():
-        import pdb; pdb.set_trace()
         try:
             user.i_want_daily_reminder = \
                 (request.form['i_want_daily_reminder'] == 'y') is True
@@ -441,26 +441,28 @@ def company_summary_month_view(year, month):
     )
 
 
-@app.route('/finance', methods=['GET', 'POST'])
+@app.route('/finance/<int:year>/<int:month>/<int:did_pay>', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
-def finance():
+def finance(year, month, did_pay):
     """
     Renders finance page.
+    did_pay = 0 - no filter
+    did_pay = 1 - filter only paid
+    did_pay = 2 - filter only unpaid
     """
-    this_month = datetime.date.today()
     month_begin = datetime.datetime(
-        year=this_month.year,
-        month=this_month.month,
+        year=year,
+        month=month,
         day=1,
         hour=0,
         minute=0,
         second=1
     )
-    day = monthrange(this_month.year, this_month.month)[1]
+    day = monthrange(year, month)[1]
     month_end = datetime.datetime(
-        year=this_month.year,
-        month=this_month.month,
+        year=year,
+        month=month,
         day=day,
         hour=23,
         minute=59,
@@ -487,8 +489,8 @@ def finance():
                 finance_data[user.username]['month_cost'] += order.cost
         finance_query = Finance.query.filter(
             and_(
-                Finance.month == this_month.month,
-                Finance.year == this_month.year,
+                Finance.month == month,
+                Finance.year == year,
                 Finance.user_name == user.username,
             )
         ).first()
@@ -496,38 +498,52 @@ def finance():
             finance_data[user.username]['did_user_pay'] = True
         if finance_data[user.username]['month_cost'] == 0:
             del finance_data[user.username]
+        elif did_pay == 1 and finance_data[user.username]['did_user_pay']:
+            del finance_data[user.username]
+        elif did_pay == 2 and not finance_data[user.username]['did_user_pay']:
+            del finance_data[user.username]
 
-    pub_date = {'year': this_month.year, 'month': month_name[this_month.month]}
+    pub_date = {'year': year, 'month': month_name[month]}
 
     finance_record = Finance()
 
     if request.method == 'POST':
         for row in finance_data.values():
-            finance_record.did_user_pay = request.form.get('did_user_pay_'+row['username'], 'off') == 'on'
-            finance_record.month = this_month.month
-            finance_record.year = this_month.year
+            finance_record.did_user_pay = request.form.get(
+                'did_user_pay_'+row['username'],
+                'off',
+            ) == 'on'
+            finance_record.month = month
+            finance_record.year = year
             finance_record.user_name = row['username']
             finance_querry = Finance.query.filter(
                 and_(
-                    Finance.month == this_month.month,
-                    Finance.year == this_month.year,
+                    Finance.month == month,
+                    Finance.year == year,
                     Finance.user_name == row['username'],
                 )
             ).first()
             if finance_querry:
-                # import pdb; pdb.set_trace()
                 finance_querry.did_user_pay = finance_record.did_user_pay
                 db.session.commit()
             else:
                 db.session.add(finance_record)
                 db.session.commit()
             flash('Finances changes submitted successfully')
-        return redirect('finance')
-
+        return redirect(url_for('finance', year=year, month=month, did_pay=did_pay))
+    p_year, p_month = previous_month(year, month)
+    n_year, n_month = next_month(year, month)
+    links = {
+        'previous_month':
+            url_for('finance', year=p_year, month=p_month, did_pay=did_pay),
+        'next_month':
+            url_for('finance', year=n_year, month=n_month, did_pay=did_pay),
+    }
     return render_template(
         'finance.html',
         finance_data=finance_data,
         pub_date=pub_date,
+        links=links,
     )
 
 

@@ -4,19 +4,21 @@
 
 {% block content %}
 
-
-
     <div class="large-12 columns">
 
         {% include "finance_base.html" %}
-
-        <div class="left">
-
+        <div class="small-4 columns left">
+        <a href="{{ links['previous_month'] }}">Prevoius month</a>
+        </div>
+        <div class="small-4 columns center">
             <ul class="breadcrumbs">
                 <li>{{ pub_date['month'] }} {{ pub_date['year'] }}</li>
 
             </ul>
         </div>
+    <div class="small-4 columns right">
+        <a href="{{ links['next_month'] }}">Next month</a>
+    </div>
     </div>
     <form method="POST">
         <table>
