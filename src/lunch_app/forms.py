@@ -54,8 +54,6 @@ class OrderForm(Form):
         ]
     )
     send_me_a_copy = BooleanField('send_me_a_copy', default=False)
-    today_date = datetime.now().replace(microsecond=0)
-    date = DateField(default=today_date, format='%Y-%m-%d')
 
 
 class OrderEditForm(OrderForm):
@@ -63,6 +61,7 @@ class OrderEditForm(OrderForm):
     New Order Eidt Form
     """
     user_name = TextAreaField("description")
+    date = DateField("date")
 
 
 class UserOrders(Form):
@@ -118,7 +117,6 @@ class AddFood(Form):
                 ),
         ]
     )
-    today_date = date.today()
     date_available_from = DateField(
         label='date_available',
         default=datetime(2015, 1, 1, 0, 0, 0),

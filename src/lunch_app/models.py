@@ -56,7 +56,7 @@ class Order(db.Model):
     cost = Column(Integer)
     arrival_time = Column(Integer)
     company = Column(Integer)
-    date = Column(DateTime)
+    date = Column(DateTime, default=datetime.utcnow)
     user_name = Column(String(80), db.ForeignKey('user.name'))
 
     def __init__(
