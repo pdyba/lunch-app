@@ -741,10 +741,43 @@ def random_food():
     order.arrival_time = '12:00'
     order.company = food.company
     order.cost = food.cost
-    order.description = food.description
-    order.description += '\n! ZAMOWIENIE LOSOWE !'
+    order.description = '!RANDOM ORDER!\n'
+    order.description += food.description
     order.user_name = current_user.username
     db.session.add(order)
     db.session.commit()
     flash('! Random meal ordered !')
     return redirect('order')
+
+
+@app.route('/send_daily_reminder', methods=['GET', 'POST'])
+@login.login_required
+def send_daily_reminder():
+    """
+    Sends daili reminder to all users.
+    """
+    day = datetime.date.today()
+    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
+    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
+    orders = Order.query.filter(
+        and_(
+            Order.date >= today_beg,
+            Order.date <= today_end,
+        )
+    ).all()
+    users = User.query.filter(User.i_want_daily_reminder == True).all()
+    message_text = MailText.query.first()
+    emails = ([])
+    order_list = ([])
+    for order in orders:
+        order_list.append(order.user_name)
+    for user in users:
+        if user.username not in order_list:
+            emails.append(user.username)
+    msg = Message(
+        'STX Lunch App Daily Reminder for {}'.format(datetime.date.today()),
+        recipients=emails,
+        )
+    msg.body = message_text.daily_reminder
+    mail.send(msg)
+    return redirect('overview')

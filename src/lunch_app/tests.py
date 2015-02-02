@@ -44,11 +44,17 @@ def fill_db():
     user_2 = User()
     user_2.email = 'd@d.pl'
     user_2.username = 'test@user.pl'
+    user_2.i_want_daily_reminder = True
     db.session.add(user_2)
     user_3 = User()
     user_3.email = 'x@x.pl'
     user_3.username = 'x@x.pl'
     db.session.add(user_3)
+    user_4 = User()
+    user_4.email = 'reminder@user.pl'
+    user_4.username = 'reminder@user.pl'
+    user_4.i_want_daily_reminder = True
+    db.session.add(user_4)
     order = Order()
     order.date = date(2015, 1, 5)
     order.description = 'Duzy Gruby Nalesnik'
@@ -517,6 +523,20 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'http://localhost/order'
         )
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_send_daily_reminder(self):
+        """
+        Test sends daili reminder to all users.
+        """
+        fill_db()
+        with mail.record_messages() as outbox:
+            resp = self.client.get('/send_daily_reminder')
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('STX Lunch'))
+            self.assertIn('daili1', msg.body)
+            self.assertEqual(msg.recipients, ['reminder@user.pl'])
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
