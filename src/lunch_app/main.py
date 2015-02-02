@@ -3,9 +3,6 @@
 Flask app initialization.
 """
 # pylint: disable=invalid-name, unused-variable, unused-import
-
-from celery import Celery
-
 from flask import Flask, g
 
 from flask.ext import restful, login

@@ -96,6 +96,22 @@ def fill_db():
     db.session.add(finance)
     db.session.add(finance_3)
     db.session.add(finance_2)
+    meal_1 = Food()
+    meal_1.company = "Tomas"
+    meal_1.description = "Malza"
+    meal_1.cost = 10
+    meal_1.date_available_from = datetime.now() - timedelta(2)
+    meal_1.date_available_to = datetime.now() + timedelta(2)
+    meal_1.o_type = 'daniednia'
+    meal_2 = Food()
+    meal_2.company = "Pod Koziołkiem"
+    meal_2.description = "Tiramisu"
+    meal_2.cost = 20
+    meal_2.date_available_from = datetime.now() - timedelta(5)
+    meal_2.date_available_to = datetime.now() + timedelta(5)
+    meal_2.o_type = 'tygodniowe'
+    db.session.add(meal_1)
+    db.session.add(meal_2)
     mailtxt = MailText()
     mailtxt.daily_reminder = "daili1"
     mailtxt.monthly_pay_summary = "monthly2"
@@ -146,6 +162,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/my_orders')
         self.assertEqual(resp.status_code, 200)
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_overview_view(self):
         """
         Test overview page.
@@ -485,6 +502,19 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(
             resp.location,
             'http://localhost/finance/2015/1/0',
+        )
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_random_food(self):
+        """
+        Test random food.
+        """
+        fill_db()
+        resp = self.client.get('/random_meal')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(
+            resp.location,
+            'http://localhost/order'
         )
 
 

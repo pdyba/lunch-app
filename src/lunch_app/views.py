@@ -746,5 +746,5 @@ def random_food():
     order.user_name = current_user.username
     db.session.add(order)
     db.session.commit()
-    flash('! Random food ordered !')
-    return redirect('finance')
+    flash('! Random meal ordered !')
+    return redirect('order')
