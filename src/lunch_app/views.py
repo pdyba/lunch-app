@@ -765,7 +765,7 @@ def send_daily_reminder():
             Order.date <= today_end,
         )
     ).all()
-    users = User.query.filter(User.i_want_daily_reminder == True).all()
+    users = User.query.filter(User.i_want_daily_reminder).all()
     message_text = MailText.query.first()
     emails = ([])
     order_list = ([])

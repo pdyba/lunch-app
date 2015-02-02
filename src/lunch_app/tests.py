@@ -538,6 +538,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertIn('daili1', msg.body)
             self.assertEqual(msg.recipients, ['reminder@user.pl'])
 
+
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
     Utils tests.

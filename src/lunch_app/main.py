@@ -101,14 +101,3 @@ admin = Admin(app)
 api = restful.Api(app)
 migrate = Migrate(app, db)
 mail = Mail()
-# celery = make_celery(app)
-#
-#
-# @celery.task()
-# def timed_events():
-#     import time
-#     a = 0
-#     while True:
-#         a += 1
-#         print(a)
-#         time.sleep(10)
