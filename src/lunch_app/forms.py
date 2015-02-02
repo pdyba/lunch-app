@@ -12,6 +12,7 @@ from wtforms import (
     BooleanField,
     SelectField,
     DateField,
+    FloatField,
 )
 
 from datetime import datetime, date
@@ -26,13 +27,13 @@ class OrderForm(Form):
         "description",
         validators=[validators.DataRequired('Please enter your order.')],
     )
-    cost = IntegerField(
+    cost = FloatField(
         'cost',
         validators=[
             validators.DataRequired('Please enter cost.'),
             validators.NumberRange(
-                min=0,
-                max=999,
+                min=0.01,
+                max=999.99,
                 message='Cost has to be a positive value',
                 ),
         ]
@@ -106,13 +107,13 @@ class AddFood(Form):
         "description",
         validators=[validators.DataRequired("Please enter order description.")]
     )
-    cost = IntegerField(
+    cost = FloatField(
         'cost',
         validators=[
             validators.DataRequired('Please enter cost.'),
             validators.NumberRange(
-                min=0,
-                max=999,
+                min=0.01,
+                max=999.99,
                 message='Cost has to be provided and be a positive value',
                 ),
         ]

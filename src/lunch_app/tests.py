@@ -131,7 +131,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertTrue(msg.subject.startswith('Lunch order'))
             self.assertIn('To jest TESTow zamowienie dla emaila', msg.body)
             self.assertIn('Pod Koziołkiem', msg.body)
-            self.assertIn('13 PLN', msg.body)
+            self.assertIn('13.0 PLN', msg.body)
             self.assertIn('at 13:00', msg.body)
             self.assertEqual(msg.recipients, ['mock@mock.com'])
 
