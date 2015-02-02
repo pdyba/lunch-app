@@ -37,7 +37,7 @@ def make_app(global_cfg=None, cfg=DEPLOY_CFG, log_cfg=DEPLOY_INI, debug=False):
     """
     global_cfg = {} if global_cfg is None else global_cfg
     fileConfig(log_cfg)
-    from .main import app, init
+    from lunch_app.main import app, init
     app.config.from_pyfile(abspath(cfg))
     app.debug = debug
     init()
