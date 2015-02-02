@@ -64,5 +64,5 @@ def previous_month(year, month):
         year -= 1
         month = 12
     else:
-        month += 1
+        month -= 1
     return year, month

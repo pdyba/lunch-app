@@ -3,8 +3,9 @@
 """
 Defines views.
 """
-import datetime
 from calendar import monthrange, month_name
+import datetime
+from random import choice
 
 from flask import redirect, render_template, request, flash, url_for
 from flask.ext import login
@@ -717,3 +718,33 @@ def finance_search_view():
             did_pay=form.data['did_pay']
         ))
     return render_template('finance_search.html', form=form)
+
+
+@app.route('/random_meal', methods=['GET', 'POST'])
+@login.login_required
+def random_food():
+    """
+    Orders random meal.
+    """
+    day = datetime.date.today()
+    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
+    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
+    foods = Food.query.filter(
+        and_(
+            Food.date_available_from <= today_from,
+            Food.date_available_to >= today_to,
+            Food.o_type != 'menu',
+        )
+    ).all()
+    food = choice(foods)
+    order = Order()
+    order.arrival_time = '12:00'
+    order.company = food.company
+    order.cost = food.cost
+    order.description = food.description
+    order.description += '\n! ZAMOWIENIE LOSOWE !'
+    order.user_name = current_user.username
+    db.session.add(order)
+    db.session.commit()
+    flash('! Random food ordered !')
+    return redirect('finance')

@@ -36,6 +36,7 @@ setup(
         'Flask-Mail',
         'Flask-Script',
         'Flask-Migrate',
+        'Flask-Celery3',
     ],
     entry_points="""
     [console_scripts]

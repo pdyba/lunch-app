@@ -80,17 +80,17 @@ def fill_db():
     db.session.add(order_4)
     finance = Finance()
     finance.user_name = 'test_user'
-    finance.month = 1
+    finance.month = 2
     finance.year = 2015
     finance.did_user_pay = True
     finance_2 = Finance()
     finance_2.user_name = 'test@user.pl'
-    finance_2.month = 1
+    finance_2.month = 2
     finance_2.year = 2015
     finance_2.did_user_pay = False
     finance_3 = Finance()
     finance_3.user_name = 'x@x.pl'
-    finance_3.month = 1
+    finance_3.month = 2
     finance_3.year = 2015
     finance_3.did_user_pay = False
     db.session.add(finance)
@@ -342,6 +342,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/company_summary/2015/1')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('123' in resp.data.__str__())
+        resp = self.client.get('/company_summary/2015/2')
         self.assertTrue('489' in resp.data.__str__())
         db.session.close()
 
@@ -352,36 +353,34 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         fill_db()
         # all users test
-        resp = self.client.get('/finance/2015/1/0')
+        resp = self.client.get('/finance/2015/2/0')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('test_user' in resp.data.__str__())
         self.assertTrue('test@user.pl' in resp.data.__str__())
         self.assertTrue('checked=checked' in resp.data.__str__())
 
         # paid user test
-        resp = self.client.get('/finance/2015/1/1')
+        resp = self.client.get('/finance/2015/2/1')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('test_user' in resp.data.__str__())
         self.assertTrue('checked=checked' in resp.data.__str__())
-        self.assertTrue('367' in resp.data.__str__())
 
         # unpaid user test
-        resp = self.client.get('/finance/2015/1/2')
+        resp = self.client.get('/finance/2015/2/2')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('test@user.pl' in resp.data.__str__())
-        self.assertTrue('244' in resp.data.__str__())
         self.assertTrue('checked=checked' not in resp.data.__str__())
 
         # unpaid user changed to paid test
         data = {
             'did_user_pay_test@user.pl': 'on'
         }
-        resp_2 = self.client.post('/finance/2015/1/2', data=data)
+        resp_2 = self.client.post('/finance/2015/2/2', data=data)
         self.assertEqual(resp_2.status_code, 302)
-        resp = self.client.get('/finance/2015/1/2')
+        resp = self.client.get('/finance/2015/2/2')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('test@user.pl' not in resp.data.__str__())
-        resp = self.client.get('/finance/2015/1/1')
+        resp = self.client.get('/finance/2015/2/1')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue('test@user.pl' in resp.data.__str__())
         db.session.close()
@@ -438,7 +437,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertEqual(len(outbox), 3)
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch'))
-            self.assertIn('January', msg.body)
+            self.assertIn('February', msg.body)
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_payment_remind_view(self):

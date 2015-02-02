@@ -3,14 +3,14 @@
 Flask app initialization.
 """
 # pylint: disable=invalid-name, unused-variable, unused-import
-from collections import OrderedDict
 
-import os.path
+from celery import Celery
 
 from flask import Flask, g
 
 from flask.ext import restful, login
 from flask.ext.admin import Admin
+from flask.ext.celery3 import make_celery
 from flask.ext.login import LoginManager, current_user
 from flask.ext.mail import Mail
 from flask.ext.migrate import Migrate
@@ -82,6 +82,7 @@ def init_admin():
     admin.add_view(AdminModelViewWithAuth(models.User, db.session))
     admin.add_view(AdminModelViewWithAuth(models.Order, db.session))
     admin.add_view(AdminModelViewWithAuth(models.Food, db.session))
+    admin.add_view(AdminModelViewWithAuth(models.Finance, db.session))
 
 
 def init():
@@ -101,7 +102,16 @@ app = Flask(__name__)
 db = SQLAlchemy()
 admin = Admin(app)
 api = restful.Api(app)
-
 migrate = Migrate(app, db)
-
 mail = Mail()
+# celery = make_celery(app)
+#
+#
+# @celery.task()
+# def timed_events():
+#     import time
+#     a = 0
+#     while True:
+#         a += 1
+#         print(a)
+#         time.sleep(10)
