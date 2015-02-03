@@ -123,6 +123,7 @@ def fill_db():
     mailtxt.monthly_pay_summary = "monthly2"
     mailtxt.pay_reminder = "reminder3"
     mailtxt.pay_slacker_reminder = 'slacker4'
+    mailtxt.info_page_text = 'InfoPageTEXT'
     db.session.add(mailtxt)
     db.session.commit()
 
@@ -157,8 +158,16 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test info page view.
         """
+        fill_db()
         resp = self.client.get('/info')
         self.assertEqual(resp.status_code, 200)
+        self.assertTrue("CATERING - menu na co dzi" in resp.data.__str__())
+        mailtxt = MailText.query.first()
+        mailtxt.info_page_text = "To jest nowa firma \n ze strna\n www.wp.pl"
+        db.session.commit()
+        resp = self.client.get('/info')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue("www.wp.pl" in resp.data.__str__())
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_my_orders_view(self):
@@ -357,6 +366,17 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(order_db.date, datetime(2015, 1, 1))
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_delete_order(self):
+        """
+        Test delete order.
+        """
+        fill_db()
+        resp = self.client.post('/delete_order/1')
+        self.assertEqual(resp.status_code, 302)
+        order = Order.query.get(1)
+        self.assertTrue(order is None)
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_company_summary_view(self):
         """
         Test company summary page.
@@ -442,6 +462,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'monthly_pay_summary': 'Ciekawszy Montlhy Reminder',
             'pay_reminder': 'Fajniejszy Reminder',
             'pay_slacker_reminder': 'Leniwy przypominacz',
+            'info_page_text': 'Nowa strona Tomasa www.wp.pl',
         }
         resp = self.client.post('/finance_mail_text', data=data)
         self.assertEqual(resp.status_code, 302)

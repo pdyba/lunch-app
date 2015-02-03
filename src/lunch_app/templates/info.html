@@ -4,8 +4,12 @@
 
 {% block content %}
 
-
-
+    {% if info != "None" %}
+    {% for line in info %}
+        {{ line|urlize(30) }}<br>
+        {% endfor %}
+    {% else %}
+    <div>
     <h1>Lunch info</h1>
     MINIMALNE ZAMÓWIENIE Z KAŻDEGO MIEJSCA TO 3-4 POZYCJE  NA DANĄ GODZINĘ!!!!
     <br>
@@ -19,6 +23,6 @@
         Koziolek</a><br>
     <br>ZESTAW DNIA POD KOZIOŁKIEM -
     <a href="http://www.pod-koziolkiem.pl/">http://www.pod-koziolkiem.pl/</a>
-
-
+    </div>
+    {% endif %}
 {% endblock %}

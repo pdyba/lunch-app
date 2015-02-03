@@ -119,3 +119,4 @@ class MailText(db.Model):
     monthly_pay_summary = Column(String(800), unique=False)
     pay_reminder = Column(String(800), unique=False)
     pay_slacker_reminder = Column(String(800), unique=False)
+    info_page_text = Column(String(1600), unique=False)

@@ -209,7 +209,20 @@ def info():
     """
     Renders info page.
     """
-    return render_template('info.html')
+    try:
+        texts = MailText.query.get(1)
+        try:
+            temp = "{}".format(texts.info_page_text)
+            info = temp.split('\n')
+            print(info)
+        except AttributeError:
+            info = "None"
+    except OperationalError:
+        info = "None"
+
+    if len(info) < 2:
+        info = "None"
+    return render_template('info.html', info=info)
 
 
 @app.route('/order_details/<int:order_id>', methods=['GET', 'POST'])
@@ -236,7 +249,20 @@ def edit_order(order_id):
         db.session.commit()
         flash('Order changed')
         return redirect('day_summary')
-    return render_template('order_edit.html', form=form)
+    return render_template('order_edit.html', form=form, order=order)
+
+
+@app.route('/delete_order/<int:order_id>', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def delete_order(order_id):
+    """
+    Deletes order.
+    """
+    order = Order.query.get(order_id)
+    db.session.delete(order)
+    db.session.commit()
+    return redirect('day_summary')
 
 
 @app.route('/order_list', methods=['GET', 'POST'])
@@ -574,16 +600,17 @@ def finance_mail_text():
     """
     try:
         mail_data = MailText.query.first()
+        form = MailTextForm(formdata=request.form, obj=mail_data)
     except OperationalError:
         mail_data = None
-    form = MailTextForm(formdata=request.form, obj=mail_data)
+        form = MailTextForm(formdata=request.form)
 
     if request.method == 'POST' and form.validate():
-        # import pdb; pdb.set_trace()
         if mail_data is None:
             texts = MailText()
             form.populate_obj(texts)
             db.session.add(texts)
+            db.session.commit()
         else:
             form.populate_obj(mail_data)
             db.session.commit()

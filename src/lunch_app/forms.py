@@ -181,6 +181,12 @@ class MailTextForm(Form):
             "Please enter pay reminder text for slackers."
         )]
     )
+    info_page_text = TextAreaField(
+        "info_page_text",
+        validators=[validators.DataRequired(
+            "Please enter pay reminder text for slackers."
+        )]
+    )
 
 
 class UserDailyReminderForm(Form):
