@@ -305,6 +305,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn('test_user', str(resp.data))
         self.assertIn('test@user.pl', str(resp.data))
         self.assertIn('checked="checked"', str(resp.data))
+        self.assertIn('x@x.pl', str(resp.data))
 
         # paid user test
         resp = self.client.get('/finance/2015/2/1')
@@ -316,20 +317,21 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/finance/2015/2/2')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('test@user.pl', str(resp.data))
+        self.assertIn('x@x.pl', str(resp.data))
         self.assertNotIn('checked=checked', str(resp.data))
 
         # unpaid user changed to paid test
         data = {
-            'did_user_pay_test@user.pl': 'on'
+            'did_user_pay_test@user.pl': 'on',
         }
-        resp_2 = self.client.post('/finance/2015/2/2', data=data)
-        self.assertEqual(resp_2.status_code, 302)
+        resp = self.client.post('/finance/2015/2/2', data=data)
+        self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/finance/2015/2/2')
         self.assertEqual(resp.status_code, 200)
-        self.assertNotIn('did_user_pay_test@user.pl', str(resp.data))
+        self.assertNotIn('test@user.pl', str(resp.data))
         resp = self.client.get('/finance/2015/2/1')
         self.assertEqual(resp.status_code, 200)
-        self.assertIn('did_user_pay_test@user.pl', str(resp.data))
+        self.assertIn('test@user.pl', str(resp.data))
         db.session.close()
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
@@ -382,7 +384,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         with mail.record_messages() as outbox:
             resp = self.client.post('/finance_mail_all')
             self.assertTrue(resp.status_code == 302)
-            self.assertEqual(len(outbox), 3)
+            self.assertEqual(len(outbox), 2)
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch'))
             self.assertIn('February', msg.body)
@@ -470,11 +472,14 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             resp.location,
             'http://localhost/order'
         )
-        user_order = Order.query.filter(Order.user_name == 'test_user').first()
-        self.assertNotEqual(
-            'szpinak',
-            user_order.description,
-        )
+        for i in range(10):
+            user_order = Order.query.filter(
+                Order.user_name == 'test_user'
+            ).first()
+            self.assertNotEqual(
+                'szpinak',
+                user_order.description,
+            )
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_send_daily_reminder(self):

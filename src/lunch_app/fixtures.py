@@ -69,7 +69,7 @@ def fill_db():
     finance_2.year = 2015
     finance_2.did_user_pay = False
     finance_3 = Finance()
-    finance_3.user_name = 'x@x.pl'
+    finance_3.user_name = 'reminder@user.pl'
     finance_3.month = 2
     finance_3.year = 2015
     finance_3.did_user_pay = False

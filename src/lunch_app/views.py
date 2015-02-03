@@ -491,12 +491,7 @@ def finance(year, month, did_pay):
             Finance.month == month,
             Finance.year == year,
         )
-    )
-    if did_pay == 1:
-      finances = finances.filter(Finance.did_user_pay == True)
-    if did_pay == 2:
-      finances = finances.filter(Finance.did_user_pay == False)
-    finances = finances.all()
+    ).all()
     finance_data = {}
     finance_user_list = []
     for user in users:
@@ -518,16 +513,16 @@ def finance(year, month, did_pay):
         should_drop = (
             # user didn't bought anything
             finance_data[user.username]['month_cost'] == 0 or
-            # show paid user
+            # show paid user and user did not pay
             (
                 did_pay == 1 and
                 not finance_data[user.username]['did_user_pay']
             ) or
-            # show unpaid user
+            # show unpaid user and user paid
             (
-                did_pay == 2 and (
-                    finance_data[user.username]['did_user_pay'] or
-                    user.username not in finance_user_list
+                did_pay == 2 and
+                (
+                    finance_data[user.username]['did_user_pay']
                 )
             )
         )
@@ -547,11 +542,13 @@ def finance(year, month, did_pay):
             finance_record.month = month
             finance_record.year = year
             finance_record.user_name = row['username']
+            do_not_update = True
             for record in finances:
-                if record:
+                if record.user_name == row['username']:
                     record.did_user_pay = finance_record.did_user_pay
-                else:
-                    db.session.add(finance_record)
+                    do_not_update = False
+            if do_not_update:
+                db.session.add(finance_record)
         db.session.commit()
         flash('Finances changes submitted successfully')
         return redirect(url_for(
