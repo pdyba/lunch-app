@@ -114,12 +114,31 @@ def add_food():
     Add new food page.
     """
     form = AddFood(request.form)
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST' and form.validate() \
+            and request.form['add_meal'] == 'add':
         food = Food()
         form.populate_obj(food)
         db.session.add(food)
         db.session.commit()
         flash('Food added')
+        return redirect('add_food')
+    elif request.method == 'POST' and form.validate() \
+            and request.form['add_meal'] == 'bulk':
+        foods = form.description.data
+        foods = foods.split("\r\n")
+        number_of_foods_aded = 0
+        for food in foods:
+            meal = Food()
+            meal.company = form.company.data
+            meal.description = food
+            meal.cost = form.cost.data
+            meal.date_available_from = form.date_available_from.data
+            meal.date_available_to = form.date_available_to.data
+            meal.o_type = form.o_type.data
+            db.session.add(meal)
+            db.session.commit()
+            number_of_foods_aded += 1
+        flash('{} foods added'.format(number_of_foods_aded))
         return redirect('add_food')
     return render_template('add_food.html', form=form)
 

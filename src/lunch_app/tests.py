@@ -252,12 +252,62 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'company': 'Pod Koziołkiem',
             'date_available_from': '2015-01-01',
             'o_type': 'daniednia',
+            'add_meal': 'add',
         }
-        resp_2 = self.client.post('/add_food', data=data)
+        resp_2 = self.client.post('/add_food', data=data,)
         food_db = Food.query.first()
-        self.assertTrue(resp_2.status_code == 302)
+        self.assertEqual(resp_2.status_code, 302)
         self.assertEqual(food_db.cost, 333)
         self.assertEqual(food_db.description, 'dobre_jedzonko')
+        self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
+        self.assertEqual(
+            food_db.date_available_from,
+            datetime(2015, 1, 1, 0, 0)
+        )
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_add_food__bulk_view(self):
+        """
+        Test bulk add food page.
+        """
+        data = {
+            'cost': '333',
+            'description': 'dobre_jedzonko\r\nciekawe_jedzonko\r\npies',
+            'date_available_to': '2015-01-01',
+            'company': 'Pod Koziołkiem',
+            'date_available_from': '2015-01-01',
+            'o_type': 'daniednia',
+            'add_meal': 'bulk',
+        }
+        resp = self.client.post('/add_food', data=data,)
+        food_db = Food.query.get(1)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(food_db.cost, 333)
+        self.assertEqual(food_db.description, 'dobre_jedzonko')
+        self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
+        self.assertEqual(
+            food_db.date_available_from,
+            datetime(2015, 1, 1, 0, 0)
+        )
+        food_db = Food.query.get(2)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(food_db.cost, 333)
+        self.assertEqual(food_db.description, 'ciekawe_jedzonko')
+        self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
+        self.assertEqual(
+            food_db.date_available_from,
+            datetime(2015, 1, 1, 0, 0)
+        )
+        food_db = Food.query.get(3)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(food_db.cost, 333)
+        self.assertEqual(food_db.description, 'pies')
         self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(food_db.company, 'Pod Koziołkiem')
         self.assertEqual(food_db.o_type, 'daniednia')
