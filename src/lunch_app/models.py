@@ -24,7 +24,7 @@ class User(db.Model, UserMixin):
     email = Column(String(200))
     name = Column(Unicode(40), index=True)
     password = Column(String(200), default='')
-    username = Column(String(200))
+    username = Column(String(200), unique=True)
     admin = Column(Boolean, default=False)
     i_want_daily_reminder = Column(Boolean, default=False)
 
@@ -58,7 +58,7 @@ class Order(db.Model):
     arrival_time = Column(String(5))
     company = Column(String(80))
     date = Column(DateTime, default=datetime.utcnow)
-    user_name = Column(String(80), db.ForeignKey('user.name'))
+    user_name = Column(String(80), db.ForeignKey('user.username'))
 
     def __init__(
             self,
@@ -103,7 +103,7 @@ class Finance(db.Model):
     """
     __tablename__ = 'finance'
     id = Column(Integer, primary_key=True)
-    user_name = Column(String(80), db.ForeignKey('user.name'))
+    user_name = Column(String(80), db.ForeignKey('user.username'))
     month = Column(Integer)
     year = Column(Integer)
     did_user_pay = Column(Boolean, default=False)
