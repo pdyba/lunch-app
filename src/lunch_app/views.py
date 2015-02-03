@@ -4,8 +4,10 @@
 Defines views.
 """
 from calendar import monthrange, month_name
+from collections import Counter
 import datetime
 from random import choice
+
 
 from flask import redirect, render_template, request, flash, url_for
 from flask.ext import login
@@ -484,29 +486,17 @@ def finance(year, month, did_pay):
             Order.date <= month_end,
         )
     ).all()
+    finances = Finance.query.filter(
+        and_(
+            Finance.month == month,
+            Finance.year == year,
+        )
+    )
     if did_pay == 1:
-        finances = Finance.query.filter(
-            and_(
-                Finance.month == month,
-                Finance.year == year,
-                Finance.did_user_pay,
-            )
-        ).all()
-    elif did_pay == 2:
-        finances = Finance.query.filter(
-            and_(
-                Finance.month == month,
-                Finance.year == year,
-                Finance.did_user_pay == False,
-            )
-        ).all()
-    else:
-        finances = Finance.query.filter(
-            and_(
-                Finance.month == month,
-                Finance.year == year,
-            )
-        ).all()
+      finances = finances.filter(Finance.did_user_pay == True)
+    if did_pay == 2:
+      finances = finances.filter(Finance.did_user_pay == False)
+    finances = finances.all()
     finance_data = {}
     finance_user_list = []
     for user in users:
@@ -747,7 +737,11 @@ def random_food():
             Order.date >= today_to,
         )
     ).all()
-    if len(foods) <= 2:
+    food_dict = Counter(foods)
+    food_dict = food_dict.most_common()
+    if len(food_dict) > 3:
+        foods = [food_dict[0][0], food_dict[1][0], food_dict[2][0]]
+    else:
         foods = Food.query.filter(
             and_(
                 Food.date_available_from <= today_from,

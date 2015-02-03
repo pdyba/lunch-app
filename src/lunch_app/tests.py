@@ -316,7 +316,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/finance/2015/2/2')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('test@user.pl', str(resp.data))
-        self.assertTrue('checked=checked' not in str(resp.data))
+        self.assertNotIn('checked=checked', str(resp.data))
 
         # unpaid user changed to paid test
         data = {
@@ -326,7 +326,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(resp_2.status_code, 302)
         resp = self.client.get('/finance/2015/2/2')
         self.assertEqual(resp.status_code, 200)
-        self.assertTrue('did_user_pay_test@user.pl' not in str(resp.data))
+        self.assertNotIn('did_user_pay_test@user.pl', str(resp.data))
         resp = self.client.get('/finance/2015/2/1')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('did_user_pay_test@user.pl', str(resp.data))
@@ -424,11 +424,56 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         Test random food.
         """
         fill_db()
+        for i in range(4):
+            order = Order()
+            order.description = 'Kebab'
+            order.company = 'Pod Koziołkiem'
+            order.cost = 1
+            order.user_name = 'test@user.pl'
+            order.arrival_time = '12:00'
+            db.session.add(order)
+        for i in range(4):
+            order = Order()
+            order.description = 'Burger'
+            order.company = 'Pod Koziołkiem'
+            order.cost = 1
+            order.user_name = 'test@user.pl'
+            order.arrival_time = '12:00'
+            db.session.add(order)
+        for i in range(3):
+            order = Order()
+            order.description = 'Cieply_jamnik'
+            order.company = 'Pod Koziołkiem'
+            order.cost = 1
+            order.user_name = 'test@user.pl'
+            order.arrival_time = '12:00'
+            db.session.add(order)
+        for i in range(3):
+            order = Order()
+            order.description = 'Kosmata_szynka'
+            order.company = 'Pod Koziołkiem'
+            order.cost = 1
+            order.user_name = 'test@user.pl'
+            order.arrival_time = '12:00'
+            db.session.add(order)
+        order = Order()
+        order.description = 'szpinak'
+        order.company = 'Pod Koziołkiem'
+        order.cost = 1
+        order.user_name = 'test@user.pl'
+        order.arrival_time = '12:00'
+        db.session.add(order)
+        db.session.commit()
         resp = self.client.get('/random_meal')
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(
             resp.location,
             'http://localhost/order'
+        )
+        user_order = Order.query.filter(Order.user_name == 'test_user').first()
+        self.assertNotEqual(
+            'szpinak',
+            user_order.description,
         )
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
