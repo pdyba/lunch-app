@@ -515,14 +515,23 @@ def finance(year, month, did_pay):
             if finance_query.user_name == user.username \
                     and finance_query.did_user_pay:
                 finance_data[user.username]['did_user_pay'] = True
-        if finance_data[user.username]['month_cost'] == 0:
-            del finance_data[user.username]
-        elif did_pay == 1 and not finance_data[user.username]['did_user_pay']:
-            del finance_data[user.username]
-        elif did_pay == 2 and (
-            finance_data[user.username]['did_user_pay'] or
-            user.username not in finance_user_list
-        ):
+        should_drop = (
+            # user didn't bought anything
+            finance_data[user.username]['month_cost'] == 0 or
+            # show paid user
+            (
+                did_pay == 1 and
+                not finance_data[user.username]['did_user_pay']
+            ) or
+            # show unpaid user
+            (
+                did_pay == 2 and (
+                    finance_data[user.username]['did_user_pay'] or
+                    user.username not in finance_user_list
+                )
+            )
+        )
+        if should_drop:
             del finance_data[user.username]
 
     pub_date = {'year': year, 'month': month_name[month]}
@@ -543,8 +552,8 @@ def finance(year, month, did_pay):
                     record.did_user_pay = finance_record.did_user_pay
                 else:
                     db.session.add(finance_record)
-            db.session.commit()
-            flash('Finances changes submitted successfully')
+        db.session.commit()
+        flash('Finances changes submitted successfully')
         return redirect(url_for(
             'finance',
             year=year,
