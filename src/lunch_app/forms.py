@@ -144,7 +144,7 @@ class AddFood(Form):
 
 class MailTextForm(Form):
     """
-    Did user Pay bool field
+    Mail subject and text edit form.
     """
     daily_reminder_subject = TextAreaField(
         "daily_reminder_subject",
