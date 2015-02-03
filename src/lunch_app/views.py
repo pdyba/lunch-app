@@ -21,7 +21,6 @@ from .forms import (
     OrderEditForm,
     UserOrders,
     CompanyOrders,
-    DidUserPayForm,
     MailTextForm,
     UserDailyReminderForm,
     FinanceSearchForm,
@@ -57,11 +56,8 @@ def overview():
     user = User.query.filter(User.username == current_user.username).first()
     form = UserDailyReminderForm(formdata=request.form, obj=user)
     if request.method == 'POST' and form.validate():
-        try:
-            user.i_want_daily_reminder = \
-                (request.form['i_want_daily_reminder'] == 'y') is True
-        except BadRequestKeyError:
-            user.i_want_daily_reminder = False
+        user.i_want_daily_reminder = \
+            request.form.get('i_want_daily_reminder') == 'y'
         db.session.commit()
         return redirect('overview')
     return render_template('overview.html', form=form, user=user)
@@ -454,7 +450,7 @@ def company_summary_month_view(year, month):
 @app.route('/finance/<int:year>/<int:month>/<int:did_pay>', methods=[
     'GET',
     'POST',
-    ])
+])
 @login.login_required
 @user_is_admin
 def finance(year, month, did_pay):
@@ -488,7 +484,31 @@ def finance(year, month, did_pay):
             Order.date <= month_end,
         )
     ).all()
+    if did_pay == 1:
+        finances = Finance.query.filter(
+            and_(
+                Finance.month == month,
+                Finance.year == year,
+                Finance.did_user_pay,
+            )
+        ).all()
+    elif did_pay == 2:
+        finances = Finance.query.filter(
+            and_(
+                Finance.month == month,
+                Finance.year == year,
+                Finance.did_user_pay == False,
+            )
+        ).all()
+    else:
+        finances = Finance.query.filter(
+            and_(
+                Finance.month == month,
+                Finance.year == year,
+            )
+        ).all()
     finance_data = {}
+    finance_user_list = []
     for user in users:
         finance_data[user.username] = {
             'username': user.username,
@@ -500,20 +520,19 @@ def finance(year, month, did_pay):
             if user.username == order.user_name:
                 finance_data[user.username]['number_of_orders'] += 1
                 finance_data[user.username]['month_cost'] += order.cost
-        finance_query = Finance.query.filter(
-            and_(
-                Finance.month == month,
-                Finance.year == year,
-                Finance.user_name == user.username,
-            )
-        ).first()
-        if finance_query and finance_query.did_user_pay:
-            finance_data[user.username]['did_user_pay'] = True
+        for finance_query in finances:
+            finance_user_list.append(finance_query.user_name)
+            if finance_query.user_name == user.username \
+                    and finance_query.did_user_pay:
+                finance_data[user.username]['did_user_pay'] = True
         if finance_data[user.username]['month_cost'] == 0:
             del finance_data[user.username]
-        elif did_pay == 2 and finance_data[user.username]['did_user_pay']:
-            del finance_data[user.username]
         elif did_pay == 1 and not finance_data[user.username]['did_user_pay']:
+            del finance_data[user.username]
+        elif did_pay == 2 and (
+            finance_data[user.username]['did_user_pay'] or
+            user.username not in finance_user_list
+        ):
             del finance_data[user.username]
 
     pub_date = {'year': year, 'month': month_name[month]}
@@ -529,19 +548,12 @@ def finance(year, month, did_pay):
             finance_record.month = month
             finance_record.year = year
             finance_record.user_name = row['username']
-            finance_querry = Finance.query.filter(
-                and_(
-                    Finance.month == month,
-                    Finance.year == year,
-                    Finance.user_name == row['username'],
-                )
-            ).first()
-            if finance_querry:
-                finance_querry.did_user_pay = finance_record.did_user_pay
-                db.session.commit()
-            else:
-                db.session.add(finance_record)
-                db.session.commit()
+            for record in finances:
+                if record:
+                    record.did_user_pay = finance_record.did_user_pay
+                else:
+                    db.session.add(finance_record)
+            db.session.commit()
             flash('Finances changes submitted successfully')
         return redirect(url_for(
             'finance',
@@ -579,7 +591,6 @@ def finance_mail_text():
     form = MailTextForm(formdata=request.form, obj=mail_data)
 
     if request.method == 'POST' and form.validate():
-        # import pdb; pdb.set_trace()
         if mail_data is None:
             texts = MailText()
             form.populate_obj(texts)
@@ -628,29 +639,29 @@ def finance_mail_all():
             Order.date <= month_end,
         )
     ).all()
+    finances = Finance.query.filter(
+        and_(
+            Finance.month == this_month.month,
+            Finance.year == this_month.year,
+        )
+    ).all()
+    finance_user_list = []
+    for finance_query in finances:
+            finance_user_list.append(finance_query.user_name)
     finance_data = {}
     for user in users:
         finance_data[user.username] = {
             'username': user.username,
             'number_of_orders': 0,
             'month_cost': 0,
-            'did_user_pay': DidUserPayForm(formdata=request.form),
+            'did_user_pay': False,
         }
         for order in orders:
             if user.username == order.user_name:
                 finance_data[user.username]['number_of_orders'] += 1
                 finance_data[user.username]['month_cost'] += order.cost
-        finance_query = Finance.query.filter(
-            and_(
-                Finance.month == this_month.month,
-                Finance.year == this_month.year,
-                Finance.user_name == user.username,
-            )
-        ).first()
-        if finance_query and finance_query.did_user_pay:
-            finance_data[user.username]['did_user_pay'] = DidUserPayForm(
-                formdata=request.form, obj=finance_query)
-        if finance_data[user.username]['month_cost'] == 0:
+        if finance_data[user.username]['month_cost'] == 0 \
+                or user.username not in finance_user_list:
             del finance_data[user.username]
 
     if request.method == 'POST':
@@ -677,19 +688,20 @@ def finance_mail_all():
 @app.route('/payment_remind/<string:username>/<int:slack>', methods=[
     'GET',
     'POST',
-    ])
+])
 @login.login_required
 @user_is_admin
 def payment_remind(username, slack=0):
     """
-    Renders mail all page.
+    Sends mail to user with reminder or slack reminder.
     """
     this_month = datetime.date.today()
     message_text = MailText.query.first()
     msg = Message(
         'Lunch {} / {} payment reminder'.format(
             month_name[this_month.month],
-            this_month.year),
+            this_month.year
+        ),
         recipients=[username],
     )
     if slack == 1:
@@ -729,13 +741,20 @@ def random_food():
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
     today_to = datetime.datetime.combine(day, datetime.time(0, 0))
-    foods = Food.query.filter(
+    foods = Order.query.filter(
         and_(
-            Food.date_available_from <= today_from,
-            Food.date_available_to >= today_to,
-            Food.o_type != 'menu',
+            Order.date <= today_from,
+            Order.date >= today_to,
         )
     ).all()
+    if len(foods) <= 2:
+        foods = Food.query.filter(
+            and_(
+                Food.date_available_from <= today_from,
+                Food.date_available_to >= today_to,
+                Food.o_type != 'menu',
+            )
+        ).all()
     food = choice(foods)
     order = Order()
     order.arrival_time = '12:00'
@@ -775,9 +794,12 @@ def send_daily_reminder():
         if user.username not in order_list:
             emails.append(user.username)
     msg = Message(
-        'STX Lunch App Daily Reminder for {}'.format(datetime.date.today()),
+        '{} {}'.format(
+            message_text.daily_reminder_subject,
+            datetime.date.today()
+        ),
         recipients=emails,
-        )
+    )
     msg.body = message_text.daily_reminder
     mail.send(msg)
     return redirect('overview')

@@ -123,10 +123,11 @@ def run():
 
     def action_db_migrate(action=('a', 'start'), debug=False):
         """Migrate database.
-        db_migrate action:
-        init
-        migrate
-        upgrade
+        This command is responsible for data base migrations.
+        Actions:
+        init - initiates migration module use only once.
+        migrate - creates schema migration.
+        upgrade - upgrades database using schema migrations.
 
         Options:
         - '--debug' use debug configuration

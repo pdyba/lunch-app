@@ -7,11 +7,9 @@ from flask import Flask, g
 
 from flask.ext import restful, login
 from flask.ext.admin import Admin
-from flask.ext.celery3 import make_celery
 from flask.ext.login import LoginManager, current_user
 from flask.ext.mail import Mail
 from flask.ext.migrate import Migrate
-from flask.ext.script import Manager
 from flask.ext.sqlalchemy import SQLAlchemy
 
 from social.apps.flask_app.default.models import init_social

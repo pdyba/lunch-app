@@ -115,7 +115,9 @@ class MailText(db.Model):
     """
     __tablename__ = 'mail_text_msg'
     id = Column(Integer, primary_key=True)
-    daily_reminder = Column(String(800), unique=False)
-    monthly_pay_summary = Column(String(800), unique=False)
-    pay_reminder = Column(String(800), unique=False)
-    pay_slacker_reminder = Column(String(800), unique=False)
+    daily_reminder = Column(String(800))
+    daily_reminder_subject = Column(String(200))
+    monthly_pay_summary = Column(String(800))
+    pay_reminder = Column(String(800))
+    pay_slacker_reminder = Column(String(800))
+    info_page_text = Column(String(1600))

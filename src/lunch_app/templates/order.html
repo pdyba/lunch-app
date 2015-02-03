@@ -8,7 +8,7 @@
 <script type="text/javascript">
 <!--
 function confirmation() {
-	var answer = confirm("Are You sure You want to order a random meal, there is no way to undo it !")
+	var answer = confirm("Are you sure you want to order a random meal, there is no way to undo it !")
 	if (answer){
 		window.location = "{{ url_for('random_food') }}";
 	}
@@ -107,7 +107,7 @@ function confirmation() {
                 {% endfor %}
             {% endfor %}
 
-            <h3>Please enter your order <a class="button tiny alert right" onclick="confirmation()">Random Order</a></h3>
+            <h3>Please enter your order <a class="button tiny alert right" onclick="confirmation()">Random order</a></h3>
             <b>&larr; Click on the list to fill your order</b><br>
 
             or write
