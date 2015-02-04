@@ -169,25 +169,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test day summary page.
         """
-        resp = self.client.get('/day_summary')
-        self.assertEqual(resp.status_code, 200)
-        order = Order()
-        order.date = date.today()
-        order.description = 'Duzy Gruby Nalesnik'
-        order.company = 'Tomas'
-        order.cost = 123
-        order.user_name = 'test_user'
-        order.arrival_time = '12:00'
-        order_2 = Order()
-        order_2.date = date.today()
-        order_2.description = 'Maly Gruby Nalesnik'
-        order_2.company = 'Tomas'
-        order_2.cost = 223
-        order_2.user_name = 'test_user'
-        order_2.arrival_time = '13:00'
-        db.session.add(order)
-        db.session.add(order_2)
-        db.session.commit()
+        fill_db()
         resp = self.client.get('/day_summary')
         self.assertIn('Maly Gruby Nalesnik', str(resp.data))
         self.assertIn('Duzy Gruby Nalesnik', str(resp.data))
@@ -466,20 +448,28 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         order.arrival_time = '12:00'
         db.session.add(order)
         db.session.commit()
-        resp = self.client.get('/random_meal')
+        resp = self.client.get('/random_meal/1')
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(
+            resp.location,
+            'http://localhost/order'
+        )
+        resp = self.client.get('/random_meal/2')
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(
             resp.location,
             'http://localhost/order'
         )
         for i in range(10):
-            user_order = Order.query.filter(
+            self.client.get('/random_meal/2')
+            orders = Order.query.filter(
                 Order.user_name == 'test_user'
-            ).first()
-            self.assertNotEqual(
-                'szpinak',
-                user_order.description,
-            )
+            ).all()
+            for user_order in orders:
+                self.assertNotEqual(
+                    'szpinak',
+                    user_order.description,
+                )
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_send_daily_reminder(self):

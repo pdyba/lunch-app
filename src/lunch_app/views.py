@@ -9,7 +9,8 @@ import datetime
 from random import choice
 
 
-from flask import redirect, render_template, request, flash, url_for
+from flask import redirect, render_template, request, flash, url_for, Response, \
+    jsonify
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
@@ -643,7 +644,7 @@ def finance_mail_all():
     ).all()
     finance_user_list = []
     for finance_query in finances:
-            finance_user_list.append(finance_query.user_name)
+        finance_user_list.append(finance_query.user_name)
     finance_data = {}
     for user in users:
         finance_data[user.username] = {
@@ -728,9 +729,9 @@ def finance_search_view():
     return render_template('finance_search.html', form=form)
 
 
-@app.route('/random_meal', methods=['GET', 'POST'])
+@app.route('/random_meal/<int:courage>', methods=['GET', 'POST'])
 @login.login_required
-def random_food():
+def random_food(courage):
     """
     Orders random meal.
     """
@@ -756,17 +757,33 @@ def random_food():
             )
         ).all()
     food = choice(foods)
-    order = Order()
-    order.arrival_time = '12:00'
-    order.company = food.company
-    order.cost = food.cost
-    order.description = '!RANDOM ORDER!\n'
-    order.description += food.description
-    order.user_name = current_user.username
-    db.session.add(order)
-    db.session.commit()
-    flash('! Random meal ordered !')
-    return redirect('order')
+    if food.description.startswith('!RANDOM O'):
+        food.description = food.description[15:]
+    if courage >= 1:
+        order = Order()
+        if courage == 1:
+            order.arrival_time = '12:00'
+        elif courage == 2:
+            order.arrival_time = '13:00'
+        order.company = food.company
+        order.cost = food.cost
+        order.description = '!RANDOM ORDER!\n'
+        order.description += food.description
+        order.user_name = current_user.username
+        db.session.add(order)
+        db.session.commit()
+        flash('! Random meal ordered !')
+        return redirect('order')
+    elif courage == 0:
+        random_order = {
+            "description": food.description,
+            "cost": food.cost,
+            "arrival_time": '12:00',
+            "company": food.company
+        }
+        resp = jsonify(random_order)
+        resp.status_code = 200
+        return resp
 
 
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
