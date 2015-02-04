@@ -142,21 +142,16 @@ class AddFood(Form):
         Form.__init__(self, *args, **kwargs)
 
 
-class DidUserPayForm(Form):
-    """
-    Did user Pay bool field
-    """
-    did_user_pay = SelectField(
-        'did_user_pay',
-        choices=[('1', 'Tak'), ('0', 'Nie')],
-        default='0',
-    )
-
-
 class MailTextForm(Form):
     """
-    Did user Pay bool field
+    Mail subject and text edit form.
     """
+    daily_reminder_subject = TextAreaField(
+        "daily_reminder_subject",
+        validators=[validators.DataRequired(
+            "Please enter daily reminder text."
+        )]
+    )
     daily_reminder = TextAreaField(
         "daily_reminder",
         validators=[validators.DataRequired(
@@ -191,7 +186,7 @@ class MailTextForm(Form):
 
 class UserDailyReminderForm(Form):
     """
-    Did user Pay field
+    User daily reminder form.
     """
     i_want_daily_reminder = BooleanField(
         'i_want_daily_reminder',
@@ -214,4 +209,4 @@ class FinanceSearchForm(Form):
         ('0', 'All'),
         ('1', 'Paid'),
         ('2', 'Unpaid'),
-        ])
+    ])

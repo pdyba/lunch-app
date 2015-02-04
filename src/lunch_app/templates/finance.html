@@ -25,9 +25,9 @@
             <thead>
             <tr>
                 <th>Username</th>
-                <th>Number of Orders</th>
-                <th>Month Cost</th>
-                <th>Paid?</th>
+                <th>Number of orders</th>
+                <th>Month cost</th>
+                <th>Is paid?</th>
                 <th>Remind e-mail</th>
                 <th>! SLACKER !</th>
             </tr>
@@ -40,7 +40,7 @@
                     <td>{{ record['number_of_orders'] }}</td>
                     <td>{{ record['month_cost'] }} PLN</td>
                     <td width="75">
-                        <input name="did_user_pay_{{ record['username'] }}" type="checkbox" {%  if record['did_user_pay'] %} checked=checked" {% endif %}/></td>
+                        <input name="did_user_pay_{{ record['username'] }}" type="checkbox" {%  if record['did_user_pay'] %} checked="checked" {% endif %}/></td>
                     </td>
                     <td>
                         <a href="{{ url_for('payment_remind', username=record['username'], slack=0) }}">

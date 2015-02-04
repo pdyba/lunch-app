@@ -5,20 +5,32 @@
 {% block content %}
 
     <script src="{{ url_for('static', filename='js/order_script.js') }}"></script>
-<script type="text/javascript">
-<!--
-function confirmation() {
-	var answer = confirm("Are You sure You want to order a random meal, there is no way to undo it !")
+
+<script>
+function confirmation_12() {
+	var answer = confirm("Are you sure you want to order a random meal at 12:00, there is no way to undo it !")
 	if (answer){
-		window.location = "{{ url_for('random_food') }}";
+		window.location = "{{ url_for('random_food', courage=1) }}";
 	}
 	else{
 		alert("OK maybe next time")
 	}
 }
-//-->
-</script>
 
+function confirmation_13() {
+	var answer = confirm("Are you sure you want to order a random meal at 13:00, there is no way to undo it !")
+	if (answer){
+		window.location = "{{ url_for('random_food', courage=2) }}";
+	}
+	else{
+		alert("OK maybe next time")
+	}
+}
+
+
+
+
+</script>
 
     <div class="large-6 columns">
         <h3>Available meals</h3>
@@ -106,10 +118,16 @@ function confirmation() {
                     </div>
                 {% endfor %}
             {% endfor %}
-
-            <h3>Please enter your order <a class="button tiny alert right" onclick="confirmation()">Random Order</a></h3>
-            <b>&larr; Click on the list to fill your order</b><br>
-
+        <div class="large-8 columns">
+            <h3>Please enter your order </h3>
+            <b>&larr; Click on the list to fill your order</b>
+</div>
+        <div class="large-4 columns">
+            <a class="button tiny success right" id="softrandom">Soft random</a>
+         <a class="button tiny alert right" onclick="confirmation_12()">Hard random 12</a>
+            <a class="button tiny alert right" onclick="confirmation_13()">Hard random 13</a>
+            </div>
+            <div class="large-12 columns">
             or write
             {{ form.description }}
             cost {{ form.cost }}
