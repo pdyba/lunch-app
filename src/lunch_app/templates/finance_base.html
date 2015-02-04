@@ -12,6 +12,9 @@
     <dd {% if page_id == 'finance_mail_all' %}
         class="active" {% endif %}><a href="{{ url_for('finance_mail_all') }}">Mail all</a></dd>
     <dd {% if page_id == 'finance_search' %}
+        class="active" {% endif %}><a href="{{ url_for('finance_block_user') }}">Block User</a></dd>
+
+    <dd {% if page_id == 'finance_search' %}
         class="active" {% endif %}><a href="{{ url_for('finance_search_view') }}">Search</a></dd>
 
 

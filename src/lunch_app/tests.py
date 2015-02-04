@@ -18,7 +18,9 @@ from .models import Order, Food, MailText
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
 MOCK_ADMIN.username = 'test_user'
+MOCK_ADMIN.active = True
 MOCK_ADMIN.is_anonymous.return_value = False
+MOCK_ADMIN.is_active.return_value = True
 MOCK_ADMIN.email = 'mock@mock.com'
 
 
@@ -474,7 +476,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_send_daily_reminder(self):
         """
-        Test sends daili reminder to all users.
+        Test sends daily reminder to all users.
         """
         fill_db()
         with mail.record_messages() as outbox:
@@ -485,6 +487,54 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertTrue(msg.subject.startswith('STX Lunch'))
             self.assertIn('daili1', msg.body)
             self.assertEqual(msg.recipients, ['reminder@user.pl'])
+
+    def test_orders_summary_for_tv(self):
+        """
+        Test orders summary for tv view.
+        """
+        fill_db()
+        resp = self.client.get('/tv')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("test_user", str(resp.data))
+        self.assertIn("Maly Gruby Nalesnik", str(resp.data))
+        self.assertIn("Duzy Gruby Nalesnik", str(resp.data))
+
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_finance_block_user(self):
+        """
+        Test block user view.
+        """
+        fill_db()
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("pay for last month", str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_finance_block_ordering(self):
+        """
+        Test blocking and unblocking order ability for all users
+        """
+        fill_db()
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Tiramisu", str(resp.data))
+
+        # test blocking
+        resp = self.client.get('/finance_block_ordering')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn("Tiramisu", str(resp.data))
+        self.assertIn("ordering is blocked", str(resp.data))
+
+        # test unblocking
+        resp = self.client.get('/finance_unblock_ordering')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Tiramisu", str(resp.data))
+        self.assertNotIn("ordering is blocked", str(resp.data))
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):

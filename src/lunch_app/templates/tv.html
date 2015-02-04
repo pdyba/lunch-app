@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang=en>
+<head>
+    <meta charset=utf-8>
+    <title>STX Lunch</title>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta name="author" content="STX Next sp. z o.o."/>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/normalize2.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/foundation.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/general_foundicons.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/stx_style.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
+
+    <link rel="shortcut icon"
+          href="{{ url_for('static', filename='img/favicon.ico') }}"
+          type="image/x-icon">
+</head>
+<body>
+<div class="large-12 columns">
+<hr>
+{% for order in orders %}
+    <div class="large-3 columns">
+<ul class="pricing-table">
+  <li class="title">{{ order.user_name }}</li>
+  <li class="description">{{ order.company }}</li>
+  <li class="description">{% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}<b style="color: red">{{ order.description }}</b>{% else %}{{ order.description }}{% endif %}</li>
+</ul>
+    </div>
+{% endfor %}
+</body>
+<bottom>
+    <div class="large-12 columns small-text-right">
+
+        <hr>
+        <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
+    </div>
+</bottom>
+</html>

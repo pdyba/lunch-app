@@ -204,3 +204,12 @@ class FinanceSearchForm(Form):
         ('1', 'Paid'),
         ('2', 'Unpaid'),
     ])
+
+
+class FinanceBlockUserForm(Form):
+    """
+    Finance block user form
+    """
+    user_select = SelectField(
+        'user_select',
+    )
