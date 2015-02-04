@@ -4,6 +4,20 @@
 
 {% block content %}
 
+    <script type="text/javascript">
+<!--
+function confirmation() {
+	var answer = confirm("Are You sure You want delete order, there is no way to undo it !")
+	if (answer){
+		window.location = "{{ url_for('delete_order', order_id=order.id) }}";
+	}
+	else{
+		alert("OK maybe next time")
+	}
+}
+//-->
+</script>
+
     <div class="large-6 columns">
         <h3>Edit order</h3>
 
@@ -24,6 +38,8 @@
 
             <input type="submit" value="save" class="button right">
         </form>
+
+        <a class="button alert left" onclick="confirmation()">delete</a>
 
     </div>
     </div>
