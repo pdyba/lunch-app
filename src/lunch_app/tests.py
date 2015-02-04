@@ -64,8 +64,16 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test info page view.
         """
+        fill_db()
         resp = self.client.get('/info')
         self.assertEqual(resp.status_code, 200)
+        self.assertTrue("CATERING - menu na co dzi" in resp.data.__str__())
+        mailtxt = MailText.query.first()
+        mailtxt.info_page_text = "To jest nowa firma \n ze strna\n www.wp.pl"
+        db.session.commit()
+        resp = self.client.get('/info')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue("www.wp.pl" in resp.data.__str__())
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_my_orders_view(self):
@@ -150,12 +158,62 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'company': 'Pod Koziołkiem',
             'date_available_from': '2015-01-01',
             'o_type': 'daniednia',
+            'add_meal': 'add',
         }
-        resp_2 = self.client.post('/add_food', data=data)
+        resp_2 = self.client.post('/add_food', data=data,)
         food_db = Food.query.first()
-        self.assertTrue(resp_2.status_code == 302)
+        self.assertEqual(resp_2.status_code, 302)
         self.assertEqual(food_db.cost, 333)
         self.assertEqual(food_db.description, 'dobre_jedzonko')
+        self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
+        self.assertEqual(
+            food_db.date_available_from,
+            datetime(2015, 1, 1, 0, 0)
+        )
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_add_food__bulk_view(self):
+        """
+        Test bulk add food page.
+        """
+        data = {
+            'cost': '333',
+            'description': 'dobre_jedzonko\r\nciekawe_jedzonko\r\npies',
+            'date_available_to': '2015-01-01',
+            'company': 'Pod Koziołkiem',
+            'date_available_from': '2015-01-01',
+            'o_type': 'daniednia',
+            'add_meal': 'bulk',
+        }
+        resp = self.client.post('/add_food', data=data,)
+        food_db = Food.query.get(1)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(food_db.cost, 333)
+        self.assertEqual(food_db.description, 'dobre_jedzonko')
+        self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
+        self.assertEqual(
+            food_db.date_available_from,
+            datetime(2015, 1, 1, 0, 0)
+        )
+        food_db = Food.query.get(2)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(food_db.cost, 333)
+        self.assertEqual(food_db.description, 'ciekawe_jedzonko')
+        self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food_db.company, 'Pod Koziołkiem')
+        self.assertEqual(food_db.o_type, 'daniednia')
+        self.assertEqual(
+            food_db.date_available_from,
+            datetime(2015, 1, 1, 0, 0)
+        )
+        food_db = Food.query.get(3)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(food_db.cost, 333)
+        self.assertEqual(food_db.description, 'pies')
         self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(food_db.company, 'Pod Koziołkiem')
         self.assertEqual(food_db.o_type, 'daniednia')
@@ -246,6 +304,17 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(order_db.date, datetime(2015, 1, 1))
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_delete_order(self):
+        """
+        Test delete order.
+        """
+        fill_db()
+        resp = self.client.post('/delete_order/1')
+        self.assertEqual(resp.status_code, 302)
+        order = Order.query.get(1)
+        self.assertTrue(order is None)
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_company_summary_view(self):
         """
         Test company summary page.
@@ -333,6 +402,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'monthly_pay_summary': 'Ciekawszy Montlhy Reminder',
             'pay_reminder': 'Fajniejszy Reminder',
             'pay_slacker_reminder': 'Leniwy przypominacz',
+            'info_page_text': 'Nowa strona Tomasa www.wp.pl',
             'daily_reminder_subject': 'STX Lunch nowy temat',
         }
         resp = self.client.post('/finance_mail_text', data=data)
