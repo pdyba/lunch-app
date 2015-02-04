@@ -149,7 +149,7 @@ class MailTextForm(Form):
     daily_reminder_subject = TextAreaField(
         "daily_reminder_subject",
         validators=[validators.DataRequired(
-            "Please enter daily reminder text."
+            "Please enter daily reminder subject."
         )]
     )
     daily_reminder = TextAreaField(
@@ -179,7 +179,7 @@ class MailTextForm(Form):
     info_page_text = TextAreaField(
         "info_page_text",
         validators=[validators.DataRequired(
-            "Please enter pay reminder text for slackers."
+            "Please enter text for info page please start url with www or http"
         )]
     )
 
