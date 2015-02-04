@@ -24,8 +24,9 @@ class User(db.Model, UserMixin):
     email = Column(String(200))
     name = Column(Unicode(40), index=True)
     password = Column(String(200), default='')
-    username = Column(String(200))
+    username = Column(String(200), unique=True)
     admin = Column(Boolean, default=False)
+    i_want_daily_reminder = Column(Boolean, default=False)
 
     def is_active(self):
         """
@@ -57,15 +58,14 @@ class Order(db.Model):
     arrival_time = Column(String(5))
     company = Column(String(80))
     date = Column(DateTime, default=datetime.utcnow)
-    user_name = Column(String(80), db.ForeignKey('user.name'))
+    user_name = Column(String(80), db.ForeignKey('user.username'))
 
     def __init__(
             self,
             description=None,
             cost=None,
             arrival_time=None,
-            company=None,
-            date=None):
+            company=None):
         """
         Inits orders db.
         """
@@ -103,7 +103,21 @@ class Finance(db.Model):
     """
     __tablename__ = 'finance'
     id = Column(Integer, primary_key=True)
-    user_name = Column(String(80), db.ForeignKey('user.name'))
+    user_name = Column(String(80), db.ForeignKey('user.username'))
     month = Column(Integer)
     year = Column(Integer)
     did_user_pay = Column(Boolean, default=False)
+
+
+class MailText(db.Model):
+    """
+    Mail text messages data base.
+    """
+    __tablename__ = 'mail_text_msg'
+    id = Column(Integer, primary_key=True)
+    daily_reminder = Column(String(800))
+    daily_reminder_subject = Column(String(200))
+    monthly_pay_summary = Column(String(800))
+    pay_reminder = Column(String(800))
+    pay_slacker_reminder = Column(String(800))
+    info_page_text = Column(String(1600))

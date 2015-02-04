@@ -20,7 +20,7 @@
             {{ order.arrival_time }}<br>
             {{ order.company }}<br>
             {{ order.cost }} PLN<br>
-            {{ order.description }}<br>
+            {% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}!RANDOM ORDER!{% else %}{{ order.description }} {% endif %}<br>
             {{ order.user_name }}<br>
         </div>
 

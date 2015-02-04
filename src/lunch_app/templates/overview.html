@@ -4,6 +4,27 @@
 
 {% block content %}
 
-    <h3>Overview</h3>
+    <div class="large-12 columns">
+        <h3>My settings</h3>
+
+        <div class="large-6 columns">
+            <div>
+
+                <form method="POST">
+
+                    I desire receiving email every day at 10:45 with reminder
+                    that I did <b>not</b> commit order on that marvelous day.
+
+
+                    {{ form.i_want_daily_reminder }}
+                    <br>
+
+                    <input type="submit" value="submit" class="button right">
+            </div>
+        </div>
+
+        <div class="large-6 columns">
+        </div>
+    </div>
 
 {% endblock %}

@@ -16,9 +16,9 @@
     <link href="{{ url_for('static', filename='css/stx_style.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
-<script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation/foundation.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
 
     <link rel="shortcut icon"
           href="{{ url_for('static', filename='img/favicon.ico') }}"
@@ -31,6 +31,7 @@
         <div class="large-12 columns">
             <ul class="title-area">
                 <h1>STX Lunch</h1>
+
 
                 {% if current_user and current_user.is_authenticated() %}
                     <nav class="top-bar" data-topbar role="navigation">
@@ -88,6 +89,12 @@
                                             href="{{ url_for('company_summary_view') }}">
                                         Company summary</a>
                                     </li>
+                                    </li>
+                                    <li {% if page_id == 'finance_main' %}
+                                        class="active" {% endif %}><a
+                                            href="{{ url_for('finance', year=get_current_year(), month=get_current_month(), did_pay=0) }}">
+                                        Finance</a>
+                                    </li>
                                 {% endif %}
                             </ul>
                         </section>
@@ -125,7 +132,7 @@
 <bottom>
     <div class="large-12 columns small-text-right">
 
-<hr>
+        <hr>
         <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
     </div>
 </bottom>

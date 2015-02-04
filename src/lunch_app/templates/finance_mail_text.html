@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% set page_id = 'finance_mail_text' %}
+
+{% block content %}
+<div class="large-12 columns">
+    {% include "finance_base.html" %}
+
+    <div class="large-6 columns">
+<form method="POST">
+            Daily reminder subject
+            {{ form.daily_reminder_subject }}
+            Daily reminder text
+            {{ form.daily_reminder }}
+            Month summary text
+            {{ form.monthly_pay_summary }}
+    </div>
+    <div class="large-6 columns">
+
+            Pay reminder text
+            {{ form.pay_reminder }}
+            Pay reminder for slackers
+            {{ form.pay_slacker_reminder }}
+
+            <input type="submit" value="submit" class="button right">
+            </form>
+    </div>
+    </div>
+{% endblock %}

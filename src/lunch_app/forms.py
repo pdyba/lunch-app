@@ -15,7 +15,7 @@ from wtforms import (
     FloatField,
 )
 
-from datetime import datetime, date
+from datetime import datetime
 
 
 class OrderForm(Form):
@@ -140,3 +140,67 @@ class AddFood(Form):
 
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
+
+
+class MailTextForm(Form):
+    """
+    Mail subject and text edit form.
+    """
+    daily_reminder_subject = TextAreaField(
+        "daily_reminder_subject",
+        validators=[validators.DataRequired(
+            "Please enter daily reminder text."
+        )]
+    )
+    daily_reminder = TextAreaField(
+        "daily_reminder",
+        validators=[validators.DataRequired(
+            "Please enter daily reminder text."
+        )]
+    )
+    monthly_pay_summary = TextAreaField(
+        "monthly_pay_summary",
+        validators=[validators.DataRequired(
+            "Please enter monthly pay summary text."
+        )]
+    )
+    pay_reminder = TextAreaField(
+        "pay_reminder",
+        validators=[validators.DataRequired(
+            "Please enter pay reminder text."
+        )]
+    )
+    pay_slacker_reminder = TextAreaField(
+        "pay_slacker_reminder",
+        validators=[validators.DataRequired(
+            "Please enter pay reminder text for slackers."
+        )]
+    )
+
+
+class UserDailyReminderForm(Form):
+    """
+    User daily reminder form.
+    """
+    i_want_daily_reminder = BooleanField(
+        'i_want_daily_reminder',
+    )
+
+
+class FinanceSearchForm(Form):
+    """
+    Finance search form
+    """
+    year = IntegerField(
+        'year',
+        validators=[validators.DataRequired('Please enter your Year.')]
+    )
+    month = IntegerField(
+        'month',
+        validators=[validators.DataRequired('Please enter your Month.')]
+    )
+    did_pay = SelectField('did_pay', choices=[
+        ('0', 'All'),
+        ('1', 'Paid'),
+        ('2', 'Unpaid'),
+    ])

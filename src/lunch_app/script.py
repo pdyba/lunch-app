@@ -122,6 +122,16 @@ def run():
         db.create_all()
 
     def action_db_migrate(action=('a', 'start'), debug=False):
+        """Migrate database.
+        This command is responsible for data base migrations.
+        Actions:
+        init - initiates migration module use only once.
+        migrate - creates schema migration.
+        upgrade - upgrades database using schema migrations.
+
+        Options:
+        - '--debug' use debug configuration
+        """
         from flask.ext.migrate import upgrade, init, migrate
         if debug:
             app = make_debug(with_debug_layer=False)

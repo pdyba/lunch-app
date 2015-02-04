@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% set page_id = 'finance_main' %}
+
+{% block content %}
+
+    <div class="large-12 columns">
+
+        {% include "finance_base.html" %}
+        <div class="small-4 columns left">
+        <a href="{{ links['previous_month'] }}">Prevoius month</a>
+        </div>
+        <div class="small-4 columns center">
+            <ul class="breadcrumbs">
+                <li>{{ pub_date['month'] }} {{ pub_date['year'] }}</li>
+
+            </ul>
+        </div>
+    <div class="small-4 columns right">
+        <a href="{{ links['next_month'] }}">Next month</a>
+    </div>
+    </div>
+    <form method="POST">
+        <table>
+            <thead>
+            <tr>
+                <th>Username</th>
+                <th>Number of orders</th>
+                <th>Month cost</th>
+                <th>Is paid?</th>
+                <th>Remind e-mail</th>
+                <th>! SLACKER !</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for record in finance_data.values() %}
+                <tr>
+
+                    <td>{{ record['username'] }}</td>
+                    <td>{{ record['number_of_orders'] }}</td>
+                    <td>{{ record['month_cost'] }} PLN</td>
+                    <td width="75">
+                        <input name="did_user_pay_{{ record['username'] }}" type="checkbox" {%  if record['did_user_pay'] %} checked="checked" {% endif %}/></td>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('payment_remind', username=record['username'], slack=0) }}">
+                            Send e-mail</a></td>
+                    <td>
+                        <a href="{{ url_for('payment_remind', username=record['username'], slack=1) }}">
+                            ! SLACKER !</a>
+
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+        <input type="submit" value="send" class="button right">
+    </form>
+    </div>
+
+{% endblock %}

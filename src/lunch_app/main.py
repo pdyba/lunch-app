@@ -3,19 +3,18 @@
 Flask app initialization.
 """
 # pylint: disable=invalid-name, unused-variable, unused-import
-
 from flask import Flask, g
-from flask.ext import restful, login
-from flask.ext.mail import Mail
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, current_user
-from flask.ext.admin import Admin
-from flask.ext.script import Manager
-from flask.ext.migrate import Migrate
 
+from flask.ext import restful, login
+from flask.ext.admin import Admin
+from flask.ext.login import LoginManager, current_user
+from flask.ext.mail import Mail
+from flask.ext.migrate import Migrate
+from flask.ext.sqlalchemy import SQLAlchemy
+
+from social.apps.flask_app.default.models import init_social
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
-from social.apps.flask_app.default.models import init_social
 
 
 def init_social_login():
@@ -78,6 +77,7 @@ def init_admin():
     admin.add_view(AdminModelViewWithAuth(models.User, db.session))
     admin.add_view(AdminModelViewWithAuth(models.Order, db.session))
     admin.add_view(AdminModelViewWithAuth(models.Food, db.session))
+    admin.add_view(AdminModelViewWithAuth(models.Finance, db.session))
 
 
 def init():
@@ -97,7 +97,5 @@ app = Flask(__name__)
 db = SQLAlchemy()
 admin = Admin(app)
 api = restful.Api(app)
-
 migrate = Migrate(app, db)
-
 mail = Mail()

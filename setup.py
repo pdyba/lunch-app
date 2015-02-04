@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 
 name = "lunch_app"
-version = "0.2.2"
+version = "0.5.5"
 
 
 def read(*rnames):
