@@ -33,8 +33,6 @@ from .models import Order, Food, User, Finance, MailText
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
 
-from werkzeug.exceptions import BadRequestKeyError
-
 import logging
 
 log = logging.getLogger(__name__)
@@ -79,6 +77,17 @@ def create_order():
     """
     Create new order page.
     """
+    if not current_user.is_active():
+        try:
+            texts = MailText.query.get(1)
+            try:
+                msg = texts.blocked_user_text
+            except AttributeError:
+                msg = "Sorry You didn't pay for last month :("
+        except OperationalError:
+            msg = "Sorry You didn't pay for last month :("
+        flash(msg)
+        return redirect('overview')
     form = OrderForm(request.form)
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
@@ -109,7 +118,6 @@ def create_order():
             mail.send(msg)
             flash('Mail send')
         return redirect('order')
-    print(current_user.username, current_user.active, current_user.is_active(),)
     return render_template('order.html', form=form, foods=foods)
 
 
@@ -931,6 +939,7 @@ def finance_block_user():
         form_block=form_block,
         form_unblock=form_unblock,
     )
+
 
 @app.route('/finance_block_ordering', methods=['GET', 'POST'])
 @login.login_required

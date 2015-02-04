@@ -121,3 +121,4 @@ class MailText(db.Model):
     pay_reminder = Column(String(800))
     pay_slacker_reminder = Column(String(800))
     info_page_text = Column(String(1600))
+    blocked_user_text = Column(String(800))

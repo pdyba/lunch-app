@@ -95,6 +95,10 @@
                                             href="{{ url_for('finance', year=get_current_year(), month=get_current_month(), did_pay=0) }}">
                                         Finance</a>
                                     </li>
+                                    <li><a
+                                            href="{{ url_for('orders_summary_for_tv') }}">
+                                        TV</a>
+                                    </li>
                                 {% endif %}
                             </ul>
                         </section>

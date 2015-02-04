@@ -98,5 +98,6 @@ def fill_db():
     mailtxt.monthly_pay_summary = "monthly2"
     mailtxt.pay_reminder = "reminder3"
     mailtxt.pay_slacker_reminder = 'slacker4'
+    mailtxt.blocked_user_text = 'YouareBlocked'
     db.session.add(mailtxt)
     db.session.commit()

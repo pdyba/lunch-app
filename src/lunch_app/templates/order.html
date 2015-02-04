@@ -6,7 +6,6 @@
 
 {% if ordering_is_active() %}
 
-    {% if current_user.is_active() %}
 
     <script src="{{ url_for('static', filename='js/order_script.js') }}"></script>
 
@@ -161,11 +160,10 @@ function confirmation_13() {
             }
         });
     </script>
-        {% else %}
 
-    Sorry You didn't pay for last month :(
 
-    {% endif %}
+
+
 {% else %}
 
     You ware too late ordering is blocked till tomorow :(<br>

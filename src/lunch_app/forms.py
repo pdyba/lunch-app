@@ -182,6 +182,12 @@ class MailTextForm(Form):
             "Please enter text for info page please start url with www or http"
         )]
     )
+    blocked_user_text = TextAreaField(
+        "blocked_user_text",
+        validators=[validators.DataRequired(
+            "Please enter text which will be shwon for blocked users"
+        )]
+    )
 
 
 class UserDailyReminderForm(Form):

@@ -4,6 +4,7 @@ helper functions for jinjna.
 """
 import datetime
 
+
 def get_current_datetime():
     """
     Returns current datetime as datetime type for jinjna.
