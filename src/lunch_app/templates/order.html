@@ -8,7 +8,7 @@
 
 <script>
 function confirmation_12() {
-	var answer = confirm("Are you sure you want to order a random meal, there is no way to undo it !")
+	var answer = confirm("Are you sure you want to order a random meal at 12:00, there is no way to undo it !")
 	if (answer){
 		window.location = "{{ url_for('random_food', courage=1) }}";
 	}
@@ -18,7 +18,7 @@ function confirmation_12() {
 }
 
 function confirmation_13() {
-	var answer = confirm("Are you sure you want to order a random meal, there is no way to undo it !")
+	var answer = confirm("Are you sure you want to order a random meal at 13:00, there is no way to undo it !")
 	if (answer){
 		window.location = "{{ url_for('random_food', courage=2) }}";
 	}
