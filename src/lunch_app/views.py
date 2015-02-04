@@ -124,7 +124,7 @@ def add_food():
     elif request.method == 'POST' and form.validate() \
             and request.form['add_meal'] == 'bulk':
         foods = form.description.data
-        foods = foods.split("\r\n")
+        foods = foods.replace('\r', '').split('\n')
         number_of_foods_aded = 0
         for food in foods:
             meal = Food()
@@ -135,8 +135,8 @@ def add_food():
             meal.date_available_to = form.date_available_to.data
             meal.o_type = form.o_type.data
             db.session.add(meal)
-            db.session.commit()
             number_of_foods_aded += 1
+        db.session.commit()
         flash('{} foods added'.format(number_of_foods_aded))
         return redirect('add_food')
     return render_template('add_food.html', form=form)
@@ -232,7 +232,6 @@ def info():
         try:
             temp = "{}".format(texts.info_page_text)
             info = temp.split('\n')
-            print(info)
         except AttributeError:
             info = "None"
     except OperationalError:
