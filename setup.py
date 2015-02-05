@@ -36,6 +36,7 @@ setup(
         'Flask-Mail',
         'Flask-Script',
         'Flask-Migrate',
+        'beautifulsoup4',
     ],
     entry_points="""
     [console_scripts]

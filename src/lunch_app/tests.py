@@ -13,7 +13,7 @@ from .main import app, db, mail
 from . import main, utils
 from .fixtures import fill_db
 from .models import Order, Food, MailText, User
-
+from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
 
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
@@ -634,6 +634,30 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn("Tiramisu", str(resp.data))
         self.assertNotIn("ordering is blocked", str(resp.data))
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_add_daily_koziolek(self):
+        """
+        Test adding meal of a day from koziolek's webpage.
+        """
+        resp = self.client.get('/add_daily_koziolek')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Danie dnia", str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_get_week_from_tomas_view(self):
+        """
+        Test adding weak meals from Tomas.
+        """
+        resp = self.client.get('/add_week_tomas')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("10.0 PLN", str(resp.data))
+        self.assertIn("12.0 PLN", str(resp.data))
+        self.assertIn("4.0 PLN", str(resp.data))
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
@@ -729,6 +753,46 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
         self.assertEqual(resp_2.status_code, 401)
 
 
+class LunchWebCrawlersTestCases(unittest.TestCase):
+    """
+    Webcrawlers tests.
+    """
+    def setUp(self):
+        """
+        Before each test, set up a environment.
+        """
+        self.client = main.app.test_client()
+
+    def tearDown(self):
+        """
+        Get rid of unused objects after each test.
+        """
+        pass
+
+    def test_get_dania_dnia_from_pod_koziolek(self):
+        """
+        Tests web crawling functions works properly Koziolek add meal of a day
+        """
+        data = get_dania_dnia_from_pod_koziolek()
+        self.assertGreaterEqual(len(data), 2)
+        self.assertGreaterEqual(len(data["zupa_dnia"]), 1)
+        self.assertGreaterEqual(len(data['danie_dania_1']), 1)
+
+    def test_get_week_from_tomas(self):
+        """
+        Tests web crawling functions works properly for Tomas add weak
+        """
+        data = get_week_from_tomas()
+        self.assertEqual(len(data), 6)
+        self.assertGreaterEqual(len(data['diet']), 1)
+        for i in range(1, 6):
+            food = data['dzien_{}'.format(i)]
+            self.assertEqual(len(food), 3)
+            self.assertGreaterEqual(len(food['zupy']), 1)
+            self.assertGreaterEqual(len(food['dania']), 1)
+            self.assertGreaterEqual(len(food['zupa_i_dania']), 1)
+
+
 def suite():
     """
     Default test suite.
@@ -737,6 +801,7 @@ def suite():
     base_suite.addTest(unittest.makeSuite(LunchBackendViewsTestCase))
     base_suite.addTest(unittest.makeSuite(LunchBackendUtilsTestCase))
     base_suite.addTest(unittest.makeSuite(LunchBackendPermissionsTestCase))
+    base_suite.addTest(unittest.makeSuite(LunchWebCrawlersTestCases))
     return base_suite
 
 

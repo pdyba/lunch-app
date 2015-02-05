@@ -32,6 +32,7 @@ from .forms import (
 from .models import Order, Food, User, Finance, MailText
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
+from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
 
 import logging
 
@@ -963,3 +964,79 @@ def finance_unblock_ordering():
     ORDERING_IS_ACTIVE = True
     flash('Now users can order :)')
     return redirect('day_summary')
+
+
+@app.route('/add_daily_koziolek', methods=['GET', 'POST'])
+@login.login_required
+def add_daily_koziolek():
+    """
+    Adds meal of a day from koziolek
+    """
+    food = get_dania_dnia_from_pod_koziolek()
+    for meal in food.values():
+        new_meal = Food()
+        if "zupa" in meal or "Zupa" in meal:
+            new_meal.cost = 2
+        else:
+            new_meal.cost = 11
+        new_meal.description = "Danie dnia Koziołek: "
+        new_meal.description += meal
+        new_meal.company = "Pod Koziołkiem"
+        new_meal.o_type = "daniednia"
+        new_meal.date_available_from = datetime.date.today()
+        new_meal.date_available_to = datetime.date.today()
+        db.session.add(new_meal)
+    db.session.commit()
+    return redirect('add_food')
+
+
+@app.route('/add_week_tomas', methods=['GET', 'POST'])
+@login.login_required
+def get_week_from_tomas_view():
+    """
+    Adds weak meals from Tomas
+    """
+    foods = get_week_from_tomas()
+    for meal in foods['diet']:
+        new_meal = Food()
+        new_meal.cost = 12
+        new_meal.description = meal
+        new_meal.company = "Tomas"
+        new_meal.o_type = "tygodniowe"
+        new_meal.date_available_from = datetime.date.today()
+        new_meal.date_available_to = \
+            datetime.date.today() + \
+            datetime.timedelta(days=4)
+        db.session.add(new_meal)
+    for i in range(1, 6):
+        food = foods['dzien_{}'.format(i)]
+        day_dif = datetime.date.today() + datetime.timedelta(days=i-1)
+        for meal in food['zupy']:
+            new_meal = Food()
+            new_meal.cost = 4
+            new_meal.description = meal
+            new_meal.company = "Tomas"
+            new_meal.o_type = "daniednia"
+            new_meal.date_available_from = day_dif
+            new_meal.date_available_to = day_dif
+            db.session.add(new_meal)
+        for meal in food['dania']:
+            new_meal = Food()
+            new_meal.cost = 10
+            new_meal.description = meal
+            new_meal.company = "Tomas"
+            new_meal.o_type = "daniednia"
+            new_meal.date_available_from = day_dif
+            new_meal.date_available_to = day_dif
+            db.session.add(new_meal)
+        for meal in food['zupa_i_dania']:
+            new_meal = Food()
+            new_meal.cost = 12
+            new_meal.description = meal
+            new_meal.company = "Tomas"
+            new_meal.o_type = "daniednia"
+            new_meal.date_available_from = day_dif
+            new_meal.date_available_to = day_dif
+            db.session.add(new_meal)
+    db.session.commit()
+    return redirect('add_food')
