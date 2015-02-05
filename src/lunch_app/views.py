@@ -29,7 +29,7 @@ from .forms import (
     FinanceSearchForm,
     FinanceBlockUserForm,
 )
-from .models import Order, Food, User, Finance, MailText
+from .models import Order, Food, User, Finance, MailText, OrderingInfo
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
 
@@ -83,9 +83,19 @@ def create_order():
             try:
                 msg = texts.blocked_user_text
             except AttributeError:
-                msg = "Sorry You didn't pay for last month :("
+                msg = "Sorry you didn't pay for last month :("
         except OperationalError:
-            msg = "Sorry You didn't pay for last month :("
+            msg = "Sorry you didn't pay for last month :("
+        flash(msg)
+        return redirect('overview')
+
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    if not ordering_is_allowed.is_allowed:
+        texts = MailText.query.get(1)
+        try:
+            msg = texts.ordering_is_blocked_text
+        except AttributeError:
+            msg = "Sorry You were too late Ordering is blocked now"
         flash(msg)
         return redirect('overview')
     form = OrderForm(request.form)
@@ -908,13 +918,10 @@ def finance_block_user():
     Allows to block specific user from ordering.
     """
     users = User.query.all()
-    users_to_block = []
-    users_to_unblock = []
-    for user in users:
-        if user.active:
-            users_to_block.append((user.id, user.username))
-        else:
-            users_to_unblock.append((user.id, user.username))
+    users_to_block = [(user.id, user.username) for
+                      user in users if user.active]
+    users_to_unblock = [(user.id, user.username) for
+                        user in users if not user.active]
     form_block = FinanceBlockUserForm(request.form)
     form_block.user_select.choices = users_to_block
     form_unblock = FinanceBlockUserForm(request.form)
@@ -947,8 +954,9 @@ def finance_block_ordering():
     """
     Allows to block ordering for everyone.
     """
-    global ORDERING_IS_ACTIVE
-    ORDERING_IS_ACTIVE = False
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    ordering_is_allowed.is_allowed = False
+    db.session.commit()
     flash('Now users can NOT order !')
     return redirect('day_summary')
 
@@ -959,7 +967,13 @@ def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
     """
-    global ORDERING_IS_ACTIVE
-    ORDERING_IS_ACTIVE = True
+    try:
+        ordering_is_allowed = OrderingInfo.query.get(1)
+        ordering_is_allowed.is_allowed = True
+    except AttributeError:
+        ordering_is_allowed = OrderingInfo()
+        ordering_is_allowed.is_allowed = True
+        db.session.add(ordering_is_allowed)
+    db.session.commit()
     flash('Now users can order :)')
     return redirect('day_summary')

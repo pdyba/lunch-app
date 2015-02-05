@@ -185,7 +185,13 @@ class MailTextForm(Form):
     blocked_user_text = TextAreaField(
         "blocked_user_text",
         validators=[validators.DataRequired(
-            "Please enter text which will be shwon for blocked users"
+            "Please enter text which will be shown for blocked users"
+        )]
+    )
+    ordering_is_blocked_text = TextAreaField(
+        "ordering_is_blocked_text",
+        validators=[validators.DataRequired(
+            "Please enter text which will be shown if ordering is blocked"
         )]
     )
 

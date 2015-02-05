@@ -9,8 +9,8 @@
         </div>
     <div class="large-6 columns">
         <h3 class="right">Ordering is
-            {% if ordering_is_active() == True %}<a style="color: green">Active</a>
-            {% elif ordering_is_active() == False %}<b style="color: red">Blocked</b>
+            {% if ordering_is_active() %}<a style="color: green">Active</a>
+            {% else %}<b style="color: red">Blocked</b>
             {% endif %}</h3>
     </div>
     </div>

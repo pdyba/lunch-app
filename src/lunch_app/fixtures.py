@@ -3,7 +3,7 @@ Fixtures for database.
 """
 
 from .main import db
-from .models import Order, Food, User, Finance, MailText
+from .models import Order, Food, User, Finance, MailText, OrderingInfo
 from datetime import datetime, date, timedelta
 
 
@@ -11,6 +11,9 @@ def fill_db():
     """
     Fill the database for tests
     """
+    ordering_info = OrderingInfo()
+    ordering_info.is_allowed = True
+    db.session.add(ordering_info)
     user = User()
     user.email = 'e@e.pl'
     user.username = 'test_user'
@@ -99,5 +102,6 @@ def fill_db():
     mailtxt.pay_reminder = "reminder3"
     mailtxt.pay_slacker_reminder = 'slacker4'
     mailtxt.blocked_user_text = 'YouareBlocked'
+    mailtxt.ordering_is_blocked_text = 'OrderingIsBlocked'
     db.session.add(mailtxt)
     db.session.commit()

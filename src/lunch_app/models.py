@@ -122,3 +122,10 @@ class MailText(db.Model):
     pay_slacker_reminder = Column(String(800))
     info_page_text = Column(String(1600))
     blocked_user_text = Column(String(800))
+    ordering_is_blocked_text = Column(String(800))
+
+
+class OrderingInfo(db.Model):
+    __tablename__ = 'ordering_info'
+    id = Column(Integer, primary_key=True)
+    is_allowed = Column(Boolean, default=True)
