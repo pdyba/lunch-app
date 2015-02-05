@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang=en>
+<head>
+    <meta charset=utf-8>
+    <title>STX Lunch</title>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta name="author" content="STX Next sp. z o.o."/>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/normalize2.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/foundation.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/general_foundicons.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/stx_style.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
+    <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
+
+    <link rel="shortcut icon"
+          href="{{ url_for('static', filename='img/favicon.ico') }}"
+          type="image/x-icon">
+</head>
+<body>
+<div class="large-12 columns">
+    <hr>
+    <div class="large-6 columns">
+        <table style="font-size: 12px; font-weight: bold;">
+            <tbody>
+            <tr>
+                <td width="300px"><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">Menu</span></span></td>
+
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">1. <span
+                        style="color: #ff0000;">Margherita </span> (sos, 2 x ser)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">2. <span
+                        style="color: #ff0000;">Margherita Carbonara </span> (sos Carbonara jest 2 x)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">3. <span
+                        style="color: #ff0000;">Funghi </span>(sos, ser, pieczarki )</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">4. <span
+                        style="color: #ff0000;">Vesuvio </span> (sos, ser, szynka)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">5. <span
+                        style="color: #ff0000;">Pepperoni</span> (</span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">sos, ser, papryka pepperoni, cebula</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">6. <span
+                        style="color: #ff0000;">Salami </span> (sos, ser, salami)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">7. <span
+                        style="color: #ff0000;">Bussola</span> (sos, ser, szynka, cebula)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">8. <span
+                        style="color: #ff0000;">Capriciosa</span> (sos, ser, szynka, pieczarki)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">9. <span
+                        style="color: #ff0000;">Vegetariana</span> (sos, ser, pieczarki, pomidor,<br/>
+ogórek, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">sałatka szwedzka, kukurydza)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">10. <span
+                        style="color: #ff0000;">Hawai</span> (sos, ser, szynka, ananas)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">11. <span
+                        style="color: #ff0000;">Grecka </span>(sos, ser, sałata lodowa, pomidor,<br/>
+oliwki, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">ser feta, oliwa z oliwek</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">12. <span
+                        style="color: #ff0000;">Ostra</span> (sos, ser, salami, papryka piri piri)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">13. <span
+                        style="color: #ff0000;">Mare</span> (sos, ser, owoce morza, kapary)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">14. <span
+                        style="color: #ff0000;">Milano</span> (sos, ser, szynka, ser topiony, pomidor)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">15th. <span
+                        style="color: #ff0000;">Luce </span> (sos, ser,</span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;"> camembert pomidor, rukola </span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">16th. <span
+                        style="color: #ff0000;">Felicia </span> (sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">pieczarki, pomidor być camembert </span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">17. <span
+                        style="color: #ff0000;">Tonno </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">tuńczyk, oliwki zielone, ser topiony</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">18. <span
+                        style="color: #ff0000;">Broccoli </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">brokuły, ser feta, czosnek</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">19. <span
+                        style="color: #ff0000;">Mateo </span> (sos, ser, salami, ser topiony, cebula)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">20. <span
+                        style="color: #ff0000;">Kubba </span>(sos, ser, szynka, salami, cebula)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">21. <span
+                        style="color: #ff0000;">Spinaci </span>(sos, ser, boczek, szpinak, czosnek)</span>
+                </td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">22. <span
+                        style="color: #ff0000;">Neptun </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">tuńczyk, ogórek, oliwki, cebula</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">23. <span
+                        style="color: #ff0000;">Fantasia</span> (sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;"> kukurydza, papryka, fasola, szpinak </span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">24. <span
+                        style="color: #ff0000;">Pizza Hot Dog </span>(sos, ser, parówki, sałatka szwedzka,<br/>
+sałata, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">cebulka prażona, sos czosnkowy</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">25. <span
+                        style="color: #ff0000;">Prima</span> (sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;"> kabanos, por, ser Lazur, papryka </span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">26. <span
+                        style="color: #ff0000;">Paola </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">pieczarki, szynka, papryka, cebula)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">27. <span
+                        style="color: #ff0000;">Cortino</span> (sos, ser, szynka, salami, ser topiony, pomidor, groszek)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">28. <span
+                        style="color: #ff0000;">Serowe</span> (sos, ser, ser topiony, ser Lazur, camembert, parmezan)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">29. <span
+                        style="color: #ff0000;">Annos </span>(sos, ser, szynka, cebula, ser topiony, ser Lazur)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">30. <span
+                        style="color: #ff0000;">Carbonara </span>(</span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">sos śmietanowy, ser, boczek, salami, por)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">31. <span
+                        style="color: #ff0000;">Carne </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">kebab wołowy, papryka, cebula)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">32. <span
+                        style="color: #ff0000;">Panna </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">sos śmietanowy, ser, kurczak, pieczarki, cebula</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">33. <span
+                        style="color: #ff0000;">Pollo </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">szynka, ananas, kurczak)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">34. <span
+                        style="color: #ff0000;">Bolonia </span>(</span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">sos boloński, ser, cebula, pieczarki, salami</span><span
+                        style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">)</span></span></td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">35. <span
+                        style="color: #ff0000;">Rzeźnicka </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">szynka, salami, boczek, kiełbasa)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">36. <span
+                        style="color: #ff0000;">Pizza Kebab </span>(sos, ser, mięso, cebula, pomidor, ogórek,<br/>
+</span></span><span style="font-size: 8pt; line-height: 115%; font-family: Verdana;">sałata, sos czosnkowy)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">37. <span
+                        style="color: #ff0000;">San Remo </span>(sos, ser, salami, szynka, kabanos, cebula, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">czosnek)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span
+                        style="font-size: 8pt; font-family: Verdana;">38. <span
+                        style="color: #ff0000;">Karo </span>(sos, ser, szynka parmeńska, pomidor, </span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">oliwki czarne,<br/>
+czosnek, rukola)</span></td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">39. <span
+                        style="color: #ff0000;">Wiejska </span>(sos, ser, </span></span><span
+                        style="font-size: 8pt; line-height: 115%; font-family: Verdana;">boczek, salami, szynka, kabanos, kiełbasa, cebula)</span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-size: 8pt;"><span
+                        style="font-family: Verdana;">40. </span><span
+                        style="color: #ff0000;"><span
+                        style="font-family: Verdana;">Manzo </span></span><span
+                        style="font-family: Verdana;">(sos, ser, kebab wołowy, szynka parmeńska, ser Lazur, rukola)</span></span>
+                </td>
+            </tr>
+            <td><span style="font-family: Verdana;"><span
+                    style="font-size: 8pt;">1. <span style="color: #ff0000;">Ciasto</span><span
+                    style="color: #ff0000;"><br/>
+</span> </span></span></td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;">2. <span
+                        style="color: #ff0000;">Podwójny ser, ser topiony, ser camembert</span></span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-size: 8pt;"><span
+                        style="font-family: Verdana;">3. <span
+                        style="color: #ff0000;">Sosy: </span>czosnkowy, pomidorowy, Tysiąc Wysp, Barbecue,<br/>
+Arabski (pikantny), sambal (ostry), ketchup</span></span></td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">4. <span
+                        style="color: #ff0000;">Dodatki warzywne</span></span></span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-size: 8pt;"><span
+                        style="font-family: Verdana;">5. <span
+                        style="color: #ff0000;">Dodatki mięsne (wędliny oraz tuńczyk)</span></span></span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="font-family: Verdana;"><span
+                        style="font-size: 8pt;">6. <span
+                        style="color: #ff0000;">Ekstra dodatki: </span>owoce morza, mięso kebab, parmezan,<br/>
+ser feta, ser Lazur, szynka parmeńska, kurczak</span></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="large-6 columns">
+        Skarbiec Smaków, ul. Marcelińska 54, Poznań
+        tel. 518 161 162, tel. 61 662 58 01
+        <form method="POST" name="pizza">
+
+            Pizza description
+            {{ form.description }}
+            Size
+            {{ form.pizza_size }}
+            <input type="submit" value="pizza" class="button right">
+        </form>
+
+               <h3>Pizza orders</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Pizza</th>
+                <th>Size nad user</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for pizza in pizzas_ordered %}
+                <tr>
+
+                    <td>{{ pizza }}</td>
+                    <td>{{ pizzas_ordered[pizza] }}</td>
+
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</body>
+<bottom>
+    <div class="large-12 columns small-text-right">
+        <hr>
+        <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
+    </div>
+</bottom>
+</html>

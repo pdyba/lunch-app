@@ -28,8 +28,9 @@ from .forms import (
     UserDailyReminderForm,
     FinanceSearchForm,
     FinanceBlockUserForm,
+    PizzaChooseForm,
 )
-from .models import Order, Food, User, Finance, MailText
+from .models import Order, Food, User, Finance, MailText, Pizza
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
 from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
@@ -210,6 +211,52 @@ def day_summary():
     ).all()
     orders_pk_13_cost = sum(order.cost for order in orders_pk_13)
 
+    orders = Order.query.filter(
+        and_(
+            Order.date >= today_beg,
+            Order.date <= today_end,
+        )
+    ).all()
+    new_orders = {
+        'tomas_12': {},
+        'tomas_13': {},
+        'pod_koziolkiem_12': {},
+        'pod_koziolkiem_13': {},
+    }
+    for order in orders:
+        order.description = order.description.strip('\n')
+        order.description = order.description.strip('\r')
+        if order.company == 'Tomas':
+            if order.arrival_time == '12:00':
+                try:
+                    new_orders['tomas_12'][order.description] += 1
+                    new_orders['tomas_12']['cost'] += order.cost
+                except KeyError:
+                    new_orders['tomas_12'][order.description] = 1
+                    new_orders['tomas_12']['cost'] = order.cost
+            elif order.arrival_time == '13:00':
+                try:
+                    new_orders['tomas_13'][order.description] += 1
+                    new_orders['tomas_13']['cost'] += order.cost
+                except KeyError:
+                    new_orders['tomas_13'][order.description] = 1
+                    new_orders['tomas_13']['cost'] = order.cost
+        elif order.company == 'Pod Koziołkiem':
+            if order.arrival_time == '12:00':
+                try:
+                    new_orders['pod_koziolkiem_12'][order.description] += 1
+                    new_orders['pod_koziolkiem_12']['cost'] += order.cost
+                except KeyError:
+                    new_orders['pod_koziolkiem_12'][order.description] += 1
+                    new_orders['pod_koziolkiem_12']['cost'] = order.cost
+            elif order.arrival_time == '13:00':
+                try:
+                    new_orders['pod_koziolkiem_13'][order.description] += 1
+                    new_orders['pod_koziolkiem_13']['cost'] += order.cost
+                except KeyError:
+                    new_orders['pod_koziolkiem_13'][order.description] += 1
+                    new_orders['pod_koziolkiem_13']['cost'] = order.cost
+
     return render_template(
         'day_summary.html',
         orders_t_12=orders_t_12,
@@ -220,6 +267,7 @@ def day_summary():
         orders_pk_12_cost=orders_pk_12_cost,
         orders_pk_13=orders_pk_13,
         orders_pk_13_cost=orders_pk_13_cost,
+        new_orders=new_orders,
     )
 
 
@@ -1040,3 +1088,52 @@ def get_week_from_tomas_view():
             db.session.add(new_meal)
     db.session.commit()
     return redirect('add_food')
+
+
+@app.route('/order_pizza_for_everybody', methods=['GET', 'POST'])
+@login.login_required
+def order_pizza_for_everybody():
+    """
+    Orders pizza for every user and sedns him an e-mail.
+    """
+    new_event = Pizza()
+    new_event.who_created = current_user.username
+    new_event.pizza_ordering_is_allowed = True
+    db.session.add(new_event)
+    db.session.commit()
+    new_event_id = Pizza.query.all()[-1].id
+    event_url = url_for("pizza_time_view", happening=new_event_id)
+    stop_url = url_for("pizza_time_stop", happening=new_event_id)
+    users = User.query.filter(User.active).all()
+    emails = [user.username for user in users]
+    msg = Message(
+        'Lunch app PIZZZA TIME',
+        recipients=emails,
+    )
+    msg.body = '{} ordered piiza for evryone ! \n order it here:\n\n' \
+               '{}\n\n and thank him!'.format(current_user.username, event_url)
+    mail.send(msg)
+    flash('You succesfully orderd pizza for all You can check who wants what '
+          'here:\n{}\n to finish the pizza orgy click here\n{}\n than '
+          'order pizza'.format(event_url, stop_url))
+    return redirect('overview')
+
+
+@app.route('/pizza_time/<int:happening>', methods=['GET', 'POST'])
+@login.login_required
+def pizza_time_view(happening):
+    """
+    Shows pizza menu, order Form and orders summary.
+    """
+    pizzas_db = Pizza.query.get(happening)
+    form = PizzaChooseForm()
+    if request.method == 'POST' and form.validate():
+        pizzas_db.ordered_pizzas[form.description] += \
+            (form.pizza_size,  current_user.username)
+        db.session.commit()
+    pizzas_ordered = pizzas_db.ordered_pizzas
+    return render_template(
+        'pizza_time.html',
+        form=form,
+        pizzas_ordered=pizzas_ordered,
+    )

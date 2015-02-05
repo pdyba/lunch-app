@@ -122,3 +122,16 @@ class MailText(db.Model):
     pay_slacker_reminder = Column(String(800))
     info_page_text = Column(String(1600))
     blocked_user_text = Column(String(800))
+
+
+class Pizza(db.Model):
+    """
+    Pizza ordering.
+    """
+    __tablename__ = 'pizza'
+    id = Column(Integer, primary_key=True)
+    date = Column(DateTime, default=datetime.utcnow)
+    pizza_ordering_is_allowed = Column(Boolean, default=False)
+    ordered_pizzas = Column(String(15000))
+    users_already_ordered = Column(String(5000))
+    who_created = Column(String(100))

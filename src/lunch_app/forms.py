@@ -225,3 +225,21 @@ class FinanceBlockUserForm(Form):
     user_select = SelectField(
         'user_select',
     )
+
+
+class PizzaChooseForm(Form):
+    """
+    Choose a pizza
+    """
+    description = TextAreaField(
+        "description",
+        validators=[validators.DataRequired('Please enter your pizza.')],
+    )
+    pizza_size = SelectField(
+        'pizza_size',
+        validators=[validators.DataRequired("Please choose pizza size.")],
+        choices=[
+            ('small', 'small'),
+            ('big', 'big'),
+        ]
+    )

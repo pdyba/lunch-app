@@ -27,7 +27,7 @@
 
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
 
-                <li> {{ order.description }} {{ order.meal_from_list }}
+                <li> {{ order.description }}
                     <b> {{ order.cost }} PLN </b></li>
 
             </a></span>
@@ -40,7 +40,7 @@
         </div>
         {% for order in orders_t_13 %}
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
-                <li> {{ order.description }} {{ order.meal_from_list }}
+                <li> {{ order.description }}
                     <b> {{ order.cost }} PLN </b></li>
             </a>
         {% endfor %}
@@ -58,7 +58,7 @@
         {% for order in orders_pk_12 %}
             <span title="{{ order.user_name }}">
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
-                <li> {{ order.description }} {{ order.meal_from_list }}
+                <li> {{ order.description }}
                     <b> {{ order.cost }} PLN </b></li>
             </a></span>
         {% endfor %}
@@ -70,9 +70,30 @@
         </div>
         {% for order in orders_pk_13 %}
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
-                <li> {{ order.description }} {{ order.meal_from_list }}
+                <li> {{ order.description }}
                     <b> {{ order.cost }} PLN </b></li>
             </a>
+        {% endfor %}
+    </div>
+    <div class="large-12 columns">
+    <h3>Pod Koziłkiem</h3>
+        <div class="large-9 columns">
+            <h4>12:00</h4>
+        </div>
+        <div class="large-3 columns">
+            <h4>{{ new_orders['tomas_12']['cost'] }} PLN</h4>
+        </div>
+        {% for order in new_orders['tomas_12'] %}
+                <li> {{ order }} {{ new_orders['tomas_12'][order] }} szt.</li>
+        {% endfor %}
+           <div class="large-9 columns">
+            <h4>13:00</h4>
+        </div>
+        <div class="large-3 columns">
+            <h4>{{ new_orders['tomas_13']['cost'] }} PLN</h4>
+        </div>
+{% for order in new_orders['tomas_13'] %}
+                <li> {{ order }} {{ new_orders['tomas_13'][order] }} szt.</li>
         {% endfor %}
     </div>
     <br>

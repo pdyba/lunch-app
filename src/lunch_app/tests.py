@@ -658,6 +658,20 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn("12.0 PLN", str(resp.data))
         self.assertIn("4.0 PLN", str(resp.data))
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_order_pizza_for_everybody(self):
+        """
+        Test pizza orrdering for everyone.
+        """
+    pass
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_pizza_time_view(self):
+        """
+        Test pizza showing menu, pizza ordering, and orders list.
+        """
+    pass
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
