@@ -39,11 +39,15 @@ log = logging.getLogger(__name__)
 
 
 def ordering_is_active():
+    """
+    Returns value true if ordering is active for jinja.
+    """
     try:
         ordering_is_allowed = OrderingInfo.query.get(1)
+        return ordering_is_allowed.is_allowed
     except AttributeError:
-        ordering_is_allowed = OrderingInfo()
-    return ordering_is_allowed
+        return True
+
 
 
 @app.route('/')
