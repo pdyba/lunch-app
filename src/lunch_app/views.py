@@ -103,8 +103,10 @@ def create_order():
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
-        user_name = current_user.username
-        order.user_name = user_name
+        order.user_name = current_user.username
+        order.description = order.description.strip()
+        order.description = order.description.strip('\n')
+        order.description = order.description.strip('\r')
         db.session.add(order)
         db.session.commit()
         flash('Order created')
@@ -247,14 +249,14 @@ def day_summary():
                     new_orders['pod_koziolkiem_12'][order.description] += 1
                     new_orders['pod_koziolkiem_12']['cost'] += order.cost
                 except KeyError:
-                    new_orders['pod_koziolkiem_12'][order.description] += 1
+                    new_orders['pod_koziolkiem_12'][order.description] = 1
                     new_orders['pod_koziolkiem_12']['cost'] = order.cost
             elif order.arrival_time == '13:00':
                 try:
                     new_orders['pod_koziolkiem_13'][order.description] += 1
                     new_orders['pod_koziolkiem_13']['cost'] += order.cost
                 except KeyError:
-                    new_orders['pod_koziolkiem_13'][order.description] += 1
+                    new_orders['pod_koziolkiem_13'][order.description] = 1
                     new_orders['pod_koziolkiem_13']['cost'] = order.cost
 
     return render_template(
