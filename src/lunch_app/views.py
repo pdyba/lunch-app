@@ -37,12 +37,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-ORDERING_IS_ACTIVE = True
-
-
-def ordering_is_active():
-    return ORDERING_IS_ACTIVE
-
 
 @app.route('/')
 def index():
