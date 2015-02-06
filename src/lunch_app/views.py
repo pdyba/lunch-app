@@ -42,12 +42,8 @@ def ordering_is_active():
     """
     Returns value true if ordering is active for jinja.
     """
-    try:
-        ordering_is_allowed = OrderingInfo.query.get(1)
-        return ordering_is_allowed.is_allowed
-    except AttributeError:
-        return True
-
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    return ordering_is_allowed.is_allowed
 
 
 @app.route('/')
@@ -84,24 +80,14 @@ def create_order():
     Create new order page.
     """
     if not current_user.is_active():
-        try:
-            texts = MailText.query.get(1)
-            try:
-                msg = texts.blocked_user_text
-            except AttributeError:
-                msg = "Sorry you didn't pay for last month :("
-        except OperationalError:
-            msg = "Sorry you didn't pay for last month :("
+        texts = MailText.query.get(1)
+        msg = texts.blocked_user_text
         flash(msg)
         return redirect('overview')
-
     ordering_is_allowed = OrderingInfo.query.get(1)
     if not ordering_is_allowed.is_allowed:
         texts = MailText.query.get(1)
-        try:
-            msg = texts.ordering_is_blocked_text
-        except AttributeError:
-            msg = "Sorry You were too late Ordering is blocked now"
+        msg = "Sorry you were too late ordering is blocked now"
         flash(msg)
         return redirect('overview')
     form = OrderForm(request.form)
@@ -924,10 +910,14 @@ def finance_block_user():
     Allows to block specific user from ordering.
     """
     users = User.query.all()
-    users_to_block = [(user.id, user.username) for
-                      user in users if user.active]
-    users_to_unblock = [(user.id, user.username) for
-                        user in users if not user.active]
+    users_to_block = [
+        (user.id, user.username)
+        for user in users if user.active
+    ]
+    users_to_unblock = [
+        (user.id, user.username)
+        for user in users if not user.active
+    ]
     form_block = FinanceBlockUserForm(request.form)
     form_block.user_select.choices = users_to_block
     form_unblock = FinanceBlockUserForm(request.form)

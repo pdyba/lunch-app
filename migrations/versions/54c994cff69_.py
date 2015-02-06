@@ -1,9 +1,7 @@
 """empty message
-
 Revision ID: 54c994cff69
 Revises: 51afbfc4c54
 Create Date: 2015-02-05 16:11:04.474970
-
 """
 
 # revision identifiers, used by Alembic.
