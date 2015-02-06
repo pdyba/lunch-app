@@ -38,6 +38,14 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def ordering_is_active():
+    try:
+        ordering_is_allowed = OrderingInfo.query.get(1)
+    except AttributeError:
+        ordering_is_allowed = OrderingInfo()
+    return ordering_is_allowed
+
+
 @app.route('/')
 def index():
     """
