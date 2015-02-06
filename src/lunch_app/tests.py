@@ -684,7 +684,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIs(order, None)
 
 
-
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
     Utils tests.

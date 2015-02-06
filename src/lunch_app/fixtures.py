@@ -6,7 +6,11 @@ from .main import db
 from .models import Order, Food, User, Finance, MailText, OrderingInfo
 from datetime import datetime, date, timedelta
 
+
 def allow_ordering():
+    """
+    Creates the most necessary records in data base.
+    """
     ordering_info = OrderingInfo()
     ordering_info.is_allowed = True
     db.session.add(ordering_info)
@@ -109,4 +113,3 @@ def fill_db():
     db.session.add(meal_1)
     db.session.add(meal_2)
     db.session.commit()
-

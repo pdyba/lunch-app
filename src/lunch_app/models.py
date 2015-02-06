@@ -126,6 +126,9 @@ class MailText(db.Model):
 
 
 class OrderingInfo(db.Model):
+    """
+    Ordering availability control.
+    """
     __tablename__ = 'ordering_info'
     id = Column(Integer, primary_key=True)
     is_allowed = Column(Boolean, default=True)
