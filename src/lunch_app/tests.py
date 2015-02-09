@@ -588,7 +588,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
 
         # Test blocking
         data = {
-            'user_select': 1,
+            'user_select': '1',
             'block_change': 'block',
         }
         resp = self.client.post('/finance_block_user', data=data)
@@ -599,7 +599,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
 
         # Test unblocking
         data = {
-            'user_select': 1,
+            'user_select': '1',
             'block_change': 'unblock',
         }
         resp = self.client.post('/finance_block_user', data=data)
@@ -661,16 +661,68 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_order_pizza_for_everybody(self):
         """
-        Test pizza orrdering for everyone.
+        Test pizza ordering for everyone.
         """
-    pass
+        fill_db()
+        with mail.record_messages() as outbox:
+            resp = self.client.get('/order_pizza_for_everybody')
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('Lunch app PIZZA'))
+            self.assertIn('pizza for everyone', msg.body)
+            self.assertEqual(len(msg.recipients), 4)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_pizza_time_view(self):
         """
         Test pizza showing menu, pizza ordering, and orders list.
         """
-    pass
+        fill_db()
+        resp = self.client.get('/order_pizza_for_everybody')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'description': 'WielkaMargarittaZKotem',
+            'pizza_size': 'big',
+        }
+        resp = self.client.post('/pizza_time/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertIn('WielkaMargarittaZKotem', str(resp.data))
+        data = {
+            'description': 'WielkaMargarittaZMisiem',
+            'pizza_size': 'big',
+        }
+        resp = self.client.post('/pizza_time/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertIn('You already ordered !', str(resp.data))
+        self.assertNotIn('WielkaMargarittaZMisiem', str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_pizza_time_stop(self):
+        """
+        Test pizza time stop function
+        """
+        fill_db()
+        resp = self.client.get('/order_pizza_for_everybody')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/pizza_time_stop/1')
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'description': 'WielkaMargarittaZKotem',
+            'pizza_size': 'big',
+        }
+        resp = self.client.post('/pizza_time/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertNotIn('WielkaMargarittaZKotem', str(resp.data))
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):

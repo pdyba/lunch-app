@@ -9,7 +9,12 @@ from datetime import datetime
 from flask.ext.login import UserMixin
 
 from sqlalchemy import Column
-from sqlalchemy.types import Integer, String, Boolean, Unicode, DateTime, Float
+from sqlalchemy.types import (
+    Integer, String, Boolean,
+    Unicode, DateTime, Float,
+    PickleType,
+)
+from sqlalchemy.ext.mutable import MutableDict
 
 from .main import db
 
@@ -132,6 +137,6 @@ class Pizza(db.Model):
     id = Column(Integer, primary_key=True)
     date = Column(DateTime, default=datetime.utcnow)
     pizza_ordering_is_allowed = Column(Boolean, default=False)
-    ordered_pizzas = Column(String(15000))
+    ordered_pizzas = Column(MutableDict.as_mutable(PickleType))
     users_already_ordered = Column(String(5000))
     who_created = Column(String(100))

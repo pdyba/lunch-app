@@ -722,7 +722,7 @@ def finance_mail_text():
 @user_is_admin
 def finance_mail_all():
     """
-    Renders mail all page.
+    Renders mail to all page.
     """
     this_month = datetime.date.today()
     month_begin = datetime.datetime(
@@ -1037,6 +1037,7 @@ def add_daily_koziolek():
         new_meal.date_available_to = datetime.date.today()
         db.session.add(new_meal)
     db.session.commit()
+    flash('Danie dnia z Pod Koziołekim zotało dodane')
     return redirect('add_food')
 
 
@@ -1089,6 +1090,7 @@ def get_week_from_tomas_view():
             new_meal.date_available_to = day_dif
             db.session.add(new_meal)
     db.session.commit()
+    flash('Dania z Tomasa zostały dodane')
     return redirect('add_food')
 
 
@@ -1101,18 +1103,20 @@ def order_pizza_for_everybody():
     new_event = Pizza()
     new_event.who_created = current_user.username
     new_event.pizza_ordering_is_allowed = True
+    new_event.users_already_ordered = ""
     db.session.add(new_event)
     db.session.commit()
-    new_event_id = Pizza.query.all()[-1].id
+    new_event = Pizza.query.all()[-1]
+    new_event_id = new_event.id
     event_url = url_for("pizza_time_view", happening=new_event_id)
     stop_url = url_for("pizza_time_stop", happening=new_event_id)
     users = User.query.filter(User.active).all()
     emails = [user.username for user in users]
     msg = Message(
-        'Lunch app PIZZZA TIME',
+        'Lunch app PIZZA TIME',
         recipients=emails,
     )
-    msg.body = '{} ordered piiza for evryone ! \n order it here:\n\n' \
+    msg.body = '{} ordered pizza for everyone ! \n order it here:\n\n' \
                '{}\n\n and thank him!'.format(current_user.username, event_url)
     mail.send(msg)
     flash('You succesfully orderd pizza for all You can check who wants what '
@@ -1128,14 +1132,57 @@ def pizza_time_view(happening):
     Shows pizza menu, order Form and orders summary.
     """
     pizzas_db = Pizza.query.get(happening)
-    form = PizzaChooseForm()
+    form = PizzaChooseForm(request.form)
     if request.method == 'POST' and form.validate():
-        pizzas_db.ordered_pizzas[form.description] += \
-            (form.pizza_size,  current_user.username)
+        if not pizzas_db.pizza_ordering_is_allowed:
+            flash('Pizza time finished !')
+            return redirect(url_for('pizza_time_view', happening=happening))
+        if current_user.username in pizzas_db.users_already_ordered:
+            flash('You already ordered !')
+            return redirect(url_for('pizza_time_view', happening=happening))
+        pizza = form.description.data
+        pizza = pizza.strip()
+        size = form.pizza_size.data
+        try:
+            try:
+                pizzas_db.ordered_pizzas[pizza][size]\
+                    += current_user.username
+            except KeyError:
+                try:
+                    pizzas_db.ordered_pizzas[pizza] += {
+                        size: current_user.username
+                    }
+                except KeyError:
+                    pizzas_db.ordered_pizzas[pizza] = {
+                        size: current_user.username
+                    }
+        except TypeError:
+            pizzas_db.ordered_pizzas = {
+                form.description.data: {
+                    form.pizza_size.data: current_user.username,
+                    }
+            }
+        pizzas_db.users_already_ordered += current_user.username + " "
         db.session.commit()
+        flash('You successfully ordered a pizza ;-)')
+        return redirect(url_for('pizza_time_view', happening=happening))
     pizzas_ordered = pizzas_db.ordered_pizzas
+    pizzas_active = pizzas_db.pizza_ordering_is_allowed
     return render_template(
         'pizza_time.html',
         form=form,
         pizzas_ordered=pizzas_ordered,
+        pizzas_active=pizzas_active,
     )
+
+
+@app.route('/pizza_time_stop/<int:happening>', methods=['GET', 'POST'])
+@login.login_required
+def pizza_time_stop(happening):
+    """
+    Stops pizza time.
+    """
+    pizzas_db = Pizza.query.get(happening)
+    pizzas_db.pizza_ordering_is_allowed = False
+    db.session.commit()
+    return redirect(url_for('pizza_time_view', happening=happening))

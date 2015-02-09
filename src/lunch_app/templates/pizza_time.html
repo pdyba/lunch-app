@@ -1,32 +1,9 @@
-<!doctype html>
-<html lang=en>
-<head>
-    <meta charset=utf-8>
-    <title>STX Lunch</title>
-    <meta name="keywords" content=""/>
-    <meta name="description" content=""/>
-    <meta name="author" content="STX Next sp. z o.o."/>
-    <meta name="viewport" content="width=device-width; initial-scale=1.0">
-    <link href="{{ url_for('static', filename='css/normalize2.css') }}"
-          media="all" rel="stylesheet" type="text/css"/>
-    <link href="{{ url_for('static', filename='css/foundation.css') }}"
-          media="all" rel="stylesheet" type="text/css"/>
-    <link href="{{ url_for('static', filename='css/general_foundicons.css') }}"
-          media="all" rel="stylesheet" type="text/css"/>
-    <link href="{{ url_for('static', filename='css/stx_style.css') }}"
-          media="all" rel="stylesheet" type="text/css"/>
-    <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
+{% extends "base.html" %}
 
-    <link rel="shortcut icon"
-          href="{{ url_for('static', filename='img/favicon.ico') }}"
-          type="image/x-icon">
-</head>
-<body>
+{% set page_id = 'order' %}
+
+{% block content %}
 <div class="large-12 columns">
-    <hr>
     <div class="large-6 columns">
         <table style="font-size: 12px; font-weight: bold;">
             <tbody>
@@ -359,17 +336,23 @@ ser feta, ser Lazur, szynka parmeńska, kurczak</span></span></td>
         </table>
     </div>
     <div class="large-6 columns">
+    <h3 class="right">Pizza is
++            {% if pizzas_active %}<a style="color: green">active</a>
++            {% else %}<b style="color: red">blocked</b>
++            {% endif %}</h3><br>
         Skarbiec Smaków, ul. Marcelińska 54, Poznań
-        tel. 518 161 162, tel. 61 662 58 01
+        tel. 518 161 162, tel. 61 662 58 01<br>
+        {% if pizzas_active %}
         <form method="POST" name="pizza">
-
-            Pizza description
+<br>
+            Pizza description (copy only the name if you don't edit the ingridients)
             {{ form.description }}
             Size
             {{ form.pizza_size }}
             <input type="submit" value="pizza" class="button right">
         </form>
-
+        {% endif %}
+    <br><br>
                <h3>Pizza orders</h3>
         <table>
             <thead>
@@ -378,7 +361,7 @@ ser feta, ser Lazur, szynka parmeńska, kurczak</span></span></td>
                 <th>Size nad user</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody>{% if pizzas_ordered %}
             {% for pizza in pizzas_ordered %}
                 <tr>
 
@@ -388,15 +371,9 @@ ser feta, ser Lazur, szynka parmeńska, kurczak</span></span></td>
 
                 </tr>
             {% endfor %}
+             {% endif %}
             </tbody>
         </table>
 
     </div>
-</body>
-<bottom>
-    <div class="large-12 columns small-text-right">
-        <hr>
-        <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
-    </div>
-</bottom>
-</html>
+{% endblock %}
