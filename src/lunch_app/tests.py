@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 
 from .main import app, db, mail
 from . import main, utils
-from .fixtures import fill_db
+from .fixtures import fill_db, fill_company
 from .models import Order, Food, MailText
 
 
@@ -96,9 +96,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order page.
         """
+        fill_company()
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 200)
-
         data = {
             'cost': '12',
             'company': 'Pod Koziołkiem',
@@ -108,7 +108,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         }
         resp = self.client.post('/order', data=data)
         order_db = Order.query.first()
-        self.assertTrue(resp.status_code == 302)
+        self.assertEqual(resp.status_code, 302)
         self.assertEqual(order_db.cost, 12)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
         self.assertEqual(order_db.description, 'dobre_jedzonko')
@@ -124,6 +124,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order with send me an email.
         """
+        fill_company()
         with mail.record_messages() as outbox:
             data = {
                 'cost': '13',
@@ -134,7 +135,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
                 'arrival_time': '13:00',
             }
             resp = self.client.post('/order', data=data)
-            self.assertTrue(resp.status_code == 302)
+            self.assertEqual(resp.status_code, 302)
             self.assertEqual(len(outbox), 1)
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch order'))
@@ -149,6 +150,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test add food page.
         """
+        fill_company()
         resp = self.client.get('/add_food')
         self.assertEqual(resp.status_code, 200)
         data = {
@@ -178,6 +180,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test bulk add food page.
         """
+        fill_company()
         data = {
             'cost': '333',
             'description': 'dobre_jedzonko\r\nciekawe_jedzonko\r\npies',
@@ -287,18 +290,17 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         data = {
             'cost': '12',
             'company': 'Pod Koziołkiem',
-            'description': 'dobre_jedzonko',
+            'description': 'wyedytowane_dobre_jedzonko',
             'send_me_a_copy': 'false',
             'date': '2015-01-01',
             'arrival_time': '12:00',
-            'date': '2015-01-01',
         }
         resp = self.client.post('/order_edit/1/', data=data)
         order_db = Order.query.first()
         self.assertTrue(resp.status_code == 302)
         self.assertEqual(order_db.cost, 12)
         self.assertEqual(order_db.company, 'Pod Koziołkiem')
-        self.assertEqual(order_db.description, 'dobre_jedzonko')
+        self.assertEqual(order_db.description, 'wyedytowane_dobre_jedzonko')
         self.assertEqual(order_db.date, datetime(2015, 1, 1, 0, 0))
         self.assertEqual(order_db.arrival_time, '12:00')
         self.assertEqual(order_db.date, datetime(2015, 1, 1))

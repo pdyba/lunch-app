@@ -9,8 +9,7 @@ import datetime
 from random import choice
 
 
-from flask import redirect, render_template, request, flash, url_for, Response, \
-    jsonify
+from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
@@ -27,12 +26,12 @@ from .forms import (
     MailTextForm,
     UserDailyReminderForm,
     FinanceSearchForm,
+    CompanyAddForm,
+    FoodRateForm,
 )
-from .models import Order, Food, User, Finance, MailText
+from .models import Order, Food, User, Finance, MailText, Company
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
-
-from werkzeug.exceptions import BadRequestKeyError
 
 import logging
 
@@ -72,7 +71,11 @@ def create_order():
     """
     Create new order page.
     """
+    companies = Company.query.all()
     form = OrderForm(request.form)
+    form.company.choices = [
+        (comp.name, "Order from {}".format(comp.name)) for comp in companies
+    ]
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
     today_to = datetime.datetime.combine(day, datetime.time(0, 0))
@@ -102,7 +105,12 @@ def create_order():
             mail.send(msg)
             flash('Mail send')
         return redirect('order')
-    return render_template('order.html', form=form, foods=foods)
+    return render_template(
+        'order.html',
+        form=form,
+        foods=foods,
+        companies=companies,
+    )
 
 
 @app.route('/add_food', methods=['GET', 'POST'])
@@ -113,6 +121,8 @@ def add_food():
     Add new food page.
     """
     form = AddFood(request.form)
+    companies = Company.query.all()
+    form.company.choices = [(comp.name, comp.name) for comp in companies]
     if request.method == 'POST' and form.validate() \
             and request.form['add_meal'] == 'add':
         food = Food()
@@ -149,6 +159,7 @@ def day_summary():
     """
     Day orders summary.
     """
+    companies = Company.query.all()
     day = datetime.date.today()
     today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
     today_end = datetime.datetime.combine(day, datetime.time(23, 59))
@@ -203,6 +214,7 @@ def day_summary():
         orders_pk_12_cost=orders_pk_12_cost,
         orders_pk_13=orders_pk_13,
         orders_pk_13_cost=orders_pk_13_cost,
+        companies=companies,
     )
 
 
@@ -259,8 +271,10 @@ def edit_order(order_id):
     """
     Renders order edit page.
     """
+    companies = Company.query.all()
     order = Order.query.get(order_id)
     form = OrderEditForm(formdata=request.form, obj=order)
+    form.company.choices = [(comp.name, comp.name) for comp in companies]
     if request.method == 'POST' and form.validate():
         form.populate_obj(order)
         db.session.commit()
@@ -451,6 +465,7 @@ def company_summary_month_view(year, month):
     """
     Renders companies month list page.
     """
+    companies = Company.query.all()
     month_begin = datetime.datetime(
         year=year,
         month=month,
@@ -470,26 +485,21 @@ def company_summary_month_view(year, month):
         second=59
     )
     pub_date = {'year': year, 'month': month_name[month]}
-    orders_tomas = Order.query.filter(
+    orders = Order.query.filter(
         and_(
             Order.date >= month_begin,
             Order.date <= month_end,
-            Order.company == 'Tomas',
         )
     ).all()
-    orders_koziol = Order.query.filter(
-        and_(
-            Order.date >= month_begin,
-            Order.date <= month_end,
-            Order.company == 'Pod Koziołkiem',
-        )
-    ).all()
-    orders_tomas_cost = sum(order.cost for order in orders_tomas)
-    orders_koziol_cost = sum(order.cost for order in orders_koziol)
+    orders_data = {}
+    for comp in companies:
+        orders_data[comp.name] = 0
+        for order in orders:
+            if order.company == comp.name:
+                orders_data[comp.name] += order.cost
     return render_template(
         'company_summary_month_view.html',
-        orders_tomas_cost=orders_tomas_cost,
-        orders_koziol_cost=orders_koziol_cost,
+        orders_data=orders_data,
         pub_date=pub_date,
     )
 
@@ -866,3 +876,78 @@ def send_daily_reminder():
     msg.body = message_text.daily_reminder
     mail.send(msg)
     return redirect('overview')
+
+
+@app.route('/finance_companies', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def finance_companies_view():
+    """
+    Add new company page.
+    """
+    form = CompanyAddForm(request.form)
+    if request.method == 'POST' and form.validate():
+        company = Company()
+        form.populate_obj(company)
+        db.session.add(company)
+        db.session.commit()
+        flash('Company added')
+        return redirect('finance_companies')
+    companies = Company.query.all()
+    return render_template(
+        'finance_companies.html',
+        form=form,
+        companies=companies
+    )
+
+
+@app.route('/food_rate', methods=['GET', 'POST'])
+@login.login_required
+def food_rate():
+    """
+    Create new order page.
+    """
+    form = FoodRateForm(request.form)
+    day = datetime.date.today()
+    today_beg = datetime.datetime.combine(day, datetime.time(00, 00, 00))
+    today_end = datetime.datetime.combine(day, datetime.time(23, 59, 59))
+    order = Order.query.filter(
+        and_(
+            Order.date >= today_beg,
+            Order.date <= today_end,
+            Order.user_name == current_user.username,
+        )
+    ).first()
+    if not order:
+        flash("You didn't order anything today so You cannot rate the food")
+        return redirect('overview')
+    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
+    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
+    foods = Food.query.filter(
+        and_(
+            Food.date_available_from <= today_from,
+            Food.date_available_to >= today_to,
+        )
+    ).all()
+    food_list = []
+    order.description = order.description.strip()
+    for food in foods:
+        food.description = food.description.strip()
+        if food.description == order.description:
+            form.food.choices = [(food.description, food.description)]
+            break
+        else:
+            food_list.append((food.id, food.description))
+            form.food.choices = food_list
+    import pdb; pdb.set_trace()
+    if request.method == 'POST' and form.validate():
+
+        food = Food.query.get(form.food.data)
+        if food.rating:
+            food.rating = (food.rating + form.rate.data)/2
+        else:
+            food.rating = form.rate.data
+        db.session.commit()
+        flash("You rated the food succesfully")
+        return redirect('overview')
+    return render_template('food_rate.html', form=form)

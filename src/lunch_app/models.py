@@ -95,6 +95,7 @@ class Food(db.Model):
     date_available_from = Column(DateTime)
     date_available_to = Column(DateTime)
     o_type = Column(String(100))
+    rating = Column(Float)
 
 
 class Finance(db.Model):
@@ -121,3 +122,16 @@ class MailText(db.Model):
     pay_reminder = Column(String(800))
     pay_slacker_reminder = Column(String(800))
     info_page_text = Column(String(1600))
+
+
+class Company(db.Model):
+    """
+    Companies data base
+    """
+    __tablename__ = 'companies'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    web_page = Column(String(100))
+    address = Column(String(400))
+    telephone = Column(String(20))
+    date_added = Column(DateTime, default=datetime.utcnow)

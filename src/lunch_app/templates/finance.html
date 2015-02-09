@@ -8,7 +8,7 @@
 
         {% include "finance_base.html" %}
         <div class="small-4 columns left">
-        <a href="{{ links['previous_month'] }}">Prevoius month</a>
+            <a href="{{ links['previous_month'] }}">Prevoius month</a>
         </div>
         <div class="small-4 columns center">
             <ul class="breadcrumbs">
@@ -16,9 +16,9 @@
 
             </ul>
         </div>
-    <div class="small-4 columns right">
-        <a href="{{ links['next_month'] }}">Next month</a>
-    </div>
+        <div class="small-4 columns right">
+            <a href="{{ links['next_month'] }}">Next month</a>
+        </div>
     </div>
     <form method="POST">
         <table>
@@ -40,7 +40,9 @@
                     <td>{{ record['number_of_orders'] }}</td>
                     <td>{{ record['month_cost'] }} PLN</td>
                     <td width="75">
-                        <input name="did_user_pay_{{ record['username'] }}" type="checkbox" {%  if record['did_user_pay'] %} checked="checked" {% endif %}/></td>
+                        <input name="did_user_pay_{{ record['username'] }}"
+                               type="checkbox" {% if record['did_user_pay'] %}
+                               checked="checked" {% endif %}/></td>
                     </td>
                     <td>
                         <a href="{{ url_for('payment_remind', username=record['username'], slack=0) }}">

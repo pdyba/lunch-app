@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% set page_id = 'finance_companies' %}
+
+{% block content %}
+
+    <div class="large-12 columns">
+
+        {% include "finance_base.html" %}
+
+        <div class="large-6 columns">
+            <h4>Add company</h4>
+
+            <form action="" method="post" name="order">
+
+                {{ form.crsf_token }}
+
+                {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+                    {% for error in field_errors %}
+                        <div data-alert class="alert-box alert radius">
+                            {{ error }}
+                            <a href="#" class="close">&times;</a>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                <div class="small-12 columns">
+                    Name {{ form.name }}
+                    Address {{ form.address }}
+                </div>
+                <div class="small-4 columns">
+                    <label for="right-label" class="right">Web page</label>
+                </div>
+                <div class="small-8 columns">
+                    {{ form.web_page }}
+                </div>
+                <div class="small-4 columns">
+                    <label for="right-label" class="right">Telephone</label>
+                </div>
+                <div class="small-8 columns">
+                    {{ form.telephone }}
+                </div>
+
+
+                <input type="submit" value="add" class="button right"
+                       name="add_company">
+
+
+            </form>
+        </div>
+
+        <div class="large-6 columns">
+            <h4>Company list</h4>
+
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>WWW</th>
+                    <th>Tel.</th>
+                    <th>Address</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for company in companies %}
+                    <tr>
+
+                        <td>{{ company.name }}</td>
+                        <td>{{ company.web_page|urlize(30) }}</td>
+                        <td>{{ company.telephone }}</td>
+                        <td>{{ company.address }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+{% endblock %}

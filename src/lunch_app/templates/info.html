@@ -5,24 +5,26 @@
 {% block content %}
 
     {% if info != "None" %}
-    {% for line in info %}
-        {{ line|urlize(30) }}<br>
+        {% for line in info %}
+            {{ line|urlize(30) }}<br>
         {% endfor %}
     {% else %}
-    <div>
-    <h1>Lunch info</h1>
-    MINIMALNE ZAMÓWIENIE Z KAŻDEGO MIEJSCA TO 3-4 POZYCJE  NA DANĄ GODZINĘ!!!!
-    <br>
-    TOMAS CATERING - menu na co dzień:<br>
-    <a href="http://www.tomas.net.pl/niagara.php">http://www.tomas.net.pl/niagara.php</a>
-    <br>
-    <br>
-    POD KOZIOŁKIEM - menu tygodniowe- wszystkie dania możemy zamawiać przez
-    cały tydzień:<br>
-    <a href="https://docs.google.com/a/stxnext.pl/spreadsheet/ccc?key=0Ag0zT3CcjtSkdF9fVU4zbUhCZ2trWlUzamZBV0hESVE#gid=2">Menu
-        Koziolek</a><br>
-    <br>ZESTAW DNIA POD KOZIOŁKIEM -
-    <a href="http://www.pod-koziolkiem.pl/">http://www.pod-koziolkiem.pl/</a>
-    </div>
+        <div>
+            <h1>Lunch info</h1>
+            MINIMALNE ZAMÓWIENIE Z KAŻDEGO MIEJSCA TO 3-4 POZYCJE NA DANĄ
+            GODZINĘ!!!!
+            <br>
+            TOMAS CATERING - menu na co dzień:<br>
+            <a href="http://www.tomas.net.pl/niagara.php">http://www.tomas.net.pl/niagara.php</a>
+            <br>
+            <br>
+            POD KOZIOŁKIEM - menu tygodniowe- wszystkie dania możemy zamawiać
+            przez
+            cały tydzień:<br>
+            <a href="https://docs.google.com/a/stxnext.pl/spreadsheet/ccc?key=0Ag0zT3CcjtSkdF9fVU4zbUhCZ2trWlUzamZBV0hESVE#gid=2">Menu
+                Koziolek</a><br>
+            <br>ZESTAW DNIA POD KOZIOŁKIEM -
+            <a href="http://www.pod-koziolkiem.pl/">http://www.pod-koziolkiem.pl/</a>
+        </div>
     {% endif %}
 {% endblock %}

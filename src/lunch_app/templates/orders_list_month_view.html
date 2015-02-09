@@ -33,7 +33,9 @@
                 <td>{{ order.cost }} PLN</td>
                 <td>
                     <a href="{{ url_for('order_details', order_id=order.id) }}">
-                        {% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}!RANDOM ORDER!{% else %}{{ order.description }} {% endif %} </a>
+                        {% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}
+                            !RANDOM ORDER!
+                            {% else %}{{ order.description }} {% endif %} </a>
                 </td>
 
             </tr>

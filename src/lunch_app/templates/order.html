@@ -6,100 +6,96 @@
 
     <script src="{{ url_for('static', filename='js/order_script.js') }}"></script>
 
-<script>
-function confirmation_12() {
-	var answer = confirm("Are you sure you want to order a random meal at 12:00, there is no way to undo it !")
-	if (answer){
-		window.location = "{{ url_for('random_food', courage=1) }}";
-	}
-	else{
-		alert("OK maybe next time")
-	}
-}
+    <script>
+        function confirmation_12() {
+            var answer = confirm("Are you sure you want to order a random meal at 12:00, there is no way to undo it !")
+            if (answer) {
+                window.location = "{{ url_for('random_food', courage=1) }}";
+            }
+            else {
+                alert("OK maybe next time")
+            }
+        }
 
-function confirmation_13() {
-	var answer = confirm("Are you sure you want to order a random meal at 13:00, there is no way to undo it !")
-	if (answer){
-		window.location = "{{ url_for('random_food', courage=2) }}";
-	}
-	else{
-		alert("OK maybe next time")
-	}
-}
-
-
+        function confirmation_13() {
+            var answer = confirm("Are you sure you want to order a random meal at 13:00, there is no way to undo it !")
+            if (answer) {
+                window.location = "{{ url_for('random_food', courage=2) }}";
+            }
+            else {
+                alert("OK maybe next time")
+            }
+        }
 
 
-</script>
+    </script>
 
     <div class="large-6 columns">
         <h3>Available meals</h3>
 
-        <p>
+        Daily menu
+        <ul class="tabs" data-tab role="tablist">
+            {% for comp in companies %}
+                <li class="tab-title"><a
+                        href="#c{{ comp.id }}">{{ comp.name }}</a></li>
+            {% endfor %}
+        </ul>
 
-        <ul class="square">
-            <h5>Tomas</h5>
-            {% for meal in foods %}
-                {% if meal.company == 'Tomas' and meal.o_type != 'menu' %}
-                    <li>
+
+        <div class="tabs-content">
+            {% for comp in companies %}
+                <div class="content" id="c{{ comp.id }}">
+                    <ul class="square">
+                        {% for meal in foods %}
+                            {% if meal.company == comp.name and meal.o_type != 'menu' %}
+                                <li>
                  <span data-tooltip aria-haspopup="true" class="has-tip"
                        title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
-                        <a class='meal_menu_link'
-                           data-desc="{{ meal.description }}"
-                           data-cost="{{ meal.cost }}"
-                           data-comp="{{ meal.company }}"
-                           href="#">
-                            {{ meal.description }}
-                            (<b>{{ meal.cost }} PLN</b>)
-                        </a>
-                    </li>
-                {% endif %}
+                                    <a class='meal_menu_link'
+                                       data-desc="{{ meal.description }}"
+                                       data-cost="{{ meal.cost }}"
+                                       data-comp="{{ meal.company }}"
+                                       href="#">
+                                        {{ meal.description }}
+                                        (<b>{{ meal.cost }} PLN</b>)
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+
+
             {% endfor %}
-
-            <h5>Pod Koziłkiem</h5>
-            {% for meal in foods %}
-                {% if meal.company == 'Pod Koziołkiem' and meal.o_type != 'menu' %}
-                    <li>
-                <span data-tooltip aria-haspopup="true" class="has-tip"
-                      title="{% if meal.o_type == 'tygodniowe' %}Meal avalaible for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
-                            <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
-                        <a class='meal_menu_link'
-                           data-desc="{{ meal.description }}"
-                           data-cost="{{ meal.cost }}"
-                           data-comp="{{ meal.company }}"
-                           href="#">
-                            {{ meal.description }}
-                            (<b>{{ meal.cost }} PLN</b>)
-                        </a>
-                    </li>
-
-                {% endif %}
-            {% endfor %}
-
-        </ul>
+        </div>
+        Standard menu
         <ul class="accordion" data-accordion>
             <li class="accordion-navigation">
-                <a href="#panel1a">Food from standard Menu</a>
-
-                <div id="panel1a" class="content">
-                    {% for meal in foods %}
-                        {% if meal.o_type == 'menu' %}
-                            <span data-tooltip aria-haspopup="true"
-                                  class="has-tip"
-                                  title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                {% for comp in companies %}
+                    <a href="#cm{{ comp.id }}">{{ comp.name }}</a>
+                {% endfor %}
+                {% for comp in companies %}
+                    <div id="cm{{ comp.id }}" class="content">
+                        {% for meal in foods %}
+                            {% if meal.company == comp.name and meal.o_type == 'menu' %}
+                                <span data-tooltip aria-haspopup="true"
+                                      class="has-tip"
+                                      title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
-                            <a class='meal_menu_link'
-                               data-desc="{{ meal.description }}"
-                               data-cost="{{ meal.cost }}"
-                               data-comp="{{ meal.company }}"
-                               href="#">
-                                {{ meal.description }}
-                                (<b>{{ meal.cost }} PLN</b>)</a>
-                            <br>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+                                <a class='meal_menu_link'
+                                   data-desc="{{ meal.description }}"
+                                   data-cost="{{ meal.cost }}"
+                                   data-comp="{{ meal.company }}"
+                                   href="#">
+                                    {{ meal.description }}
+                                    (<b>{{ meal.cost }} PLN</b>)</a>
+                                <br>
+                            {% endif %}
+                        {% endfor %}
+
+                    </div>
+                {% endfor %}
             </li>
         </ul>
 
@@ -118,30 +114,34 @@ function confirmation_13() {
                     </div>
                 {% endfor %}
             {% endfor %}
-        <div class="large-8 columns">
-            <h3>Please enter your order </h3>
-            <b>&larr; Click on the list to fill your order</b>
-</div>
-        <div class="large-4 columns">
-            <a class="button tiny success right" id="softrandom">Soft random</a>
-         <a class="button tiny alert right" onclick="confirmation_12()">Hard random 12</a>
-            <a class="button tiny alert right" onclick="confirmation_13()">Hard random 13</a>
+            <div class="large-8 columns">
+                <h3>Please enter your order </h3>
+                <b>&larr; Click on the list to fill your order</b>
+            </div>
+            <div class="large-4 columns">
+                <a class="button tiny success right" id="softrandom">Soft
+                    random</a>
+                <a class="button tiny alert right" onclick="confirmation_12()">Hard
+                    random 12</a>
+                <a class="button tiny alert right" onclick="confirmation_13()">Hard
+                    random 13</a>
             </div>
             <div class="large-12 columns">
-            or write
-            {{ form.description }}
-            cost {{ form.cost }}
-            arrival time {{ form.arrival_time }}
-            company {{ form.company }}
+                or write
+                {{ form.description }}
+                cost {{ form.cost }}
+                arrival time {{ form.arrival_time }}
+                company {{ form.company }}
 
-            I want a copy on my e-mail
-            <div class="switch small">
-                {{ form.send_me_a_copy }}
-                <label for="send_me_a_copy"></label>
-            </div>
+                I want a copy on my e-mail
+                <div class="switch small">
+                    {{ form.send_me_a_copy }}
+                    <label for="send_me_a_copy"></label>
+                </div>
 
-            <input type="submit" value="send" class="button right">
-            <input id="reset" type="reset" value="reset" class="button left">
+                <input type="submit" value="send" class="button right">
+                <input id="reset" type="reset" value="reset"
+                       class="button left">
         </form>
 
     </div>
@@ -157,7 +157,16 @@ function confirmation_13() {
             }
         });
     </script>
-
+    <script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
+    <script>
+        $(document).foundation({
+            tab: {
+                callback: function (tab) {
+                    console.log(tab);
+                }
+            }
+        });
+    </script>
 
 
 

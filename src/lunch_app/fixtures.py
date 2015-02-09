@@ -3,14 +3,30 @@ Fixtures for database.
 """
 
 from .main import db
-from .models import Order, Food, User, Finance, MailText
+from .models import Order, Food, User, Finance, MailText, Company
 from datetime import datetime, date, timedelta
 
+
+def fill_company():
+    company_1 = Company()
+    company_1.name = 'Tomas'
+    company_1.web_page = 'www.tomas.pl'
+    company_1.address = 'ul dluga 5 99-343 poznan'
+    company_1.telephone = '1234567890'
+    db.session.add(company_1)
+    company_2 = Company()
+    company_2.name = 'Pod Koziołkiem'
+    company_2.web_page = 'www.pod-koziolkiem.pl'
+    company_2.address = 'ul ciekawa 5 66-554 Pozan'
+    company_2.telephone = '0987654321'
+    db.session.add(company_2)
+    db.session.commit()
 
 def fill_db():
     """
     Fill the database for tests
     """
+    fill_company()
     user = User()
     user.email = 'e@e.pl'
     user.username = 'test_user'
