@@ -616,17 +616,22 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertTrue(user.is_active(), True)
 
         MOCK_ADMIN.active = False
+        MOCK_ADMIN.is_active.return_value = False
         resp = self.client.get('/order')
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 302)
         data = {
             'cost': '12',
             'company': 'Pod Koziołkiem',
-            'description': 'dobre_jedzonko',
+            'description': 'blokowane_jedzonko',
             'send_me_a_copy': 'false',
             'arrival_time': '12:00',
         }
         resp = self.client.post('/order', data=data)
         self.assertEqual(resp.status_code, 302)
+        order = Order.query.filter(
+            Order.description == data['description']
+        ).first()
+        self.assertIs(order, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_finance_block_ordering(self):

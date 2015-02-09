@@ -9,8 +9,8 @@
         </div>
     <div class="large-6 columns">
         <h3 class="right">Ordering is
-            {% if ordering_is_active() %}<a style="color: green">Active</a>
-            {% else %}<b style="color: red">Blocked</b>
+            {% if ordering_is_active() %}<a style="color: green">active</a>
+            {% else %}<b style="color: red">blocked</b>
             {% endif %}</h3>
     </div>
     </div>
@@ -77,6 +77,6 @@
     </div>
     <br>
     <br>
-    <a href="{{ url_for('finance_block_ordering') }}" class="button alert right">Block Ordering</a>
+    <a href="{{ url_for('finance_block_ordering') }}" class="button alert right">Block ordering</a>
     <a href="{{ url_for('finance_unblock_ordering') }}"  class="button success right">Unblock ordering</a>
 {% endblock %}
