@@ -245,16 +245,9 @@ def info():
     """
     Renders info page.
     """
-    try:
-        texts = MailText.query.get(1)
-        try:
-            temp = "{}".format(texts.info_page_text)
-            info = temp.split('\n')
-        except AttributeError:
-            info = "None"
-    except OperationalError:
-        info = "None"
-
+    texts = MailText.query.get(1)
+    temp = "{}".format(texts.info_page_text)
+    info = temp.split('\n')
     if len(info) < 2:
         info = "None"
     return render_template('info.html', info=info)
@@ -643,13 +636,8 @@ def finance_mail_text():
     """
     Renders mail all page.
     """
-    try:
-        mail_data = MailText.query.first()
-        form = MailTextForm(formdata=request.form, obj=mail_data)
-    except OperationalError:
-        mail_data = None
-        form = MailTextForm(formdata=request.form)
-
+    mail_data = MailText.query.first()
+    form = MailTextForm(formdata=request.form, obj=mail_data)
     if request.method == 'POST' and form.validate():
         if mail_data is None:
             texts = MailText()
@@ -963,13 +951,8 @@ def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
     """
-    try:
-        ordering_is_allowed = OrderingInfo.query.get(1)
-        ordering_is_allowed.is_allowed = True
-    except AttributeError:
-        ordering_is_allowed = OrderingInfo()
-        ordering_is_allowed.is_allowed = True
-        db.session.add(ordering_is_allowed)
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    ordering_is_allowed.is_allowed = True
     db.session.commit()
     flash('Now users can order :)')
     return redirect('day_summary')
