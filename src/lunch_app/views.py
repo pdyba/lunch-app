@@ -27,16 +27,23 @@ from .forms import (
     MailTextForm,
     UserDailyReminderForm,
     FinanceSearchForm,
+    FinanceBlockUserForm,
 )
-from .models import Order, Food, User, Finance, MailText
+from .models import Order, Food, User, Finance, MailText, OrderingInfo
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
-
-from werkzeug.exceptions import BadRequestKeyError
 
 import logging
 
 log = logging.getLogger(__name__)
+
+
+def ordering_is_active():
+    """
+    Returns value true if ordering is active for jinja.
+    """
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    return ordering_is_allowed.is_allowed
 
 
 @app.route('/')
@@ -72,6 +79,17 @@ def create_order():
     """
     Create new order page.
     """
+    if not current_user.is_active():
+        texts = MailText.query.get(1)
+        msg = texts.blocked_user_text
+        flash(msg)
+        return redirect('overview')
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    if not ordering_is_allowed.is_allowed:
+        texts = MailText.query.get(1)
+        msg = "Sorry you were too late ordering is blocked now"
+        flash(msg)
+        return redirect('overview')
     form = OrderForm(request.form)
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
@@ -227,16 +245,9 @@ def info():
     """
     Renders info page.
     """
-    try:
-        texts = MailText.query.get(1)
-        try:
-            temp = "{}".format(texts.info_page_text)
-            info = temp.split('\n')
-        except AttributeError:
-            info = "None"
-    except OperationalError:
-        info = "None"
-
+    texts = MailText.query.get(1)
+    temp = "{}".format(texts.info_page_text)
+    info = temp.split('\n')
     if len(info) < 2:
         info = "None"
     return render_template('info.html', info=info)
@@ -625,13 +636,8 @@ def finance_mail_text():
     """
     Renders mail all page.
     """
-    try:
-        mail_data = MailText.query.first()
-        form = MailTextForm(formdata=request.form, obj=mail_data)
-    except OperationalError:
-        mail_data = None
-        form = MailTextForm(formdata=request.form)
-
+    mail_data = MailText.query.first()
+    form = MailTextForm(formdata=request.form, obj=mail_data)
     if request.method == 'POST' and form.validate():
         if mail_data is None:
             texts = MailText()
@@ -765,7 +771,6 @@ def finance_search_view():
     """
     form = FinanceSearchForm(request.form)
     if request.method == 'POST' and form.validate():
-
         return redirect(url_for(
             'finance',
             year=form.data['year'],
@@ -866,3 +871,88 @@ def send_daily_reminder():
     msg.body = message_text.daily_reminder
     mail.send(msg)
     return redirect('overview')
+
+
+@app.route('/tv', methods=['GET', 'POST'])
+@login.login_required
+def orders_summary_for_tv():
+    """
+    View for TV showing all orders and reveling hard random orders.
+    """
+    day = datetime.date.today()
+    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
+    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
+    orders = Order.query.filter(
+        and_(
+            Order.date >= today_beg,
+            Order.date <= today_end,
+        )
+    ).all()
+    return render_template('tv.html', orders=orders)
+
+
+@app.route('/finance_block_user', methods=['GET', 'POST'])
+@login.login_required
+def finance_block_user():
+    """
+    Allows to block specific user from ordering.
+    """
+    users = User.query.all()
+    users_to_block = [
+        (user.id, user.username)
+        for user in users if user.active
+    ]
+    users_to_unblock = [
+        (user.id, user.username)
+        for user in users if not user.active
+    ]
+    form_block = FinanceBlockUserForm(request.form)
+    form_block.user_select.choices = users_to_block
+    form_unblock = FinanceBlockUserForm(request.form)
+    form_unblock.user_select.choices = users_to_unblock
+    if request.method == 'POST' \
+            and request.form['block_change'] == 'block':
+        user = User.query.get(request.form['user_select'])
+        user.active = False
+        db.session.commit()
+        flash('User blocked')
+        return redirect('finance_block_user')
+    elif request.method == 'POST' and \
+            request.form['block_change'] == 'unblock':
+        user = User.query.get(request.form['user_select'])
+        user.active = True
+        db.session.commit()
+        flash('User unblocked')
+        return redirect('finance_block_user')
+
+    return render_template(
+        'finance_block_user.html',
+        form_block=form_block,
+        form_unblock=form_unblock,
+    )
+
+
+@app.route('/finance_block_ordering', methods=['GET', 'POST'])
+@login.login_required
+def finance_block_ordering():
+    """
+    Allows to block ordering for everyone.
+    """
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    ordering_is_allowed.is_allowed = False
+    db.session.commit()
+    flash('Now users can NOT order !')
+    return redirect('day_summary')
+
+
+@app.route('/finance_unblock_ordering', methods=['GET', 'POST'])
+@login.login_required
+def finance_unblock_ordering():
+    """
+    Allows to unblock ordering for everyone.
+    """
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    ordering_is_allowed.is_allowed = True
+    db.session.commit()
+    flash('Now users can order :)')
+    return redirect('day_summary')

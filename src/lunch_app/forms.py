@@ -182,6 +182,18 @@ class MailTextForm(Form):
             "Please enter text for info page please start url with www or http"
         )]
     )
+    blocked_user_text = TextAreaField(
+        "blocked_user_text",
+        validators=[validators.DataRequired(
+            "Please enter text which will be shown for blocked users"
+        )]
+    )
+    ordering_is_blocked_text = TextAreaField(
+        "ordering_is_blocked_text",
+        validators=[validators.DataRequired(
+            "Please enter text which will be shown if ordering is blocked"
+        )]
+    )
 
 
 class UserDailyReminderForm(Form):
@@ -210,3 +222,12 @@ class FinanceSearchForm(Form):
         ('1', 'Paid'),
         ('2', 'Unpaid'),
     ])
+
+
+class FinanceBlockUserForm(Form):
+    """
+    Finance block user form
+    """
+    user_select = SelectField(
+        'user_select',
+    )
