@@ -8,6 +8,9 @@ from datetime import datetime, date, timedelta
 
 
 def fill_company():
+    """
+    Fill companies database for tests
+    """
     company_1 = Company()
     company_1.name = 'Tomas'
     company_1.web_page = 'www.tomas.pl'
@@ -22,11 +25,11 @@ def fill_company():
     db.session.add(company_2)
     db.session.commit()
 
-def fill_db():
+
+def fill_user():
     """
-    Fill the database for tests
+    Fill user database for tests
     """
-    fill_company()
     user = User()
     user.email = 'e@e.pl'
     user.username = 'test_user'
@@ -45,6 +48,13 @@ def fill_db():
     user_4.username = 'reminder@user.pl'
     user_4.i_want_daily_reminder = True
     db.session.add(user_4)
+    db.session.commit()
+
+
+def fill_order():
+    """
+    Fill the database for tests
+    """
     order = Order()
     order.date = date(2015, 1, 5)
     order.description = 'Duzy Gruby Nalesnik'
@@ -74,6 +84,36 @@ def fill_db():
     order_4.user_name = 'x@x.pl'
     order_4.arrival_time = '12:00'
     db.session.add(order_4)
+    db.session.commit()
+
+
+def fill_food():
+    """
+    Fill food database for tests
+    """
+    meal_1 = Food()
+    meal_1.company = "Tomas"
+    meal_1.description = "Malza"
+    meal_1.cost = 10
+    meal_1.date_available_from = datetime.now() - timedelta(2)
+    meal_1.date_available_to = datetime.now() + timedelta(2)
+    meal_1.o_type = 'daniednia'
+    db.session.add(meal_1)
+    meal_2 = Food()
+    meal_2.company = "Pod Koziołkiem"
+    meal_2.description = "Tiramisu"
+    meal_2.cost = 20
+    meal_2.date_available_from = datetime.now() - timedelta(5)
+    meal_2.date_available_to = datetime.now() + timedelta(5)
+    meal_2.o_type = 'tygodniowe'
+    db.session.add(meal_2)
+    db.session.commit()
+
+
+def fill_finance():
+    """
+    Fill food database for tests
+    """
     finance = Finance()
     finance.user_name = 'test_user'
     finance.month = 2
@@ -92,22 +132,17 @@ def fill_db():
     db.session.add(finance)
     db.session.add(finance_3)
     db.session.add(finance_2)
-    meal_1 = Food()
-    meal_1.company = "Tomas"
-    meal_1.description = "Malza"
-    meal_1.cost = 10
-    meal_1.date_available_from = datetime.now() - timedelta(2)
-    meal_1.date_available_to = datetime.now() + timedelta(2)
-    meal_1.o_type = 'daniednia'
-    meal_2 = Food()
-    meal_2.company = "Pod Koziołkiem"
-    meal_2.description = "Tiramisu"
-    meal_2.cost = 20
-    meal_2.date_available_from = datetime.now() - timedelta(5)
-    meal_2.date_available_to = datetime.now() + timedelta(5)
-    meal_2.o_type = 'tygodniowe'
-    db.session.add(meal_1)
-    db.session.add(meal_2)
+    db.session.commit()
+
+def fill_db():
+    """
+    Fill the database for tests
+    """
+    fill_company()
+    fill_user()
+    fill_order()
+    fill_food()
+    fill_finance()
     mailtxt = MailText()
     mailtxt.daily_reminder_subject = "STX Lunch daili_subject_reminder"
     mailtxt.daily_reminder = "daili1"

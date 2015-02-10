@@ -800,10 +800,13 @@ def random_food(courage):
             Order.date >= today_to,
         )
     ).all()
-    food_dict = Counter(foods)
+    food_list = [order.description for order in foods]
+    food_dict = Counter(food_list)
     food_dict = food_dict.most_common()
-    if len(food_dict) > 3:
+    if len(food_dict) >= 3:
         foods = [food_dict[0][0], food_dict[1][0], food_dict[2][0]]
+        food = choice(foods)
+        food = Order.query.filter(Order.description == food).first()
     else:
         foods = Food.query.filter(
             and_(
@@ -812,7 +815,7 @@ def random_food(courage):
                 Food.o_type != 'menu',
             )
         ).all()
-    food = choice(foods)
+        food = choice(foods)
     if food.description.startswith('!RANDOM O'):
         food.description = food.description[15:]
     if courage >= 1:
@@ -921,6 +924,9 @@ def food_rate():
     if not order:
         flash("You didn't order anything today so You cannot rate the food")
         return redirect('overview')
+    if current_user.rate_timestamp == datetime.date.today():
+        flash("You already rated today come back tomorow :-)")
+        return redirect('overview')
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
     today_to = datetime.datetime.combine(day, datetime.time(0, 0))
     foods = Food.query.filter(
@@ -934,20 +940,20 @@ def food_rate():
     for food in foods:
         food.description = food.description.strip()
         if food.description == order.description:
-            form.food.choices = [(food.description, food.description)]
+            form.food.choices = [(food.id, food.description)]
             break
         else:
             food_list.append((food.id, food.description))
             form.food.choices = food_list
-    import pdb; pdb.set_trace()
     if request.method == 'POST' and form.validate():
-
         food = Food.query.get(form.food.data)
         if food.rating:
             food.rating = (food.rating + form.rate.data)/2
         else:
             food.rating = form.rate.data
+        user = User.query.get(current_user.id)
+        user.rate_timestamp = datetime.date.today()
         db.session.commit()
-        flash("You rated the food succesfully")
+        flash("You rated the food successfully")
         return redirect('overview')
     return render_template('food_rate.html', form=form)

@@ -9,7 +9,11 @@ from datetime import datetime
 from flask.ext.login import UserMixin
 
 from sqlalchemy import Column
-from sqlalchemy.types import Integer, String, Boolean, Unicode, DateTime, Float
+from sqlalchemy.types import (
+    Integer, String, Boolean,
+    Unicode, DateTime, Float,
+    Date,
+)
 
 from .main import db
 
@@ -27,6 +31,7 @@ class User(db.Model, UserMixin):
     username = Column(String(200), unique=True)
     admin = Column(Boolean, default=False)
     i_want_daily_reminder = Column(Boolean, default=False)
+    rate_timestamp = Column(Date)
 
     def is_active(self):
         """

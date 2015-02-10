@@ -20,6 +20,8 @@ MOCK_ADMIN.is_admin.return_value = True
 MOCK_ADMIN.username = 'test_user'
 MOCK_ADMIN.is_anonymous.return_value = False
 MOCK_ADMIN.email = 'mock@mock.com'
+MOCK_ADMIN.id = 1
+MOCK_ADMIN.rate_timestamp = date.today() - timedelta(1)
 
 
 def setUp():
@@ -484,7 +486,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             order = Order()
             order.description = 'Kebab'
             order.company = 'Pod Koziołkiem'
-            order.cost = 1
+            order.cost = i
             order.user_name = 'test@user.pl'
             order.arrival_time = '12:00'
             db.session.add(order)
@@ -492,7 +494,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             order = Order()
             order.description = 'Burger'
             order.company = 'Pod Koziołkiem'
-            order.cost = 1
+            order.cost = i
             order.user_name = 'test@user.pl'
             order.arrival_time = '12:00'
             db.session.add(order)
@@ -500,7 +502,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             order = Order()
             order.description = 'Cieply_jamnik'
             order.company = 'Pod Koziołkiem'
-            order.cost = 1
+            order.cost = i
             order.user_name = 'test@user.pl'
             order.arrival_time = '12:00'
             db.session.add(order)
@@ -508,7 +510,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             order = Order()
             order.description = 'Kosmata_szynka'
             order.company = 'Pod Koziołkiem'
-            order.cost = 1
+            order.cost = i
             order.user_name = 'test@user.pl'
             order.arrival_time = '12:00'
             db.session.add(order)
@@ -557,6 +559,79 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertTrue(msg.subject.startswith('STX Lunch'))
             self.assertIn('daili1', msg.body)
             self.assertEqual(msg.recipients, ['reminder@user.pl'])
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    def test_add_company(self):
+        """
+        Test adding new companies.
+        """
+        fill_db()
+        resp = self.client.get('/finance_companies')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'name': 'SwietaKrowa',
+            'web_page': 'http://www.swietakrowa.pl',
+            'address': 'ul. Mickiewicza 7 92-200 Poznan',
+            'telephone': '48618255256',
+        }
+        resp = self.client.post('/finance_companies', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/finance_companies')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(data['name'], str(resp.data))
+        self.assertIn(data['web_page'], str(resp.data))
+        self.assertIn(data['address'], str(resp.data))
+        self.assertIn(data['telephone'], str(resp.data))
+        resp = self.client.get('/add_food')
+        self.assertIn(data['name'], str(resp.data))
+        resp = self.client.get('/order')
+        self.assertIn(data['name'], str(resp.data))
+        resp = self.client.get('/order_edit/1/')
+        self.assertIn(data['name'], str(resp.data))
+        resp = self.client.get('/company_summary/2015/2')
+        self.assertIn(data['name'], str(resp.data))
+        order = Order()
+        order.description = 'niewazne'
+        order.cost = 29
+        order.arrival_time = "12:00"
+        order.company = data['name']
+        order.user_name = 'test_user'
+        db.session.add(order)
+        db.session.commit()
+        # resp = self.client.get('/day_summary')
+        # self.assertIn(data['name'], str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_rating(self):
+        """
+        Test rating mechanism.
+        """
+        fill_db()
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/food_rate')
+        self.assertEqual(resp.status_code, 200)
+        data = {'food': '1', 'rate': '1'}
+        resp = self.client.post('/food_rate', data=data)
+        self.assertEqual(resp.status_code, 302)
+        food = Food.query.get(1)
+        self.assertEqual(food.rating, 1.0)
+        data = {'food': '1', 'rate': '5'}
+        self.client.post('/food_rate', data=data)
+        self.assertEqual(resp.status_code, 302)
+        food = Food.query.get(1)
+        self.assertEqual(food.rating, 3.0)
+        # test if redirected after rating
+        MOCK_ADMIN.rate_timestamp = date.today()
+        resp = self.client.get('/food_rate')
+        self.assertEqual(resp.status_code, 302)
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):

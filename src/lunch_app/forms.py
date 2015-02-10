@@ -228,7 +228,7 @@ class CompanyAddForm(Form):
         )]
     )
     telephone = StringField(
-        "pay_reminder",
+        "telephone",
         validators=[validators.DataRequired(
             "Please enter pay reminder text."
         )]
@@ -242,14 +242,16 @@ class FoodRateForm(Form):
     rater_best = chr(9829)
     rater_good = chr(9733)
     rater_medium = chr(10138)+chr(10136)+chr(10137)
-    rater_bad = chr(9855)
+    rater_bad = chr(9762)
     rater_worst = chr(9760)
     food = SelectField(
         'food',
         validators=[validators.DataRequired("Please choose food.")],
+        coerce=int,
     )
     rate = SelectField(
         'rate',
+        coerce=int,
         validators=[validators.DataRequired("Please rate.")],
         choices=[
             (1, 1*rater_worst),
@@ -257,5 +259,5 @@ class FoodRateForm(Form):
             (3, rater_medium),
             (4, 4*rater_good),
             (5, 5*rater_best),
-        ]
+        ],
     )

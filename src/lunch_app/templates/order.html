@@ -58,7 +58,7 @@
                                        data-comp="{{ meal.company }}"
                                        href="#">
                                         {{ meal.description }}
-                                        (<b>{{ meal.cost }} PLN</b>)
+                                        (<b>{{ meal.cost }} PLN</b>) - {% if meal.rating %}<b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">{% if meal.rating > 4.5 %}&#9829;{% elif meal.rating > 3.5 %}&#9733;{% elif meal.rating > 2.5  %}&#10137;{% elif meal.rating > 1.6  %}&#9762;{% else %}&#9760;{% endif %} {{ meal.rating }}/5</b>{% endif %}
                                     </a>
                                 </li>
                             {% endif %}
