@@ -15,7 +15,10 @@
           media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/stx_style.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/sweet-alert.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sweet-alert.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
@@ -114,7 +117,7 @@
                 {% if messages %}
                     <div data-alert class="alert-box success radius">
                         {% for message in messages %}
-                            <li>{{ message }}</li>
+                            <li>{{ message|urlize(30) }}</li>
                         {% endfor %}
                         <a href="#" class="close">&times;</a>
                     </div>

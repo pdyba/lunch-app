@@ -667,7 +667,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         with mail.record_messages() as outbox:
             resp = self.client.get('/order_pizza_for_everybody')
             self.assertEqual(resp.status_code, 302)
-            self.assertEqual(len(outbox), 1)
+            self.assertEqual(len(outbox), 2)
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch app PIZZA'))
             self.assertIn('pizza for everyone', msg.body)

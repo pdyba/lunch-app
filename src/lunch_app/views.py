@@ -9,8 +9,7 @@ import datetime
 from random import choice
 
 
-from flask import redirect, render_template, request, flash, url_for, Response, \
-    jsonify
+from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
@@ -45,6 +44,9 @@ ORDERING_IS_ACTIVE = True
 def ordering_is_active():
     return ORDERING_IS_ACTIVE
 
+def true_url():
+    url = str(request.url_root).rstrip('/')
+    return url
 
 @app.route('/')
 def index():
@@ -1108,10 +1110,13 @@ def order_pizza_for_everybody():
     db.session.commit()
     new_event = Pizza.query.all()[-1]
     new_event_id = new_event.id
-    event_url = url_for("pizza_time_view", happening=new_event_id)
-    stop_url = url_for("pizza_time_stop", happening=new_event_id)
+    event_url = true_url() + url_for("pizza_time_view", happening=new_event_id)
+    stop_url = true_url() + url_for("pizza_time_stop", happening=new_event_id)
     users = User.query.filter(User.active).all()
     emails = [user.username for user in users]
+    text = 'You succesfully orderd pizza for all You can check who wants' \
+           ' what here:\n{}\n to finish the pizza orgy click here\n{}\n ' \
+           'than order pizza!'.format(event_url, stop_url)
     msg = Message(
         'Lunch app PIZZA TIME',
         recipients=emails,
@@ -1119,10 +1124,14 @@ def order_pizza_for_everybody():
     msg.body = '{} ordered pizza for everyone ! \n order it here:\n\n' \
                '{}\n\n and thank him!'.format(current_user.username, event_url)
     mail.send(msg)
-    flash('You succesfully orderd pizza for all You can check who wants what '
-          'here:\n{}\n to finish the pizza orgy click here\n{}\n than '
-          'order pizza'.format(event_url, stop_url))
-    return redirect('overview')
+    msg = Message(
+        'Lunch app PIZZA TIME',
+        recipients=[current_user.username],
+    )
+    msg.body = text
+    mail.send(msg)
+    flash(text)
+    return redirect(url_for("pizza_time_view", happening=new_event_id))
 
 
 @app.route('/pizza_time/<int:happening>', methods=['GET', 'POST'])
