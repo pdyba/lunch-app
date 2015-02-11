@@ -35,13 +35,15 @@
   <li class="description">{% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}<b style="color: red">{{ order.description }}</b>{% else %}{{ order.description }}{% endif %}</li>
 </ul>
     </div>
+    </div>
 {% endfor %}
+
 </body>
-<bottom>
+
     <div class="large-12 columns small-text-right">
 
         <hr>
         <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
     </div>
-</bottom>
+
 </html>

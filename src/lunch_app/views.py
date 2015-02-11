@@ -62,6 +62,9 @@ def index():
     if not current_user.is_anonymous() and \
             '@stxnext.pl' in current_user.username:
         return redirect('order')
+    elif not current_user.is_anonymous():
+        msg = "Sadly you are not a hero."
+        return render_template('index.html', msg=msg)
     return render_template('index.html')
 
 

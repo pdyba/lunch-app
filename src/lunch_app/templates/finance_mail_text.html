@@ -5,9 +5,9 @@
 {% block content %}
 <div class="large-12 columns">
     {% include "finance_base.html" %}
-
-    <div class="large-6 columns">
 <form method="POST">
+    <div class="large-6 columns">
+
             Daily reminder subject
             {{ form.daily_reminder_subject }}
             Daily reminder text
@@ -29,7 +29,8 @@
             {{ form.ordering_is_blocked_text }}
 
             <input type="submit" value="submit" class="button right">
-            </form>
+        </div>
+</form>
     </div>
-    </div>
+
 {% endblock %}
