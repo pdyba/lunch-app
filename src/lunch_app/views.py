@@ -1196,6 +1196,9 @@ def pizza_time_stop(happening):
     Stops pizza time.
     """
     pizzas_db = Pizza.query.get(happening)
+    if current_user.username != pizzas_db.who_created:
+        flash('! Only event creator can stop the event1!')
+        return redirect(url_for('pizza_time_view', happening=happening))
     pizzas_db.pizza_ordering_is_allowed = False
     db.session.commit()
     return redirect(url_for('pizza_time_view', happening=happening))
