@@ -29,7 +29,7 @@ from .forms import (
     FinanceBlockUserForm,
     PizzaChooseForm,
 )
-from .models import Order, Food, User, Finance, MailText, Pizza
+from .models import Order, Food, User, Finance, MailText, Pizza, OrderingInfo
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
 from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
@@ -38,11 +38,13 @@ import logging
 
 log = logging.getLogger(__name__)
 
-ORDERING_IS_ACTIVE = True
-
 
 def ordering_is_active():
-    return ORDERING_IS_ACTIVE
+    """
+    Returns value true if ordering is active for jinja.
+    """
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    return ordering_is_allowed.is_allowed
 
 def true_url():
     url = str(request.url_root).rstrip('/')
@@ -83,14 +85,14 @@ def create_order():
     Create new order page.
     """
     if not current_user.is_active():
-        try:
-            texts = MailText.query.get(1)
-            try:
-                msg = texts.blocked_user_text
-            except AttributeError:
-                msg = "Sorry You didn't pay for last month :("
-        except OperationalError:
-            msg = "Sorry You didn't pay for last month :("
+        texts = MailText.query.get(1)
+        msg = texts.blocked_user_text
+        flash(msg)
+        return redirect('overview')
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    if not ordering_is_allowed.is_allowed:
+        texts = MailText.query.get(1)
+        msg = "Sorry you were too late ordering is blocked now"
         flash(msg)
         return redirect('overview')
     form = OrderForm(request.form)
@@ -297,16 +299,9 @@ def info():
     """
     Renders info page.
     """
-    try:
-        texts = MailText.query.get(1)
-        try:
-            temp = "{}".format(texts.info_page_text)
-            info = temp.split('\n')
-        except AttributeError:
-            info = "None"
-    except OperationalError:
-        info = "None"
-
+    texts = MailText.query.get(1)
+    temp = "{}".format(texts.info_page_text)
+    info = temp.split('\n')
     if len(info) < 2:
         info = "None"
     return render_template('info.html', info=info)
@@ -695,13 +690,8 @@ def finance_mail_text():
     """
     Renders mail all page.
     """
-    try:
-        mail_data = MailText.query.first()
-        form = MailTextForm(formdata=request.form, obj=mail_data)
-    except OperationalError:
-        mail_data = None
-        form = MailTextForm(formdata=request.form)
-
+    mail_data = MailText.query.first()
+    form = MailTextForm(formdata=request.form, obj=mail_data)
     if request.method == 'POST' and form.validate():
         if mail_data is None:
             texts = MailText()
@@ -962,13 +952,14 @@ def finance_block_user():
     Allows to block specific user from ordering.
     """
     users = User.query.all()
-    users_to_block = []
-    users_to_unblock = []
-    for user in users:
-        if user.active:
-            users_to_block.append((user.id, user.username))
-        else:
-            users_to_unblock.append((user.id, user.username))
+    users_to_block = [
+        (user.id, user.username)
+        for user in users if user.active
+    ]
+    users_to_unblock = [
+        (user.id, user.username)
+        for user in users if not user.active
+    ]
     form_block = FinanceBlockUserForm(request.form)
     form_block.user_select.choices = users_to_block
     form_unblock = FinanceBlockUserForm(request.form)
@@ -1001,8 +992,9 @@ def finance_block_ordering():
     """
     Allows to block ordering for everyone.
     """
-    global ORDERING_IS_ACTIVE
-    ORDERING_IS_ACTIVE = False
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    ordering_is_allowed.is_allowed = False
+    db.session.commit()
     flash('Now users can NOT order !')
     return redirect('day_summary')
 
@@ -1013,8 +1005,9 @@ def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
     """
-    global ORDERING_IS_ACTIVE
-    ORDERING_IS_ACTIVE = True
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    ordering_is_allowed.is_allowed = True
+    db.session.commit()
     flash('Now users can order :)')
     return redirect('day_summary')
 

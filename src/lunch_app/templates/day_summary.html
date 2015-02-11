@@ -9,14 +9,11 @@
         <div class="large-6 columns">
             <h2>Today orders</h2>
         </div>
-        <div class="large-6 columns">
-            <h3 class="right">Ordering is
-                {% if ordering_is_active() == True %}
-                    <a style="color: green">Active</a>
-                {% elif ordering_is_active() == False %}
-                    <b style="color: red">Blocked</b>
-                {% endif %}</h3>
-        </div>
+    <div class="large-6 columns">
+        <h3 class="right">Ordering is
+            {% if ordering_is_active() %}<a style="color: green">active</a>
+            {% else %}<b style="color: red">blocked</b>
+            {% endif %}</h3>
     </div>
     <ul class="tabs" data-tab role="tablist">
         <li class="tab-title active"><a href="#panel1">Summary</a></li>
@@ -177,7 +174,7 @@
     <br>
     <hr>
     <a href="{{ url_for('finance_block_ordering') }}"
-       class="button alert right">Block Ordering</a>
+       class="button alert right">Block ordering</a>
     <a href="{{ url_for('finance_unblock_ordering') }}"
        class="button success right">Unblock ordering</a>
 {% endblock %}

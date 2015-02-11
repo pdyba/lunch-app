@@ -3,14 +3,34 @@ Fixtures for database.
 """
 
 from .main import db
-from .models import Order, Food, User, Finance, MailText
+from .models import Order, Food, User, Finance, MailText, OrderingInfo
 from datetime import datetime, date, timedelta
+
+
+def allow_ordering():
+    """
+    Creates the most necessary records in data base.
+    """
+    ordering_info = OrderingInfo()
+    ordering_info.is_allowed = True
+    db.session.add(ordering_info)
+    mailtxt = MailText()
+    mailtxt.daily_reminder_subject = "STX Lunch daili_subject_reminder"
+    mailtxt.daily_reminder = "daili1"
+    mailtxt.monthly_pay_summary = "monthly2"
+    mailtxt.pay_reminder = "reminder3"
+    mailtxt.pay_slacker_reminder = 'slacker4'
+    mailtxt.blocked_user_text = 'YouareBlocked'
+    mailtxt.ordering_is_blocked_text = 'OrderingIsBlocked'
+    db.session.add(mailtxt)
+    db.session.commit()
 
 
 def fill_db():
     """
     Fill the database for tests
     """
+    allow_ordering()
     user = User()
     user.email = 'e@e.pl'
     user.username = 'test_user'
@@ -92,12 +112,4 @@ def fill_db():
     meal_2.o_type = 'tygodniowe'
     db.session.add(meal_1)
     db.session.add(meal_2)
-    mailtxt = MailText()
-    mailtxt.daily_reminder_subject = "STX Lunch daili_subject_reminder"
-    mailtxt.daily_reminder = "daili1"
-    mailtxt.monthly_pay_summary = "monthly2"
-    mailtxt.pay_reminder = "reminder3"
-    mailtxt.pay_slacker_reminder = 'slacker4'
-    mailtxt.blocked_user_text = 'YouareBlocked'
-    db.session.add(mailtxt)
     db.session.commit()

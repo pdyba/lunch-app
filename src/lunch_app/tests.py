@@ -11,9 +11,9 @@ from unittest.mock import Mock, patch
 
 from .main import app, db, mail
 from . import main, utils
-from .fixtures import fill_db
+from .fixtures import fill_db, allow_ordering
 from .models import Order, Food, MailText, User
-from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
+
 
 MOCK_ADMIN = Mock()
 MOCK_ADMIN.is_admin.return_value = True
@@ -98,6 +98,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order page.
         """
+        allow_ordering()
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 200)
 
@@ -126,6 +127,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order with send me an email.
         """
+        allow_ordering()
         with mail.record_messages() as outbox:
             data = {
                 'cost': '13',
@@ -407,6 +409,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'info_page_text': 'Nowa strona Tomasa www.wp.pl',
             'daily_reminder_subject': 'STX Lunch nowy temat',
             'blocked_user_text': 'You are banned',
+            'ordering_is_blocked_text': 'Ordering is Blocked',
         }
         resp = self.client.post('/finance_mail_text', data=data)
         self.assertEqual(resp.status_code, 302)
@@ -430,6 +433,10 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(
             msg_text_db.blocked_user_text,
             'You are banned',
+        )
+        self.assertEqual(
+            msg_text_db.ordering_is_blocked_text,
+            'Ordering is Blocked',
         )
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
@@ -594,8 +601,8 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.post('/finance_block_user', data=data)
         self.assertEqual(resp.status_code, 302)
         user = User.query.get(1)
-        self.assertFalse(user.active, False)
-        self.assertFalse(user.is_active(), False)
+        self.assertIs(user.active, False)
+        self.assertIs(user.is_active(), False)
 
         # Test unblocking
         data = {
@@ -607,6 +614,24 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         user = User.query.get(1)
         self.assertTrue(user.active, True)
         self.assertTrue(user.is_active(), True)
+
+        MOCK_ADMIN.active = False
+        MOCK_ADMIN.is_active.return_value = False
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'blokowane_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        order = Order.query.filter(
+            Order.description == data['description']
+        ).first()
+        self.assertIs(order, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_finance_block_ordering(self):
@@ -622,9 +647,17 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/finance_block_ordering')
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/order')
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 302)
         self.assertNotIn("Tiramisu", str(resp.data))
-        self.assertIn("ordering is blocked", str(resp.data))
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
 
         # test unblocking
         resp = self.client.get('/finance_unblock_ordering')
@@ -632,7 +665,28 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Tiramisu", str(resp.data))
-        self.assertNotIn("ordering is blocked", str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def z_test_finance_block_user_acces(self):
+        """
+        Test if blocking really blocks user from accesing
+        """
+        allow_ordering()
+        MOCK_ADMIN.active = False
+        MOCK_ADMIN.is_active.return_value = False
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        order = Order.query.get(1)
+        self.assertIs(order, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_add_daily_koziolek(self):
