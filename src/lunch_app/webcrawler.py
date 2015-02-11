@@ -28,11 +28,11 @@ def get_dania_dnia_from_pod_koziolek():
     )
     for meal in menu:
         for food in meal:
-            thing = "{}".format(food)
-            thing = thing.strip("\xa0")
-            if thing != "<br/>" and thing and thing != "\xa0" \
-                    and thing != ":):)":
-                list_of_meals.append(thing)
+            itme = "{}".format(food)
+            itme = itme.strip("\xa0")
+            if itme != "<br/>" and itme and itme != "\xa0" \
+                    and itme != ":):)":
+                list_of_meals.append(itme)
     meal_of_a_day = {}
     list_of_meals.pop(0)
     soup_of_a_day = list_of_meals[0]
