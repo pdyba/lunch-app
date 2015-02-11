@@ -7,7 +7,11 @@ from bs4 import BeautifulSoup
 from urllib import request
 from .main import app
 
+
 def read_webpage(webpage):
+    """
+    Returns web page content.
+    """
     return webpage.read()
 
 

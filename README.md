@@ -1,6 +1,10 @@
 # STX Lunch
 Aplikacja do zamawiania lunchy
 
+# Requirements
+* PostresSQL
+* UWSGI
+
 # Inicjalizacja
 
 ```shell
