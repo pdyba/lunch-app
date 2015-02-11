@@ -53,7 +53,8 @@ def index():
     """
     Main page.
     """
-    if not current_user.is_anonymous():
+    if not current_user.is_anonymous() and \
+            '@stxnext.pl' in current_user.username:
         return redirect('order')
     return render_template('index.html')
 
