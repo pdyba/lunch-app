@@ -7,22 +7,22 @@ Presence analyzer unit tests.
 from datetime import datetime, date, timedelta
 import os.path
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from .main import app, db, mail
 from . import main, utils
-from .fixtures import fill_db, allow_ordering
+from .fixtures import (
+    fill_db,
+    allow_ordering,
+    MOCK_ADMIN,
+    MOCK_DATA_TOMAS,
+    MOCK_DATA_KOZIOLEK,
+    MOCK_WWW_TOMAS,
+    MOCK_WWW_KOZIOLEK,
+)
 from .models import Order, Food, MailText, User
 from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
-
-
-MOCK_ADMIN = Mock()
-MOCK_ADMIN.is_admin.return_value = True
-MOCK_ADMIN.username = 'test_user'
-MOCK_ADMIN.active = True
-MOCK_ADMIN.is_anonymous.return_value = False
-MOCK_ADMIN.is_active.return_value = True
-MOCK_ADMIN.email = 'mock@mock.com'
+from .utils import make_datetime
 
 
 def setUp():
@@ -690,6 +690,10 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIs(order, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch(
+        'lunch_app.views.get_dania_dnia_from_pod_koziolek',
+        new=MOCK_DATA_KOZIOLEK,
+    )
     def test_add_daily_koziolek(self):
         """
         Test adding meal of a day from koziolek's webpage.
@@ -700,8 +704,21 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Danie dnia", str(resp.data))
+        food = Food.query.filter(
+            Food.description == 'Danie dnia Koziołek: 1.Kotlet schabowy z '
+                                'ziemniakami gotowanymi i kapusta zasmażana'
+        ).first()
+        self.assertEqual(food.company, "Pod Koziołkiem")
+        self.assertEqual(food.cost, 11)
+        self.assertEqual(food.o_type, "daniednia")
+        self.assertEqual(food.date_available_from, make_datetime(date.today()))
+        self.assertEqual(food.date_available_to, make_datetime(date.today()))
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch(
+        'lunch_app.views.get_week_from_tomas',
+        new=MOCK_DATA_TOMAS,
+    )
     def test_get_week_from_tomas_view(self):
         """
         Test adding weak meals from Tomas.
@@ -716,6 +733,51 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn("10.0 PLN", str(resp.data))
         self.assertIn("12.0 PLN", str(resp.data))
         self.assertIn("4.0 PLN", str(resp.data))
+
+        # meal of a day from Monday
+        food = Food.query.filter(
+            Food.description == 'Kawałki kurczaka w sosie chińskim z '
+                                'warzywami, ryż, sałata.'
+        ).first()
+        self.assertEqual(food.company, "Tomas")
+        self.assertEqual(food.cost, 10)
+        self.assertEqual(food.o_type, "daniednia")
+        self.assertEqual(food.date_available_from, make_datetime(date.today()))
+        self.assertEqual(food.date_available_to, make_datetime(date.today()))
+
+        # meal and soup of a day from Thursday
+        food = Food.query.filter(
+            Food.description == 'żurek + Sałatka grillowanym mięsem, '
+                                'warzywami i sosem czosnko.'
+        ).first()
+        self.assertEqual(food.company, "Tomas")
+        self.assertEqual(food.cost, 12)
+        self.assertEqual(food.o_type, "daniednia")
+        self.assertEqual(
+            food.date_available_from,
+            make_datetime(date.today() + timedelta(3))
+        )
+        self.assertEqual(
+            food.date_available_to,
+            make_datetime(date.today() + timedelta(3))
+        )
+
+        # diet meal
+        food = Food.query.filter(
+            Food.description == 'ok.440kcal Polędwiczki drobiowe 120g,'
+                                ' ryż 200g, bukiet warzyw 150g.'
+        ).first()
+        self.assertEqual(food.company, "Tomas")
+        self.assertEqual(food.cost, 12)
+        self.assertEqual(food.o_type, "tygodniowe")
+        self.assertEqual(
+            food.date_available_from,
+            make_datetime(date.today())
+        )
+        self.assertEqual(
+            food.date_available_to,
+            make_datetime(date.today() + timedelta(4))
+        )
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_order_pizza_for_everybody(self):
@@ -894,6 +956,10 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
         """
         pass
 
+    @patch(
+        'lunch_app.webcrawler.read_webpage',
+        new=MOCK_WWW_KOZIOLEK,
+    )
     def test_get_dania_dnia_from_pod_koziolek(self):
         """
         Tests web crawling functions works properly Koziolek add meal of a day
@@ -903,6 +969,10 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
         self.assertGreaterEqual(len(data["zupa_dnia"]), 1)
         self.assertGreaterEqual(len(data['danie_dania_1']), 1)
 
+    @patch(
+        'lunch_app.webcrawler.read_webpage',
+        new=MOCK_WWW_TOMAS,
+    )
     def test_get_week_from_tomas(self):
         """
         Tests web crawling functions works properly for Tomas add weak
@@ -912,10 +982,22 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
         self.assertGreaterEqual(len(data['diet']), 1)
         for i in range(1, 6):
             food = data['dzien_{}'.format(i)]
-            self.assertEqual(len(food), 3)
-            self.assertGreaterEqual(len(food['zupy']), 1)
-            self.assertGreaterEqual(len(food['dania']), 1)
-            self.assertGreaterEqual(len(food['zupa_i_dania']), 1)
+            self.assertEqual(len(food), 3, msg="ERROR IN {}".format(i))
+            self.assertGreaterEqual(
+                len(food['zupy']),
+                1,
+                msg="ERROR IN {}".format(i),
+            )
+            self.assertGreaterEqual(
+                len(food['dania']),
+                1,
+                msg="ERROR IN {}".format(i),
+            )
+            self.assertGreaterEqual(
+                len(food['zupa_i_dania']),
+                1,
+                msg="ERROR IN {}".format(i),
+            )
 
 
 def suite():

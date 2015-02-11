@@ -113,8 +113,6 @@ def create_order():
         form.populate_obj(order)
         order.user_name = current_user.username
         order.description = order.description.strip()
-        order.description = order.description.strip('\n')
-        order.description = order.description.strip('\r')
         db.session.add(order)
         db.session.commit()
         flash('Order created')
@@ -1107,8 +1105,14 @@ def order_pizza_for_everybody():
     db.session.commit()
     new_event = Pizza.query.all()[-1]
     new_event_id = new_event.id
-    event_url = server_url() + url_for("pizza_time_view", happening=new_event_id)
-    stop_url = server_url() + url_for("pizza_time_stop", happening=new_event_id)
+    event_url = server_url() + url_for(
+        "pizza_time_view",
+        happening=new_event_id,
+    )
+    stop_url = server_url() + url_for(
+        "pizza_time_stop",
+        happening=new_event_id,
+    )
     users = User.query.filter(User.active).all()
     emails = [user.username for user in users]
     text = 'You succesfully orderd pizza for all You can check who wants' \
