@@ -827,7 +827,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
 
     def test_next_month(self):
         """
-        Test next month function
+        Test next month function.
         """
         self.assertEqual(
             utils.next_month(2015, 12),
@@ -840,7 +840,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
 
     def test_previous_month(self):
         """
-        Test previous month function
+        Test previous month function.
         """
         self.assertEqual(
             utils.previous_month(2015, 1),
