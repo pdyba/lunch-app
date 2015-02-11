@@ -67,7 +67,6 @@ def overview():
     """
     Overview page.
     """
-
     user = User.query.filter(User.username == current_user.username).first()
     form = UserDailyReminderForm(formdata=request.form, obj=user)
     if request.method == 'POST' and form.validate():
