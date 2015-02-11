@@ -5,7 +5,7 @@ Webrcrawlers functions
 """
 from bs4 import BeautifulSoup
 from urllib import request
-
+from .main import app
 
 def read_webpage(webpage):
     return webpage.read()
@@ -15,7 +15,7 @@ def get_dania_dnia_from_pod_koziolek():
     """
     Returns data for new meal of a day.
     """
-    url = "http://www.pod-koziolkiem.pl/"
+    url = app.config['URL_POD_KOZIOLKIEM']
     webpage = request.urlopen(url)
     magic_soup = BeautifulSoup(read_webpage(webpage))
     list_of_meals = []
@@ -67,7 +67,7 @@ def get_week_from_tomas():
     """
     Returns weak of meals from Tomas ! use only on mondays !.
     """
-    url = "http://www.tomas.net.pl/niagara.php"
+    url = app.config['URL_TOMAS']
     webpage = request.urlopen(url)
     magic_soup = BeautifulSoup(read_webpage(webpage))
     menu = magic_soup.find_all("td", {"class": "biala"})
