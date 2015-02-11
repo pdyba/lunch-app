@@ -14,7 +14,6 @@ from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
 from sqlalchemy import and_
-from sqlalchemy.exc import OperationalError
 
 from .main import app, db, mail
 from .forms import (
@@ -46,9 +45,14 @@ def ordering_is_active():
     ordering_is_allowed = OrderingInfo.query.get(1)
     return ordering_is_allowed.is_allowed
 
-def true_url():
+
+def server_url():
+    """
+    Returns current server url.
+    """
     url = str(request.url_root).rstrip('/')
     return url
+
 
 @app.route('/')
 def index():
@@ -1040,7 +1044,7 @@ def add_daily_koziolek():
 @login.login_required
 def get_week_from_tomas_view():
     """
-    Adds weak meals from Tomas
+    Adds weak meals from Tomas ! use only on mondays !
     """
     foods = get_week_from_tomas()
     for meal in foods['diet']:
@@ -1103,8 +1107,8 @@ def order_pizza_for_everybody():
     db.session.commit()
     new_event = Pizza.query.all()[-1]
     new_event_id = new_event.id
-    event_url = true_url() + url_for("pizza_time_view", happening=new_event_id)
-    stop_url = true_url() + url_for("pizza_time_stop", happening=new_event_id)
+    event_url = server_url() + url_for("pizza_time_view", happening=new_event_id)
+    stop_url = server_url() + url_for("pizza_time_stop", happening=new_event_id)
     users = User.query.filter(User.active).all()
     emails = [user.username for user in users]
     text = 'You succesfully orderd pizza for all You can check who wants' \

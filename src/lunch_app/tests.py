@@ -13,6 +13,7 @@ from .main import app, db, mail
 from . import main, utils
 from .fixtures import fill_db, allow_ordering
 from .models import Order, Food, MailText, User
+from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
 
 
 MOCK_ADMIN = Mock()
@@ -693,6 +694,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test adding meal of a day from koziolek's webpage.
         """
+        allow_ordering()
         resp = self.client.get('/add_daily_koziolek')
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/order')
@@ -704,6 +706,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test adding weak meals from Tomas.
         """
+        allow_ordering()
+        MOCK_ADMIN.active = True
+        MOCK_ADMIN.is_active.return_value = True
         resp = self.client.get('/add_week_tomas')
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/order')

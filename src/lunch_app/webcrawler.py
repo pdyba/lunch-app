@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+# pylint: disable=invalid-name, no-member
+"""
+Webrcrawlers functions
+"""
 from bs4 import BeautifulSoup
 from urllib import request
 
 
 def get_dania_dnia_from_pod_koziolek():
+    """
+    Returns data for new meal of a day.
+    """
     webpage = request.urlopen("http://www.pod-koziolkiem.pl/")
     soup = BeautifulSoup(webpage.read())
     lista = []
@@ -54,6 +62,9 @@ def get_dania_dnia_from_pod_koziolek():
 
 
 def get_week_from_tomas():
+    """
+    Returns weak of meals from Tomas ! use only on mondays !.
+    """
     webpage = request.urlopen("http://www.tomas.net.pl/niagara.php")
     soup = BeautifulSoup(webpage.read())
     menu = soup.find_all("td", {"class": "biala"})
