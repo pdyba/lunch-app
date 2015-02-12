@@ -28,16 +28,16 @@
 <div class="large-12 columns">
 <hr>
 {% for order in orders %}
-    <div class="large-3 columns">
+    <div class="small-3 columns">
 <ul class="pricing-table">
   <li class="title">{{ order.user_name }}</li>
   <li class="description">{{ order.company }}</li>
   <li class="description">{% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}<b style="color: red">{{ order.description }}</b>{% else %}{{ order.description }}{% endif %}</li>
 </ul>
     </div>
-    </div>
-{% endfor %}
 
+{% endfor %}
+  </div>
 </body>
 
     <div class="large-12 columns small-text-right">
