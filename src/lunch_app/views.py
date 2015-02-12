@@ -799,7 +799,7 @@ def finance_mail_all():
                     'Lunch app payment reminder',
                     recipients=[record['username']],
                 )
-                msg.body = "In {} you ordered {} meals for {} PLN.\n {}".format(
+                msg.body = "In {} you ordered {} meals for {} PLN.\n{}".format(
                     month_name[this_month.month],
                     record['number_of_orders'],
                     record['month_cost'],
@@ -1045,10 +1045,7 @@ def add_daily_koziolek():
     food = get_dania_dnia_from_pod_koziolek()
     for meal in food.values():
         new_meal = Food()
-        if "zupa" in meal or "Zupa" in meal:
-            new_meal.cost = 2
-        else:
-            new_meal.cost = 11
+        new_meal.cost = 2 if 'zupa' in meal.lower() else 11
         new_meal.description = "Danie dnia Koziołek: "
         new_meal.description += meal
         new_meal.company = "Pod Koziołkiem"
