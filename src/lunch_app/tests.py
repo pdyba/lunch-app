@@ -449,8 +449,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/finance_mail_all')
         self.assertEqual(resp.status_code, 200)
         with mail.record_messages() as outbox:
-            resp = self.client.post('/finance_mail_all')
-            self.assertTrue(resp.status_code == 302)
+            data = {'send_mail': 'remind_all'}
+            resp = self.client.post('/finance_mail_all', data=data)
+            self.assertEquals(resp.status_code, 302)
             self.assertEqual(len(outbox), 2)
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch'))
