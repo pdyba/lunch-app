@@ -27,8 +27,7 @@
           href="{{ url_for('static', filename='img/favicon.ico') }}"
           type="image/x-icon">
 
-    {% block script %}
-    {% endblock %}
+
 
     <div id="main">
         <div class="large-12 columns">
@@ -51,7 +50,7 @@
                                     class="active" {% endif %}><a
                                         href="{{ url_for('overview') }}">Overview</a>
                                 </li>
-                                <li {% if page_id == 'create_order' %}
+                                <li {% if page_id == 'order' %}
                                     class="active" {% endif %}><a
                                         href="{{ url_for('create_order') }}">Order</a>
                                 </li>
@@ -93,7 +92,7 @@
                                         Company summary</a>
                                     </li>
 
-                                    <li {% if page_id == 'finance_main' %}
+                                    <li {% if page_id.startswith('finance') %}
                                         class="active" {% endif %}><a
                                             href="{{ url_for('finance', year=get_current_year(), month=get_current_month(), did_pay=0) }}">
                                         Finance</a>
@@ -124,10 +123,11 @@
                     </div>
                 {% endif %}
             {% endwith %}
-            {% block body %}{% endblock %}
+
         </div>
 
     </div>
+
 </head>
 
 <body>
@@ -135,6 +135,7 @@
     {% block content %}
     {% endblock %}
 </div>
+
 </body>
 
 
@@ -143,5 +144,7 @@
         <hr>
         <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
     </div>
-
+<script>
+     $('.alert-box > a.close').click(function() { $(this).closest('[data-alert]').fadeOut(); });
+</script>
 </html>

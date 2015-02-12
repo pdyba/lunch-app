@@ -13,6 +13,7 @@ from wtforms import (
     SelectField,
     DateField,
     FloatField,
+    StringField,
 )
 
 from datetime import datetime
@@ -146,7 +147,7 @@ class MailTextForm(Form):
     """
     Mail subject and text edit form.
     """
-    daily_reminder_subject = TextAreaField(
+    daily_reminder_subject = StringField(
         "daily_reminder_subject",
         validators=[validators.DataRequired(
             "Please enter daily reminder subject."

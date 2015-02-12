@@ -1037,7 +1037,7 @@ def add_daily_koziolek():
         new_meal.date_available_to = datetime.date.today()
         db.session.add(new_meal)
     db.session.commit()
-    flash('Danie dnia z Pod Koziołekim zotało dodane')
+    flash('Meals of a day from Pod Koziolek have been added.')
     return redirect('add_food')
 
 
@@ -1090,7 +1090,7 @@ def get_week_from_tomas_view():
             new_meal.date_available_to = day_dif
             db.session.add(new_meal)
     db.session.commit()
-    flash('Dania z Tomasa zostały dodane')
+    flash('Weak of meals from Tomas have been added.')
     return redirect('add_food')
 
 
