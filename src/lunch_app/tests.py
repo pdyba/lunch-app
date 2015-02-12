@@ -12,7 +12,7 @@ from unittest.mock import patch
 from .main import app, db, mail
 from . import main, utils
 from .fixtures import fill_db, allow_ordering
-from .test_mocks import (
+from .mocks import (
     MOCK_ADMIN,
     MOCK_DATA_TOMAS,
     MOCK_DATA_KOZIOLEK,
