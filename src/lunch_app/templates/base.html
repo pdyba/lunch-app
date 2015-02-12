@@ -15,7 +15,10 @@
           media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/stx_style.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/sweet-alert.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sweet-alert.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
@@ -24,8 +27,7 @@
           href="{{ url_for('static', filename='img/favicon.ico') }}"
           type="image/x-icon">
 
-    {% block script %}
-    {% endblock %}
+
 
     <div id="main">
         <div class="large-12 columns">
@@ -48,7 +50,7 @@
                                     class="active" {% endif %}><a
                                         href="{{ url_for('overview') }}">Overview</a>
                                 </li>
-                                <li {% if page_id == 'create_order' %}
+                                <li {% if page_id == 'order' %}
                                     class="active" {% endif %}><a
                                         href="{{ url_for('create_order') }}">Order</a>
                                 </li>
@@ -87,23 +89,28 @@
                                         class="active" {% endif %}><a
                                             href="{{ url_for('day_summary') }}">Day
                                         summary</a></li>
-                                    </li>
+
                                     <li {% if page_id == 'company_summary' %}
                                         class="active" {% endif %}><a
                                             href="{{ url_for('company_summary_view') }}">
                                         Company summary</a>
                                     </li>
-                                    </li>
-                                    <li {% if page_id == 'finance_main' %}
+
+                                    <li {% if page_id.startswith('finance') %}
                                         class="active" {% endif %}><a
                                             href="{{ url_for('finance', year=get_current_year(), month=get_current_month(), did_pay=0) }}">
                                         Finance</a>
+                                    </li>
+                                    <li><a
+                                            href="{{ url_for('orders_summary_for_tv') }}">
+                                        TV</a>
                                     </li>
                                 {% endif %}
                             </ul>
                         </section>
                     </nav>
                 {% endif %}
+               </ul>
         </div>
     </div>
 
@@ -114,16 +121,17 @@
                 {% if messages %}
                     <div data-alert class="alert-box success radius">
                         {% for message in messages %}
-                            <li>{{ message }}</li>
+                            <li>{{ message|urlize(30) }}</li>
                         {% endfor %}
                         <a href="#" class="close">&times;</a>
                     </div>
                 {% endif %}
             {% endwith %}
-            {% block body %}{% endblock %}
+
         </div>
 
     </div>
+
 </head>
 
 <body>
@@ -131,13 +139,16 @@
     {% block content %}
     {% endblock %}
 </div>
+
 </body>
 
-<bottom>
+
     <div class="large-12 columns small-text-right">
 
         <hr>
         <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
     </div>
-</bottom>
+<script>
+     $('.alert-box > a.close').click(function() { $(this).closest('[data-alert]').fadeOut(); });
+</script>
 </html>

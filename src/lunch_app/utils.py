@@ -42,6 +42,14 @@ def make_date(new_date):
     return new_date.date()
 
 
+def make_datetime(new_date):
+    """
+    Converts date to datetime type for jinjna.
+    """
+    date = datetime.datetime.combine(new_date, datetime.time(0, 0))
+    return date
+
+
 def next_month(year, month):
     """
     Returns next month

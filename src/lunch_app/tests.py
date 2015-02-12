@@ -7,21 +7,21 @@ Presence analyzer unit tests.
 from datetime import datetime, date, timedelta
 import os.path
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from .main import app, db, mail
 from . import main, utils
-from .fixtures import fill_db, fill_company
-from .models import Order, Food, MailText
-
-
-MOCK_ADMIN = Mock()
-MOCK_ADMIN.is_admin.return_value = True
-MOCK_ADMIN.username = 'test_user'
-MOCK_ADMIN.is_anonymous.return_value = False
-MOCK_ADMIN.email = 'mock@mock.com'
-MOCK_ADMIN.id = 1
-MOCK_ADMIN.rate_timestamp = date.today() - timedelta(1)
+from .fixtures import fill_db, allow_ordering, fill_company
+from .mocks import (
+    MOCK_ADMIN,
+    MOCK_DATA_TOMAS,
+    MOCK_DATA_KOZIOLEK,
+    MOCK_WWW_TOMAS,
+    MOCK_WWW_KOZIOLEK,
+)
+from .models import Order, Food, MailText, User
+from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
+from .utils import make_datetime
 
 
 def setUp():
@@ -98,6 +98,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order page.
         """
+        allow_ordering()
         fill_company()
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 200)
@@ -126,6 +127,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test create order with send me an email.
         """
+        allow_ordering()
         fill_company()
         with mail.record_messages() as outbox:
             data = {
@@ -408,6 +410,8 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'pay_slacker_reminder': 'Leniwy przypominacz',
             'info_page_text': 'Nowa strona Tomasa www.wp.pl',
             'daily_reminder_subject': 'STX Lunch nowy temat',
+            'blocked_user_text': 'You are banned',
+            'ordering_is_blocked_text': 'Ordering is Blocked',
         }
         resp = self.client.post('/finance_mail_text', data=data)
         self.assertEqual(resp.status_code, 302)
@@ -428,6 +432,14 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             msg_text_db.pay_slacker_reminder,
             'Leniwy przypominacz',
         )
+        self.assertEqual(
+            msg_text_db.blocked_user_text,
+            'You are banned',
+        )
+        self.assertEqual(
+            msg_text_db.ordering_is_blocked_text,
+            'Ordering is Blocked',
+        )
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_finance_mail_all_view(self):
@@ -438,8 +450,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/finance_mail_all')
         self.assertEqual(resp.status_code, 200)
         with mail.record_messages() as outbox:
-            resp = self.client.post('/finance_mail_all')
-            self.assertTrue(resp.status_code == 302)
+            data = {'send_mail': 'remind_all'}
+            resp = self.client.post('/finance_mail_all', data=data)
+            self.assertEquals(resp.status_code, 302)
             self.assertEqual(len(outbox), 2)
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch'))
@@ -548,7 +561,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_send_daily_reminder(self):
         """
-        Test sends daili reminder to all users.
+        Test sends daily reminder to all users.
         """
         fill_db()
         with mail.record_messages() as outbox:
@@ -633,6 +646,280 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/food_rate')
         self.assertEqual(resp.status_code, 302)
 
+    def test_orders_summary_for_tv(self):
+        """
+        Test orders summary for tv view.
+        """
+        fill_db()
+        resp = self.client.get('/tv')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("test_user", str(resp.data))
+        self.assertIn("Maly Gruby Nalesnik", str(resp.data))
+        self.assertIn("Duzy Gruby Nalesnik", str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_finance_block_user(self):
+        """
+        Test block user view.
+        """
+        fill_db()
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Tiramisu", str(resp.data))
+        resp = self.client.get('/finance_block_user')
+        self.assertEqual(resp.status_code, 200)
+
+        # Test blocking
+        data = {
+            'user_select': '1',
+            'block_change': 'block',
+        }
+        resp = self.client.post('/finance_block_user', data=data)
+        self.assertEqual(resp.status_code, 302)
+        user = User.query.get(1)
+        self.assertIs(user.active, False)
+        self.assertIs(user.is_active(), False)
+
+        # Test unblocking
+        data = {
+            'user_select': '1',
+            'block_change': 'unblock',
+        }
+        resp = self.client.post('/finance_block_user', data=data)
+        self.assertEqual(resp.status_code, 302)
+        user = User.query.get(1)
+        self.assertTrue(user.active, True)
+        self.assertTrue(user.is_active(), True)
+
+        MOCK_ADMIN.active = False
+        MOCK_ADMIN.is_active.return_value = False
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'blokowane_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        order = Order.query.filter(
+            Order.description == data['description']
+        ).first()
+        self.assertIs(order, None)
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_finance_block_ordering(self):
+        """
+        Test blocking and unblocking order ability for all users
+        """
+        fill_db()
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Tiramisu", str(resp.data))
+
+        # test blocking
+        resp = self.client.get('/finance_block_ordering')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 302)
+        self.assertNotIn("Tiramisu", str(resp.data))
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+
+        # test unblocking
+        resp = self.client.get('/finance_unblock_ordering')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Tiramisu", str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def z_test_finance_block_user_acces(self):
+        """
+        Test if blocking really blocks user from accesing
+        """
+        allow_ordering()
+        MOCK_ADMIN.active = False
+        MOCK_ADMIN.is_active.return_value = False
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        order = Order.query.get(1)
+        self.assertIs(order, None)
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch(
+        'lunch_app.views.get_dania_dnia_from_pod_koziolek',
+        new=MOCK_DATA_KOZIOLEK,
+    )
+    def test_add_daily_koziolek(self):
+        """
+        Test adding meal of a day from koziolek's webpage.
+        """
+        allow_ordering()
+        resp = self.client.get('/add_daily_koziolek')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Danie dnia", str(resp.data))
+        food = Food.query.filter(
+            Food.description == 'Danie dnia Koziołek: 1.Kotlet schabowy z '
+                                'ziemniakami gotowanymi i kapusta zasmażana'
+        ).first()
+        self.assertEqual(food.company, "Pod Koziołkiem")
+        self.assertEqual(food.cost, 11)
+        self.assertEqual(food.o_type, "daniednia")
+        self.assertEqual(food.date_available_from, make_datetime(date.today()))
+        self.assertEqual(food.date_available_to, make_datetime(date.today()))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch(
+        'lunch_app.views.get_week_from_tomas',
+        new=MOCK_DATA_TOMAS,
+    )
+    def test_get_week_from_tomas_view(self):
+        """
+        Test adding weak meals from Tomas.
+        """
+        allow_ordering()
+        MOCK_ADMIN.active = True
+        MOCK_ADMIN.is_active.return_value = True
+        resp = self.client.get('/add_week_tomas')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("10.0 PLN", str(resp.data))
+        self.assertIn("12.0 PLN", str(resp.data))
+        self.assertIn("4.0 PLN", str(resp.data))
+
+        # meal of a day from Monday
+        food = Food.query.filter(
+            Food.description == 'Kawałki kurczaka w sosie chińskim z '
+                                'warzywami, ryż, sałata.'
+        ).first()
+        self.assertEqual(food.company, "Tomas")
+        self.assertEqual(food.cost, 10)
+        self.assertEqual(food.o_type, "daniednia")
+        self.assertEqual(food.date_available_from, make_datetime(date.today()))
+        self.assertEqual(food.date_available_to, make_datetime(date.today()))
+
+        # meal and soup of a day from Thursday
+        food = Food.query.filter(
+            Food.description == 'żurek + Sałatka grillowanym mięsem, '
+                                'warzywami i sosem czosnko.'
+        ).first()
+        self.assertEqual(food.company, "Tomas")
+        self.assertEqual(food.cost, 12)
+        self.assertEqual(food.o_type, "daniednia")
+        self.assertEqual(
+            food.date_available_from,
+            make_datetime(date.today() + timedelta(3))
+        )
+        self.assertEqual(
+            food.date_available_to,
+            make_datetime(date.today() + timedelta(3))
+        )
+
+        # diet meal
+        food = Food.query.filter(
+            Food.description == 'ok.440kcal Polędwiczki drobiowe 120g,'
+                                ' ryż 200g, bukiet warzyw 150g.'
+        ).first()
+        self.assertEqual(food.company, "Tomas")
+        self.assertEqual(food.cost, 12)
+        self.assertEqual(food.o_type, "tygodniowe")
+        self.assertEqual(
+            food.date_available_from,
+            make_datetime(date.today())
+        )
+        self.assertEqual(
+            food.date_available_to,
+            make_datetime(date.today() + timedelta(4))
+        )
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_order_pizza_for_everybody(self):
+        """
+        Test pizza ordering for everyone.
+        """
+        fill_db()
+        with mail.record_messages() as outbox:
+            resp = self.client.get('/order_pizza_for_everybody')
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 2)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('Lunch app PIZZA'))
+            self.assertIn('pizza for everyone', msg.body)
+            self.assertEqual(len(msg.recipients), 4)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_pizza_time_view(self):
+        """
+        Test pizza showing menu, pizza ordering, and orders list.
+        """
+        fill_db()
+        resp = self.client.get('/order_pizza_for_everybody')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'description': 'WielkaMargarittaZKotem',
+            'pizza_size': 'big',
+        }
+        resp = self.client.post('/pizza_time/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertIn('WielkaMargarittaZKotem', str(resp.data))
+        data = {
+            'description': 'WielkaMargarittaZMisiem',
+            'pizza_size': 'big',
+        }
+        resp = self.client.post('/pizza_time/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertIn('You already ordered !', str(resp.data))
+        self.assertNotIn('WielkaMargarittaZMisiem', str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_pizza_time_stop(self):
+        """
+        Test pizza time stop function
+        """
+        fill_db()
+        resp = self.client.get('/order_pizza_for_everybody')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/pizza_time_stop/1')
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'description': 'WielkaMargarittaZKotem',
+            'pizza_size': 'big',
+        }
+        resp = self.client.post('/pizza_time/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertNotIn('WielkaMargarittaZKotem', str(resp.data))
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
@@ -677,7 +964,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
 
     def test_next_month(self):
         """
-        Test next month function
+        Test next month function.
         """
         self.assertEqual(
             utils.next_month(2015, 12),
@@ -690,7 +977,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
 
     def test_previous_month(self):
         """
-        Test previous month function
+        Test previous month function.
         """
         self.assertEqual(
             utils.previous_month(2015, 1),
@@ -728,6 +1015,66 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
         self.assertEqual(resp_2.status_code, 401)
 
 
+class LunchWebCrawlersTestCases(unittest.TestCase):
+    """
+    Webcrawlers tests.
+    """
+    def setUp(self):
+        """
+        Before each test, set up a environment.
+        """
+        self.client = main.app.test_client()
+
+    def tearDown(self):
+        """
+        Get rid of unused objects after each test.
+        """
+        pass
+
+    @patch(
+        'lunch_app.webcrawler.read_webpage',
+        new=MOCK_WWW_KOZIOLEK,
+    )
+    def test_get_dania_dnia_from_pod_koziolek(self):
+        """
+        Tests web crawling functions works properly Koziolek add meal of a day
+        """
+        data = get_dania_dnia_from_pod_koziolek()
+        self.assertGreaterEqual(len(data), 2)
+        self.assertGreaterEqual(len(data["zupa_dnia"]), 1)
+        self.assertGreaterEqual(len(data['danie_dania_1']), 1)
+
+    @patch(
+        'lunch_app.webcrawler.read_webpage',
+        new=MOCK_WWW_TOMAS,
+    )
+    def test_get_week_from_tomas(self):
+        """
+        Tests web crawling functions works properly for Tomas add weak
+        """
+        data = get_week_from_tomas()
+        self.assertEqual(len(data), 6)
+        self.assertGreaterEqual(len(data['diet']), 1)
+        for i in range(1, 6):
+            food = data['dzien_{}'.format(i)]
+            self.assertEqual(len(food), 3, msg="ERROR IN {}".format(i))
+            self.assertGreaterEqual(
+                len(food['zupy']),
+                1,
+                msg="ERROR IN {}".format(i),
+            )
+            self.assertGreaterEqual(
+                len(food['dania']),
+                1,
+                msg="ERROR IN {}".format(i),
+            )
+            self.assertGreaterEqual(
+                len(food['zupa_i_dania']),
+                1,
+                msg="ERROR IN {}".format(i),
+            )
+
+
 def suite():
     """
     Default test suite.
@@ -736,6 +1083,7 @@ def suite():
     base_suite.addTest(unittest.makeSuite(LunchBackendViewsTestCase))
     base_suite.addTest(unittest.makeSuite(LunchBackendUtilsTestCase))
     base_suite.addTest(unittest.makeSuite(LunchBackendPermissionsTestCase))
+    base_suite.addTest(unittest.makeSuite(LunchWebCrawlersTestCases))
     return base_suite
 
 

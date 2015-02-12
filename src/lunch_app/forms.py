@@ -58,7 +58,7 @@ class OrderEditForm(OrderForm):
     """
     New Order Eidt Form
     """
-    user_name = TextAreaField("user_name")
+    user_name = StringField("user_name")
     date = DateField("date")
 
 
@@ -139,7 +139,7 @@ class MailTextForm(Form):
     """
     Mail subject and text edit form.
     """
-    daily_reminder_subject = TextAreaField(
+    daily_reminder_subject = StringField(
         "daily_reminder_subject",
         validators=[validators.DataRequired(
             "Please enter daily reminder subject."
@@ -173,6 +173,18 @@ class MailTextForm(Form):
         "info_page_text",
         validators=[validators.DataRequired(
             "Please enter text for info page please start url with www or http"
+        )]
+    )
+    blocked_user_text = TextAreaField(
+        "blocked_user_text",
+        validators=[validators.DataRequired(
+            "Please enter text which will be shown for blocked users"
+        )]
+    )
+    ordering_is_blocked_text = TextAreaField(
+        "ordering_is_blocked_text",
+        validators=[validators.DataRequired(
+            "Please enter text which will be shown if ordering is blocked"
         )]
     )
 
@@ -260,4 +272,31 @@ class FoodRateForm(Form):
             (4, 4*rater_good),
             (5, 5*rater_best),
         ],
+    )
+
+
+class FinanceBlockUserForm(Form):
+    """
+    Finance block user form
+    """
+    user_select = SelectField(
+        'user_select',
+    )
+
+
+class PizzaChooseForm(Form):
+    """
+    Choose a pizza
+    """
+    description = TextAreaField(
+        "description",
+        validators=[validators.DataRequired('Please enter your pizza.')],
+    )
+    pizza_size = SelectField(
+        'pizza_size',
+        validators=[validators.DataRequired("Please choose pizza size.")],
+        choices=[
+            ('small', 'small'),
+            ('big', 'big'),
+        ]
     )

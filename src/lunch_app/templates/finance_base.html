@@ -14,15 +14,15 @@
             href="{{ url_for('finance', year=get_current_year(), month=get_current_month(), did_pay=2) }}">Not
         paid</a></dd>
     <dd {% if page_id == 'finance_mail_text' %}
-        class="active" {% endif %}><a
-            href="{{ url_for('finance_mail_text') }}"><u>Info & Mail texts</u></a>
-    </dd>
+        class="active" {% endif %}><a href="{{ url_for('finance_mail_text') }}"><b style="text-decoration: underline">Info & Mail texts</b></a></dd>
     <dd {% if page_id == 'finance_mail_all' %}
         class="active" {% endif %}><a href="{{ url_for('finance_mail_all') }}">Mail
         all</a></dd>
     <dd {% if page_id == 'finance_companies' %}
         class="active" {% endif %}><a
             href="{{ url_for('finance_companies_view') }}">Companies</a></dd>
+    <dd {% if page_id == 'finance_block_user' %}
+        class="active" {% endif %}><a href="{{ url_for('finance_block_user') }}">Block user</a></dd>
     <dd {% if page_id == 'finance_search' %}
         class="active" {% endif %}><a
             href="{{ url_for('finance_search_view') }}">Search</a></dd>
