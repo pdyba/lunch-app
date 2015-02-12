@@ -752,10 +752,8 @@ def finance_mail_all():
             Finance.year == this_month.year,
         )
     ).all()
-    finance_user_list = []
-    for finance_query in finances:
-        finance_user_list.append(finance_query.user_name)
     finance_data = {}
+    finance_user_list = []
     for user in users:
         finance_data[user.username] = {
             'username': user.username,
@@ -767,12 +765,19 @@ def finance_mail_all():
             if user.username == order.user_name:
                 finance_data[user.username]['number_of_orders'] += 1
                 finance_data[user.username]['month_cost'] += order.cost
-        if finance_data[user.username]['month_cost'] == 0 \
-                or user.username not in finance_user_list:
+        for finance_query in finances:
+            finance_user_list.append(finance_query.user_name)
+            if finance_query.user_name == user.username \
+                    and finance_query.did_user_pay:
+                finance_data[user.username]['did_user_pay'] = True
+        should_drop = (
+            # user didn't bought anything
+            finance_data[user.username]['month_cost'] == 0
+        )
+        if should_drop:
             del finance_data[user.username]
-
-    if request.method == 'POST':
-        message_text = MailText.query.first()
+    message_text = MailText.query.first()
+    if request.method == 'POST' and request.form['send_mail'] == 'all':
         for record in finance_data.values():
             msg = Message(
                 'Lunch {} / {} summary'.format(month_name[this_month.month],
@@ -787,6 +792,21 @@ def finance_mail_all():
                 )
             mail.send(msg)
             flash('Mail send')
+    if request.method == 'POST' and request.form['send_mail'] == 'remind_all':
+        for record in finance_data.values():
+            if not record['did_user_pay']:
+                msg = Message(
+                    'Lunch app payment reminder',
+                    recipients=[record['username']],
+                )
+                msg.body = "In {} you ordered {} meals for {} PLN.\n {}".format(
+                    month_name[this_month.month],
+                    record['number_of_orders'],
+                    record['month_cost'],
+                    message_text.pay_reminder,
+                    )
+                mail.send(msg)
+                flash('Mail send')
         return redirect('finance_mail_all')
 
     return render_template('finance_mail_all.html', finance_data=finance_data)
