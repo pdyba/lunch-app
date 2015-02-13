@@ -222,7 +222,9 @@ def day_summary():
             foods = order.description
             foods = foods.replace('\r', '').split('\n')
             for food in foods:
-                if food and order.company == comp.name:
+                if food and \
+                        food != "!RANDOM ORDER!" and \
+                        order.company == comp.name:
                     if order.arrival_time == '12:00':
                         order_details[comp.name]['12:00'].append(order)
                         order_details[comp.name]['cost12'] += order.cost
