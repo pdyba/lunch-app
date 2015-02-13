@@ -164,4 +164,3 @@ def fill_db():
     fill_order()
     fill_food()
     fill_finance()
-    db.session.commit()
