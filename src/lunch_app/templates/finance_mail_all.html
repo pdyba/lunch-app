@@ -3,23 +3,32 @@
 {% set page_id = 'finance_mail_all' %}
 
 {% block content %}
-<div class="large-12 columns">
-    {% include "finance_base.html" %}
+    <div class="large-12 columns">
 
-    <div class="large-6 columns">
-        <h3>Mail all</h3>
-        <ul>
-            {% for user in finance_data.values() %}
-                <li>{{ user['username'] }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div class="large-6 columns">
-        <form method="POST">
-            Click to send mail to everyone with their monthly summary.
-            <input type="submit" value="submit" class="button right">
+        {% include "finance_base.html" %}
+
+        <div class="large-6 columns">
+            <h3>Mail all</h3>
+            <ul>
+                {% for user in finance_data.values() %}
+                    <li style="color: {% if user['did_user_pay'] %} darkgreen {% else %} red {% endif %}">{{ user['username'] }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="large-6 columns">
+            <form method="POST">
+                <div>
+                Click to send mail to everyone with their monthly summary.<br>
+                <input type="submit" value="all" class="button right" name="send_mail">
+                    </div><br><br>
+                   <br><br>
+                <div>
+                Click to send reminder mail to everyone who did <b>not</b> pay. <br>(red ones)<br>
+                <input type="submit" value="remind_all" class="button right" name="send_mail">
+                </div>
 
         </form>
     </div>
+
     </div>
 {% endblock %}

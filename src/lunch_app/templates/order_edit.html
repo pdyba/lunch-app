@@ -7,7 +7,7 @@
     <script type="text/javascript">
 <!--
 function confirmation() {
-	var answer = confirm("Are You sure You want delete order, there is no way to undo it !")
+	var answer = confirm("Are You sure You want delete order, there is no way to undo it !");
 	if (answer){
 		window.location = "{{ url_for('delete_order', order_id=order.id) }}";
 	}

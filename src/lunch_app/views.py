@@ -9,13 +9,11 @@ import datetime
 from random import choice
 
 
-from flask import redirect, render_template, request, flash, url_for, Response, \
-    jsonify
+from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
 from sqlalchemy import and_
-from sqlalchemy.exc import OperationalError
 
 from .main import app, db, mail
 from .forms import (
@@ -28,10 +26,12 @@ from .forms import (
     UserDailyReminderForm,
     FinanceSearchForm,
     FinanceBlockUserForm,
+    PizzaChooseForm,
 )
-from .models import Order, Food, User, Finance, MailText, OrderingInfo
+from .models import Order, Food, User, Finance, MailText, Pizza, OrderingInfo
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
+from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
 
 import logging
 
@@ -46,13 +46,25 @@ def ordering_is_active():
     return ordering_is_allowed.is_allowed
 
 
+def server_url():
+    """
+    Returns current server url.
+    """
+    url = str(request.url_root).rstrip('/')
+    return url
+
+
 @app.route('/')
 def index():
     """
     Main page.
     """
-    if not current_user.is_anonymous():
+    if not current_user.is_anonymous() and \
+            '@stxnext.pl' in current_user.username:
         return redirect('order')
+    elif not current_user.is_anonymous():
+        msg = "Sadly you are not a hero, but you can try and join us."
+        return render_template('index.html', msg=msg)
     return render_template('index.html')
 
 
@@ -62,7 +74,6 @@ def overview():
     """
     Overview page.
     """
-
     user = User.query.filter(User.username == current_user.username).first()
     form = UserDailyReminderForm(formdata=request.form, obj=user)
     if request.method == 'POST' and form.validate():
@@ -103,8 +114,8 @@ def create_order():
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
-        user_name = current_user.username
-        order.user_name = user_name
+        order.user_name = current_user.username
+        order.description = order.description.strip()
         db.session.add(order)
         db.session.commit()
         flash('Order created')
@@ -211,6 +222,52 @@ def day_summary():
     ).all()
     orders_pk_13_cost = sum(order.cost for order in orders_pk_13)
 
+    orders = Order.query.filter(
+        and_(
+            Order.date >= today_beg,
+            Order.date <= today_end,
+        )
+    ).all()
+    new_orders = {
+        'tomas_12': {},
+        'tomas_13': {},
+        'pod_koziolkiem_12': {},
+        'pod_koziolkiem_13': {},
+    }
+    for order in orders:
+        order.description = order.description.strip('\n')
+        order.description = order.description.strip('\r')
+        if order.company == 'Tomas':
+            if order.arrival_time == '12:00':
+                try:
+                    new_orders['tomas_12'][order.description] += 1
+                    new_orders['tomas_12']['cost'] += order.cost
+                except KeyError:
+                    new_orders['tomas_12'][order.description] = 1
+                    new_orders['tomas_12']['cost'] = order.cost
+            elif order.arrival_time == '13:00':
+                try:
+                    new_orders['tomas_13'][order.description] += 1
+                    new_orders['tomas_13']['cost'] += order.cost
+                except KeyError:
+                    new_orders['tomas_13'][order.description] = 1
+                    new_orders['tomas_13']['cost'] = order.cost
+        elif order.company == 'Pod Koziołkiem':
+            if order.arrival_time == '12:00':
+                try:
+                    new_orders['pod_koziolkiem_12'][order.description] += 1
+                    new_orders['pod_koziolkiem_12']['cost'] += order.cost
+                except KeyError:
+                    new_orders['pod_koziolkiem_12'][order.description] = 1
+                    new_orders['pod_koziolkiem_12']['cost'] = order.cost
+            elif order.arrival_time == '13:00':
+                try:
+                    new_orders['pod_koziolkiem_13'][order.description] += 1
+                    new_orders['pod_koziolkiem_13']['cost'] += order.cost
+                except KeyError:
+                    new_orders['pod_koziolkiem_13'][order.description] = 1
+                    new_orders['pod_koziolkiem_13']['cost'] = order.cost
+
     return render_template(
         'day_summary.html',
         orders_t_12=orders_t_12,
@@ -221,6 +278,7 @@ def day_summary():
         orders_pk_12_cost=orders_pk_12_cost,
         orders_pk_13=orders_pk_13,
         orders_pk_13_cost=orders_pk_13_cost,
+        new_orders=new_orders,
     )
 
 
@@ -661,7 +719,7 @@ def finance_mail_text():
 @user_is_admin
 def finance_mail_all():
     """
-    Renders mail all page.
+    Renders mail to all page.
     """
     this_month = datetime.date.today()
     month_begin = datetime.datetime(
@@ -694,10 +752,8 @@ def finance_mail_all():
             Finance.year == this_month.year,
         )
     ).all()
-    finance_user_list = []
-    for finance_query in finances:
-        finance_user_list.append(finance_query.user_name)
     finance_data = {}
+    finance_user_list = []
     for user in users:
         finance_data[user.username] = {
             'username': user.username,
@@ -709,12 +765,19 @@ def finance_mail_all():
             if user.username == order.user_name:
                 finance_data[user.username]['number_of_orders'] += 1
                 finance_data[user.username]['month_cost'] += order.cost
-        if finance_data[user.username]['month_cost'] == 0 \
-                or user.username not in finance_user_list:
+        for finance_query in finances:
+            finance_user_list.append(finance_query.user_name)
+            if finance_query.user_name == user.username \
+                    and finance_query.did_user_pay:
+                finance_data[user.username]['did_user_pay'] = True
+        should_drop = (
+            # user didn't bought anything
+            finance_data[user.username]['month_cost'] == 0
+        )
+        if should_drop:
             del finance_data[user.username]
-
-    if request.method == 'POST':
-        message_text = MailText.query.first()
+    message_text = MailText.query.first()
+    if request.method == 'POST' and request.form['send_mail'] == 'all':
         for record in finance_data.values():
             msg = Message(
                 'Lunch {} / {} summary'.format(month_name[this_month.month],
@@ -729,6 +792,21 @@ def finance_mail_all():
                 )
             mail.send(msg)
             flash('Mail send')
+    if request.method == 'POST' and request.form['send_mail'] == 'remind_all':
+        for record in finance_data.values():
+            if not record['did_user_pay']:
+                msg = Message(
+                    'Lunch app payment reminder',
+                    recipients=[record['username']],
+                )
+                msg.body = "In {} you ordered {} meals for {} PLN.\n{}".format(
+                    month_name[this_month.month],
+                    record['number_of_orders'],
+                    record['month_cost'],
+                    message_text.pay_reminder,
+                    )
+                mail.send(msg)
+                flash('Mail send')
         return redirect('finance_mail_all')
 
     return render_template('finance_mail_all.html', finance_data=finance_data)
@@ -956,3 +1034,188 @@ def finance_unblock_ordering():
     db.session.commit()
     flash('Now users can order :)')
     return redirect('day_summary')
+
+
+@app.route('/add_daily_koziolek', methods=['GET', 'POST'])
+@login.login_required
+def add_daily_koziolek():
+    """
+    Adds meal of a day from koziolek
+    """
+    food = get_dania_dnia_from_pod_koziolek()
+    for meal in food.values():
+        new_meal = Food()
+        new_meal.cost = 2 if 'zupa' in meal.lower() else 11
+        new_meal.description = "Danie dnia Koziołek: "
+        new_meal.description += meal
+        new_meal.company = "Pod Koziołkiem"
+        new_meal.o_type = "daniednia"
+        new_meal.date_available_from = datetime.date.today()
+        new_meal.date_available_to = datetime.date.today()
+        db.session.add(new_meal)
+    db.session.commit()
+    flash('Meals of a day from Pod Koziolek have been added.')
+    return redirect('add_food')
+
+
+@app.route('/add_week_tomas', methods=['GET', 'POST'])
+@login.login_required
+def get_week_from_tomas_view():
+    """
+    Adds weak meals from Tomas ! use only on mondays !
+    """
+    foods = get_week_from_tomas()
+    for meal in foods['diet']:
+        new_meal = Food()
+        new_meal.cost = 12
+        new_meal.description = meal
+        new_meal.company = "Tomas"
+        new_meal.o_type = "tygodniowe"
+        new_meal.date_available_from = datetime.date.today()
+        new_meal.date_available_to = \
+            datetime.date.today() + \
+            datetime.timedelta(days=4)
+        db.session.add(new_meal)
+    for i in range(1, 6):
+        food = foods['dzien_{}'.format(i)]
+        day_dif = datetime.date.today() + datetime.timedelta(days=i-1)
+        for meal in food['zupy']:
+            new_meal = Food()
+            new_meal.cost = 4
+            new_meal.description = meal
+            new_meal.company = "Tomas"
+            new_meal.o_type = "daniednia"
+            new_meal.date_available_from = day_dif
+            new_meal.date_available_to = day_dif
+            db.session.add(new_meal)
+        for meal in food['dania']:
+            new_meal = Food()
+            new_meal.cost = 10
+            new_meal.description = meal
+            new_meal.company = "Tomas"
+            new_meal.o_type = "daniednia"
+            new_meal.date_available_from = day_dif
+            new_meal.date_available_to = day_dif
+            db.session.add(new_meal)
+        for meal in food['zupa_i_dania']:
+            new_meal = Food()
+            new_meal.cost = 12
+            new_meal.description = meal
+            new_meal.company = "Tomas"
+            new_meal.o_type = "daniednia"
+            new_meal.date_available_from = day_dif
+            new_meal.date_available_to = day_dif
+            db.session.add(new_meal)
+    db.session.commit()
+    flash('Weak of meals from Tomas have been added.')
+    return redirect('add_food')
+
+
+@app.route('/order_pizza_for_everybody', methods=['GET', 'POST'])
+@login.login_required
+def order_pizza_for_everybody():
+    """
+    Orders pizza for every user and sedns him an e-mail.
+    """
+    new_event = Pizza()
+    new_event.who_created = current_user.username
+    new_event.pizza_ordering_is_allowed = True
+    new_event.users_already_ordered = ""
+    db.session.add(new_event)
+    db.session.commit()
+    new_event = Pizza.query.all()[-1]
+    new_event_id = new_event.id
+    event_url = server_url() + url_for(
+        "pizza_time_view",
+        happening=new_event_id,
+    )
+    stop_url = server_url() + url_for(
+        "pizza_time_stop",
+        happening=new_event_id,
+    )
+    users = User.query.filter(User.active).all()
+    emails = [user.username for user in users]
+    text = 'You succesfully orderd pizza for all You can check who wants' \
+           ' what here:\n{}\n to finish the pizza orgy click here\n{}\n ' \
+           'than order pizza!'.format(event_url, stop_url)
+    msg = Message(
+        'Lunch app PIZZA TIME',
+        recipients=emails,
+    )
+    msg.body = '{} ordered pizza for everyone ! \n order it here:\n\n' \
+               '{}\n\n and thank him!'.format(current_user.username, event_url)
+    mail.send(msg)
+    msg = Message(
+        'Lunch app PIZZA TIME',
+        recipients=[current_user.username],
+    )
+    msg.body = text
+    mail.send(msg)
+    flash(text)
+    return redirect(url_for("pizza_time_view", happening=new_event_id))
+
+
+@app.route('/pizza_time/<int:happening>', methods=['GET', 'POST'])
+@login.login_required
+def pizza_time_view(happening):
+    """
+    Shows pizza menu, order Form and orders summary.
+    """
+    pizzas_db = Pizza.query.get(happening)
+    form = PizzaChooseForm(request.form)
+    if request.method == 'POST' and form.validate():
+        if not pizzas_db.pizza_ordering_is_allowed:
+            flash('Pizza time finished !')
+            return redirect(url_for('pizza_time_view', happening=happening))
+        if current_user.username in pizzas_db.users_already_ordered:
+            flash('You already ordered !')
+            return redirect(url_for('pizza_time_view', happening=happening))
+        pizza = form.description.data
+        pizza = pizza.strip()
+        size = form.pizza_size.data
+        try:
+            try:
+                pizzas_db.ordered_pizzas[pizza][size]\
+                    += current_user.username
+            except KeyError:
+                try:
+                    pizzas_db.ordered_pizzas[pizza] += {
+                        size: current_user.username
+                    }
+                except KeyError:
+                    pizzas_db.ordered_pizzas[pizza] = {
+                        size: current_user.username
+                    }
+        except TypeError:
+            pizzas_db.ordered_pizzas = {
+                form.description.data: {
+                    form.pizza_size.data: current_user.username,
+                    }
+            }
+        pizzas_db.users_already_ordered += current_user.username + " "
+        db.session.commit()
+        flash('You successfully ordered a pizza ;-)')
+        return redirect(url_for('pizza_time_view', happening=happening))
+    pizzas_ordered = pizzas_db.ordered_pizzas
+    pizzas_active = pizzas_db.pizza_ordering_is_allowed
+    return render_template(
+        'pizza_time.html',
+        form=form,
+        pizzas_ordered=pizzas_ordered,
+        pizzas_active=pizzas_active,
+    )
+
+
+@app.route('/pizza_time_stop/<int:happening>', methods=['GET', 'POST'])
+@login.login_required
+def pizza_time_stop(happening):
+    """
+    Stops pizza time.
+    """
+    pizzas_db = Pizza.query.get(happening)
+    if current_user.username != pizzas_db.who_created:
+        flash('! Only event creator can stop the event !')
+        return redirect(url_for('pizza_time_view', happening=happening))
+    pizzas_db.pizza_ordering_is_allowed = False
+    db.session.commit()
+    return redirect(url_for('pizza_time_view', happening=happening))

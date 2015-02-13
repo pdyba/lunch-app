@@ -3,80 +3,186 @@
 {% set page_id = 'day_summary' %}
 
 {% block content %}
-<div class="large-12 columns">
-    <div class="large-6 columns">
-    <h2>Today orders</h2>
+
+
+    <div class="large-12 columns">
+        <div class="large-6 columns">
+            <h2>Today orders</h2>
+         <ul class="tabs" data-tab role="tablist">
+        <li class="tab-title active"><a href="#panel1">Summary</a></li>
+        <li class="tab-title"><a href="#panel2">Details</a></li>
+    </ul>
+
         </div>
+
+
     <div class="large-6 columns">
         <h3 class="right">Ordering is
             {% if ordering_is_active() %}<a style="color: green">active</a>
             {% else %}<b style="color: red">blocked</b>
             {% endif %}</h3>
     </div>
-    </div>
+
+
+    <div class="tabs-content">
+
+        <div class="content active" id="panel1">
+
+
+        <div class="large-12 columns">
         <div class="large-6 columns">
-        <h3>Tomas</h3>
+                <h3>Pod Koziołkiem</h3>
 
-        <div class="large-9 columns">
-            <h4>12:00</h4>
+                <div class="large-9 columns">
+                    <h4>12:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ new_orders['tomas_12']['cost'] }} PLN</h4>
+                </div>
+                {% for order in new_orders['tomas_12'] %}
+                    {% if order != 'cost' %}
+                        <li> {{ order }}<b> {{ new_orders['tomas_12'][order] }}
+                            szt.</b>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <div class="large-9 columns">
+                    <h4>13:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ new_orders['tomas_13']['cost'] }} PLN</h4>
+                </div>
+                {% for order in new_orders['tomas_13'] %}
+                    {% if order != 'cost' %}
+                        <li> {{ order }} <b>{{ new_orders['tomas_13'][order] }}
+                            szt.</b>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="large-6 columns">
+                <h3>Pod Koziłkiem</h3>
+
+                <div class="large-9 columns">
+                    <h4>12:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ new_orders['pod_koziolkiem_12']['cost'] }} PLN</h4>
+                </div>
+                {% for order in new_orders['pod_koziolkiem_12'] %}
+                    {% if order != 'cost' %}
+                        <li> {{ order }} <b>{{ new_orders['pod_koziolkiem_12'][order] }}
+                            szt.</b>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <div class="large-9 columns">
+                    <h4>13:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ new_orders['pod_koziolkiem_13']['cost'] }} PLN</h4>
+                </div>
+                {% for order in new_orders['pod_koziolkiem_13'] %}
+                    {% if order != 'cost' %}
+                        <li> {{ order }} <b>{{ new_orders['pod_koziolkiem_13'][order] }}
+                            szt.</b>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
-        <div class="large-3 columns">
-            <h4>{{ orders_t_12_cost }} PLN</h4>
         </div>
-        {% for order in orders_t_12 %}
+
+
+        <div class="content" id="panel2">
+
+    <div class="large-12 columns">
+      <div class="large-6 columns">
+                <h3>Tomas</h3>
+
+                <div class="large-9 columns">
+                    <h4>12:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ orders_t_12_cost }} PLN</h4>
+                </div>
+                {% for order in orders_t_12 %}
+                    <li><span title="{{ order.user_name }}">
+                    <a href="{{ url_for('edit_order', order_id=order.id) }}">
+
+                         {{ order.description }} <b> {{ order.cost }} PLN </b>
+
+                    </a></span></li>
+                {% endfor %}
+                <div class="large-9 columns">
+                    <h4>13:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ orders_t_13_cost }} PLN</h4>
+                </div>
+                {% for order in orders_t_13 %}
+                    <li>
+                    <span title="{{ order.user_name }}">
+                    <a href="{{ url_for('edit_order', order_id=order.id) }}">
+                         {{ order.description }} <b> {{ order.cost }} PLN </b>
+                    </a></span>
+                    </li>
+                {% endfor %}
+
+            </div>
+
+
+            <div class="large-6 columns">
+                <h3>Pod Koziłkiem</h3>
+
+                <div class="large-9 columns">
+                    <h4>12:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ orders_pk_12_cost }} PLN</h4>
+                </div>
+                {% for order in orders_pk_12 %}
+                     <li><span title="{{ order.user_name }}">
 
             <a href="{{ url_for('edit_order', order_id=order.id) }}">
-
-                <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} PLN </b></li>
-
-            </a></span>
-        {% endfor %}
-        <div class="large-9 columns">
-            <h4>13:00</h4>
+                 {{ order.description }}
+                    <b> {{ order.cost }} PLN </b>
+            </a></span></li>
+                {% endfor %}
+                <div class="large-9 columns">
+                    <h4>13:00</h4>
+                </div>
+                <div class="large-3 columns">
+                    <h4>{{ orders_pk_13_cost }} PLN</h4>
+                </div>
+                {% for order in orders_pk_13 %}
+                    <li> <a href="{{ url_for('edit_order', order_id=order.id) }}">
+                        {{ order.description }}
+                            <b> {{ order.cost }} PLN </b>
+                    </a></li>
+                {% endfor %}
+            </div>
         </div>
-        <div class="large-3 columns">
-            <h4>{{ orders_t_13_cost }} PLN</h4>
         </div>
-        {% for order in orders_t_13 %}
-            <a href="{{ url_for('edit_order', order_id=order.id) }}">
-                <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} PLN </b></li>
-            </a>
-        {% endfor %}
 
     </div>
-    <div class="large-6 columns">
-        <h3>Pod Koziłkiem</h3>
-
-        <div class="large-9 columns">
-            <h4>12:00</h4>
-        </div>
-        <div class="large-3 columns">
-            <h4>{{ orders_pk_12_cost }} PLN</h4>
-        </div>
-        {% for order in orders_pk_12 %}
-            <span title="{{ order.user_name }}">
-            <a href="{{ url_for('edit_order', order_id=order.id) }}">
-                <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} PLN </b></li>
-            </a></span>
-        {% endfor %}
-        <div class="large-9 columns">
-            <h4>13:00</h4>
-        </div>
-        <div class="large-3 columns">
-            <h4>{{ orders_pk_13_cost }} PLN</h4>
-        </div>
-        {% for order in orders_pk_13 %}
-            <a href="{{ url_for('edit_order', order_id=order.id) }}">
-                <li> {{ order.description }} {{ order.meal_from_list }}
-                    <b> {{ order.cost }} PLN </b></li>
-            </a>
-        {% endfor %}
+    <script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
+<script>
+  $(document).foundation({
+    tab: {
+      callback : function (tab) {
+      }
+    }
+  });
+</script>
+    <br>
+    <br>
+    <hr>
+    <a href="{{ url_for('finance_block_ordering') }}"
+       class="button alert right">Block ordering</a>
+    <a href="{{ url_for('finance_unblock_ordering') }}"
+       class="button success right">Unblock ordering</a>
     </div>
-    <br>
-    <br>
-    <a href="{{ url_for('finance_block_ordering') }}" class="button alert right">Block ordering</a>
-    <a href="{{ url_for('finance_unblock_ordering') }}"  class="button success right">Unblock ordering</a>
+
+
 {% endblock %}

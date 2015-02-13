@@ -9,23 +9,45 @@
 
 <script>
 function confirmation_12() {
-	var answer = confirm("Are you sure you want to order a random meal at 12:00, there is no way to undo it !")
-	if (answer){
-		window.location = "{{ url_for('random_food', courage=1) }}";
-	}
-	else{
-		alert("OK maybe next time")
-	}
+	swal({
+		title: "Are you sure?",
+		text: "Are you sure you want to order a random meal at 12:00, there is no way to undo it !",
+		type: "warning",
+		showCancelButton: true,
+		confirmButtonColor: '#DD6B55',
+		confirmButtonText: 'Yes, order it!',
+		cancelButtonText: "No, I'm a coward",
+		closeOnConfirm: false,
+		closeOnCancel: false
+	},
+	function(isConfirm){
+    if (isConfirm){
+        window.location = "{{ url_for('random_food', courage=1) }}";
+    } else {
+        swal("OK maybe next time");
+    }
+	});
 }
 
 function confirmation_13() {
-	var answer = confirm("Are you sure you want to order a random meal at 13:00, there is no way to undo it !")
-	if (answer){
-		window.location = "{{ url_for('random_food', courage=2) }}";
-	}
-	else{
-		alert("OK maybe next time")
-	}
+	swal({
+		title: "Are you sure?",
+		text: "Are you sure you want to order a random meal at 13:00, there is no way to undo it !",
+		type: "warning",
+		showCancelButton: true,
+		confirmButtonColor: '#DD6B55',
+		confirmButtonText: 'Yes, order it!',
+		cancelButtonText: "No, I'm a coward",
+		closeOnConfirm: false,
+		closeOnCancel: false
+	},
+	function(isConfirm){
+    if (isConfirm){
+        window.location = "{{ url_for('random_food', courage=2) }}";
+    } else {
+        swal("OK maybe next time");
+    }
+	});
 }
 
 
@@ -159,5 +181,35 @@ function confirmation_13() {
         });
     </script>
 
+
+
+
+
+    {% if 'dziergwa' in current_user.username  %}
+    <script>
+    swal({
+		title: "Are you sure?",
+		text: "Macieju are you sure you want to order Pizza for everyone?",
+		type: "success",
+		showCancelButton: true,
+		confirmButtonColor: '#DD6B55',
+		confirmButtonText: 'Yes, I do!',
+		cancelButtonText: "No, I'm a coward",
+		closeOnConfirm: false,
+		closeOnCancel: false
+	},
+	function(isConfirm){
+    if (isConfirm){
+        window.location = "{{ url_for('order_pizza_for_everybody') }}";
+    } else {
+        swal({
+            title: "Why :( ?",
+            text: "Why :( ?",
+            timer: 800 });
+    }
+	});
+
+    </script>
+    {% endif %}
 
 {% endblock %}

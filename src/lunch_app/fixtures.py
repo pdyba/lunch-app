@@ -1,10 +1,10 @@
 """
 Fixtures for database.
 """
+from datetime import datetime, date, timedelta
 
 from .main import db
 from .models import Order, Food, User, Finance, MailText, OrderingInfo
-from datetime import datetime, date, timedelta
 
 
 def allow_ordering():
