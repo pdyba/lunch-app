@@ -30,7 +30,11 @@ from .forms import (
     FinanceBlockUserForm,
     PizzaChooseForm,
 )
-from .models import Order, Food, User, Finance, MailText, Company, Pizza, OrderingInfo
+from .models import (
+    Order, Food, User,
+    Finance, MailText, Company,
+    Pizza, OrderingInfo,
+)
 from .permissions import user_is_admin
 from .utils import next_month, previous_month
 from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
@@ -59,7 +63,7 @@ def server_url():
 @app.route('/')
 def index():
     """
-    Main page.
+    Login page.
     """
     if not current_user.is_anonymous() and \
             '@stxnext.pl' in current_user.username:
@@ -94,14 +98,12 @@ def create_order():
     """
     if not current_user.is_active():
         texts = MailText.query.get(1)
-        msg = texts.blocked_user_text
-        flash(msg)
+        flash(texts.blocked_user_text)
         return redirect('overview')
     ordering_is_allowed = OrderingInfo.query.get(1)
     if not ordering_is_allowed.is_allowed:
         texts = MailText.query.get(1)
-        msg = "Sorry you were too late ordering is blocked now"
-        flash(msg)
+        flash(texts.ordering_is_blocked_text)
         return redirect('overview')
     companies = Company.query.all()
     form = OrderForm(request.form)
@@ -195,105 +197,52 @@ def day_summary():
     day = datetime.date.today()
     today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
     today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-
-    orders_t_12 = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-            Order.company == 'Tomas',
-            Order.arrival_time == '12:00',
-        )
-    ).all()
-    orders_t_12_cost = sum(order.cost for order in orders_t_12)
-
-    orders_t_13 = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-            Order.company == 'Tomas',
-            Order.arrival_time == '13:00',
-        )
-    ).all()
-    orders_t_13_cost = sum(order.cost for order in orders_t_13)
-
-    orders_pk_12 = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-            Order.company == 'Pod Koziołkiem',
-            Order.arrival_time == '12:00',
-        )
-    ).all()
-    orders_pk_12_cost = sum(order.cost for order in orders_pk_12)
-
-    orders_pk_13 = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-            Order.company == 'Pod Koziołkiem',
-            Order.arrival_time == '13:00',
-        )
-    ).all()
-    orders_pk_13_cost = sum(order.cost for order in orders_pk_13)
-
     orders = Order.query.filter(
         and_(
             Order.date >= today_beg,
             Order.date <= today_end,
         )
     ).all()
-    new_orders = {
-        'tomas_12': {},
-        'tomas_13': {},
-        'pod_koziolkiem_12': {},
-        'pod_koziolkiem_13': {},
+
+    order_details = {}
+    orders_summary = {
+        '12:00': {},
+        '13:00': {},
     }
-    for order in orders:
-        order.description = order.description.strip('\n')
-        order.description = order.description.strip('\r')
-        if order.company == 'Tomas':
-            if order.arrival_time == '12:00':
-                try:
-                    new_orders['tomas_12'][order.description] += 1
-                    new_orders['tomas_12']['cost'] += order.cost
-                except KeyError:
-                    new_orders['tomas_12'][order.description] = 1
-                    new_orders['tomas_12']['cost'] = order.cost
-            elif order.arrival_time == '13:00':
-                try:
-                    new_orders['tomas_13'][order.description] += 1
-                    new_orders['tomas_13']['cost'] += order.cost
-                except KeyError:
-                    new_orders['tomas_13'][order.description] = 1
-                    new_orders['tomas_13']['cost'] = order.cost
-        elif order.company == 'Pod Koziołkiem':
-            if order.arrival_time == '12:00':
-                try:
-                    new_orders['pod_koziolkiem_12'][order.description] += 1
-                    new_orders['pod_koziolkiem_12']['cost'] += order.cost
-                except KeyError:
-                    new_orders['pod_koziolkiem_12'][order.description] = 1
-                    new_orders['pod_koziolkiem_12']['cost'] = order.cost
-            elif order.arrival_time == '13:00':
-                try:
-                    new_orders['pod_koziolkiem_13'][order.description] += 1
-                    new_orders['pod_koziolkiem_13']['cost'] += order.cost
-                except KeyError:
-                    new_orders['pod_koziolkiem_13'][order.description] = 1
-                    new_orders['pod_koziolkiem_13']['cost'] = order.cost
+    for comp in companies:
+        order_details[comp.name] = {
+            '12:00': [],
+            'cost12': 0,
+            '13:00': [],
+            'cost13': 0,
+        }
+        orders_summary['12:00'][comp.name] = {}
+        orders_summary['13:00'][comp.name] = {}
+        for order in orders:
+            foods = order.description
+            foods = foods.replace('\r', '').split('\n')
+            for food in foods:
+                if food and order.company == comp.name:
+                    if order.arrival_time == '12:00':
+                        order_details[comp.name]['12:00'].append(order)
+                        order_details[comp.name]['cost12'] += order.cost
+                        try:
+                            orders_summary['12:00'][comp.name][food] += 1
+                        except KeyError:
+                            orders_summary['12:00'][comp.name][food] = 1
+                    elif order.arrival_time == '13:00':
+                        order_details[comp.name]['13:00'].append(order)
+                        order_details[comp.name]['cost13'] += order.cost
+                        try:
+                            orders_summary['13:00'][comp.name][food] += 1
+                        except KeyError:
+                            orders_summary['13:00'][comp.name][food] = 1
 
     return render_template(
         'day_summary.html',
-        orders_t_12=orders_t_12,
-        orders_t_12_cost=orders_t_12_cost,
-        orders_t_13=orders_t_13,
-        orders_t_13_cost=orders_t_13_cost,
-        orders_pk_12=orders_pk_12,
-        orders_pk_12_cost=orders_pk_12_cost,
-        orders_pk_13=orders_pk_13,
-        orders_pk_13_cost=orders_pk_13_cost,
+        order_details=order_details,
         companies=companies,
-        new_orders=new_orders,
+        orders_summary=orders_summary,
     )
 
 

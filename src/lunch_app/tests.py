@@ -82,16 +82,38 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test my orders page view.
         """
+        fill_db()
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'food_for_my_odrder_view',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/my_orders')
         self.assertEqual(resp.status_code, 200)
+        self.assertIn(data['description'], str(resp.data))
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_overview_view(self):
         """
         Test overview page.
         """
+        fill_db()
         resp = self.client.get('/overview')
         self.assertEqual(resp.status_code, 200)
+        data = {'i_want_daily_reminder': 'y'}
+        resp = self.client.post('/overview', data=data)
+        self.assertEqual(resp.status_code, 302)
+        user = User.query.get(1)
+        self.assertEqual(user.i_want_daily_reminder, True)
+        data = {'i_want_daily_reminder': 'n'}
+        resp = self.client.post('/overview', data=data)
+        self.assertEqual(resp.status_code, 302)
+        user = User.query.get(1)
+        self.assertEqual(user.i_want_daily_reminder, False)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_create_order_view(self):
@@ -194,9 +216,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'o_type': 'daniednia',
             'add_meal': 'bulk',
         }
-        resp = self.client.post('/add_food', data=data,)
-        food_db = Food.query.get(1)
+        resp = self.client.post('/add_food', data=data)
         self.assertEqual(resp.status_code, 302)
+        food_db = Food.query.get(1)
         self.assertEqual(food_db.cost, 333)
         self.assertEqual(food_db.description, 'dobre_jedzonko')
         self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
@@ -207,7 +229,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             datetime(2015, 1, 1, 0, 0)
         )
         food_db = Food.query.get(2)
-        self.assertEqual(resp.status_code, 302)
         self.assertEqual(food_db.cost, 333)
         self.assertEqual(food_db.description, 'ciekawe_jedzonko')
         self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
@@ -218,7 +239,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             datetime(2015, 1, 1, 0, 0)
         )
         food_db = Food.query.get(3)
-        self.assertEqual(resp.status_code, 302)
         self.assertEqual(food_db.cost, 333)
         self.assertEqual(food_db.description, 'pies')
         self.assertEqual(food_db.date_available_to, datetime(2015, 1, 1, 0, 0))
@@ -235,10 +255,30 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         Test day summary page.
         """
         fill_db()
+        for i in range(3):
+            order = Order()
+            order.description = 'Kebab'
+            order.company = 'Pod Koziołkiem'
+            order.cost = 3
+            order.user_name = 'test@user.pl'
+            order.arrival_time = '12:00'
+            db.session.add(order)
+        for i in range(3):
+            order = Order()
+            order.description = 'Frytki\nCieplyKot\nMarchewka W Keczupie'
+            order.company = 'Pod Koziołkiem'
+            order.cost = 3
+            order.user_name = 'test@user.pl'
+            order.arrival_time = '12:00'
+            db.session.add(order)
+        db.session.commit()
         resp = self.client.get('/day_summary')
         self.assertIn('Maly Gruby Nalesnik', str(resp.data))
         self.assertIn('Duzy Gruby Nalesnik', str(resp.data))
-        db.session.close()
+        self.assertIn('Kebab<b> 3 szt.', str(resp.data))
+        self.assertIn('Frytki<b> 3 szt.', str(resp.data))
+        self.assertIn('CieplyKot<b> 3 szt.', str(resp.data))
+        self.assertIn('Marchewka W Keczupie<b> 3 szt.', str(resp.data))
 
     def test_order_list_view(self):
         """
@@ -394,7 +434,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_finance_mail_text_view(self):
         """
-        Test finance emial text page.
+        Test finance e-mail text page.
         """
         fill_db()
         resp = self.client.get('/finance_mail_text')
@@ -444,7 +484,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_finance_mail_all_view(self):
         """
-        Test finance emial to all view.
+        Test finance e-mail to all view.
         """
         fill_db()
         resp = self.client.get('/finance_mail_all')
@@ -476,7 +516,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_finance_search_view(self):
         """
-        Test finance serach view.
+        Test finance search view.
         """
         fill_db()
         resp = self.client.get('/finance_search')
@@ -597,8 +637,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn(data['telephone'], str(resp.data))
         resp = self.client.get('/add_food')
         self.assertIn(data['name'], str(resp.data))
-        resp = self.client.get('/order')
-        self.assertIn(data['name'], str(resp.data))
         resp = self.client.get('/order_edit/1/')
         self.assertIn(data['name'], str(resp.data))
         resp = self.client.get('/company_summary/2015/2')
@@ -611,8 +649,8 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         order.user_name = 'test_user'
         db.session.add(order)
         db.session.commit()
-        # resp = self.client.get('/day_summary')
-        # self.assertIn(data['name'], str(resp.data))
+        resp = self.client.get('/day_summary')
+        self.assertIn(data['name'], str(resp.data))
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_rating(self):
@@ -691,10 +729,12 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertTrue(user.active, True)
         self.assertTrue(user.is_active(), True)
 
+        # Test if it works on current user
         MOCK_ADMIN.active = False
         MOCK_ADMIN.is_active.return_value = False
         resp = self.client.get('/order')
         self.assertEqual(resp.status_code, 302)
+        self.assertEqual('http://localhost/overview', resp.headers['Location'])
         data = {
             'cost': '12',
             'company': 'Pod Koziołkiem',
@@ -734,6 +774,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         }
         resp = self.client.post('/order', data=data)
         self.assertEqual(resp.status_code, 302)
+        self.assertEqual('http://localhost/overview', resp.headers['Location'])
 
         # test unblocking
         resp = self.client.get('/finance_unblock_ordering')
@@ -774,6 +815,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         Test adding meal of a day from koziolek's webpage.
         """
         allow_ordering()
+        fill_company()
         resp = self.client.get('/add_daily_koziolek')
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/order')
@@ -799,6 +841,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         Test adding weak meals from Tomas.
         """
         allow_ordering()
+        fill_company()
         MOCK_ADMIN.active = True
         MOCK_ADMIN.is_active.return_value = True
         resp = self.client.get('/add_week_tomas')

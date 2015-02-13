@@ -6,41 +6,6 @@ from datetime import datetime, date, timedelta
 from .main import db
 from .models import Order, Food, User, Finance, MailText, Company, OrderingInfo
 
-def fill_company():
-    """
-    Fill companies database for tests
-    """
-    company_1 = Company()
-    company_1.name = 'Tomas'
-    company_1.web_page = 'www.tomas.pl'
-    company_1.address = 'ul dluga 5 99-343 poznan'
-    company_1.telephone = '1234567890'
-    db.session.add(company_1)
-    company_2 = Company()
-    company_2.name = 'Pod Koziołkiem'
-    company_2.web_page = 'www.pod-koziolkiem.pl'
-    company_2.address = 'ul ciekawa 5 66-554 Pozan'
-    company_2.telephone = '0987654321'
-    db.session.add(company_2)
-    db.session.commit()
-    
-def allow_ordering():
-    """
-    Creates the most necessary records in data base.
-    """
-    ordering_info = OrderingInfo()
-    ordering_info.is_allowed = True
-    db.session.add(ordering_info)
-    mailtxt = MailText()
-    mailtxt.daily_reminder_subject = "STX Lunch daili_subject_reminder"
-    mailtxt.daily_reminder = "daili1"
-    mailtxt.monthly_pay_summary = "monthly2"
-    mailtxt.pay_reminder = "reminder3"
-    mailtxt.pay_slacker_reminder = 'slacker4'
-    mailtxt.blocked_user_text = 'YouareBlocked'
-    mailtxt.ordering_is_blocked_text = 'OrderingIsBlocked'
-    db.session.add(mailtxt)
-    db.session.commit()
 
 def fill_company():
     """
@@ -58,6 +23,25 @@ def fill_company():
     company_2.address = 'ul ciekawa 5 66-554 Pozan'
     company_2.telephone = '0987654321'
     db.session.add(company_2)
+    db.session.commit()
+
+
+def allow_ordering():
+    """
+    Creates the most necessary records in data base.
+    """
+    ordering_info = OrderingInfo()
+    ordering_info.is_allowed = True
+    db.session.add(ordering_info)
+    mailtxt = MailText()
+    mailtxt.daily_reminder_subject = "STX Lunch daili_subject_reminder"
+    mailtxt.daily_reminder = "daili1"
+    mailtxt.monthly_pay_summary = "monthly2"
+    mailtxt.pay_reminder = "reminder3"
+    mailtxt.pay_slacker_reminder = 'slacker4'
+    mailtxt.blocked_user_text = 'YouareBlocked'
+    mailtxt.ordering_is_blocked_text = 'OrderingIsBlocked'
+    db.session.add(mailtxt)
     db.session.commit()
 
 
@@ -169,20 +153,15 @@ def fill_finance():
     db.session.add(finance_2)
     db.session.commit()
 
+
 def fill_db():
     """
     Fill the database for tests
     """
+    allow_ordering()
     fill_company()
     fill_user()
     fill_order()
     fill_food()
     fill_finance()
-    mailtxt = MailText()
-    mailtxt.daily_reminder_subject = "STX Lunch daili_subject_reminder"
-    mailtxt.daily_reminder = "daili1"
-    mailtxt.monthly_pay_summary = "monthly2"
-    mailtxt.pay_reminder = "reminder3"
-    mailtxt.pay_slacker_reminder = 'slacker4'
-    db.session.add(mailtxt)
     db.session.commit()
