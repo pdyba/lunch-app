@@ -36,22 +36,23 @@
 
                             <h4>12:00</h4>
 
+                        <ul class="square">
                             {% for order in orders_summary['12:00'][comp.name] %}
 
                                 <li> {{ order }}<b> {{ orders_summary['12:00'][comp.name][order] }} szt.</b>
                                 </li>
 
                             {% endfor %}
-
+                                </ul>
                                 <h4>13:00</h4>
-
+                                <ul class="square">
                                 {% for order in orders_summary['13:00'][comp.name] %}
 
                                     <li> {{ order }}<b> {{ orders_summary['13:00'][comp.name][order] }} szt.</b>
                                     </li>
 
                                 {% endfor %}
-
+                                </ul>
                         </div>
                     {% endfor %}
                 </div>
