@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% set page_id = 'food_rate' %}
+
+{% block content %}
+
+    <div class="large-6 columns">
+
+    </div>
+    Please rate the food that You ordered today, after you ate ;)
+    <form method="POST">
+
+        {{ form.crsf_token }}
+
+        {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+            {% for error in field_errors %}
+                <div data-alert class="alert-box alert radius">
+                    {{ error }}
+                    <a href="#" class="close">&times;</a>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+
+        <div class="large-10 columns">
+            Food {{ form.food }}
+        </div>
+        <div class="large-2 columns">
+            Rate {{ form.rate }}
+        </div>
+        <input type="submit" value="rate" class="button right" name="rate">
+    </form>
+    <div class="large-6 columns">
+
+    </div>
+{% endblock %}

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang=en>
+<meta charset=utf-8>
 <head>
-    <meta charset=utf-8>
     <title>STX Lunch</title>
     <meta name="keywords" content=""/>
     <meta name="description" content=""/>
@@ -72,6 +72,10 @@
                                             </a>
                                         </li>
                                     </ul>
+                                </li>
+                            <li {% if page_id == 'food_rate' %}
+                                    class="active" {% endif %}><a
+                                        href="{{ url_for('food_rate') }}">Rate food</a>
                                 </li>
 
                                 {% if current_user.is_admin() %}

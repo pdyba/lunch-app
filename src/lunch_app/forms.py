@@ -50,10 +50,6 @@ class OrderForm(Form):
     company = SelectField(
         'company',
         validators=[validators.DataRequired("Please choose company.")],
-        choices=[
-            ('Pod Koziołkiem', 'Order from Pod Koziołkiem'),
-            ('Tomas', 'Order from Tomas'),
-        ]
     )
     send_me_a_copy = BooleanField('send_me_a_copy', default=False)
 
@@ -62,7 +58,7 @@ class OrderEditForm(OrderForm):
     """
     New Order Eidt Form
     """
-    user_name = TextAreaField("description")
+    user_name = StringField("user_name")
     date = DateField("date")
 
 
@@ -99,10 +95,6 @@ class AddFood(Form):
     company = SelectField(
         'company',
         validators=[validators.DataRequired("Please choose company.")],
-        choices=[
-            ('Pod Koziołkiem', 'Pod Koziołkiem'),
-            ('Tomas', 'Tomas'),
-        ]
     )
     description = TextAreaField(
         "description",
@@ -223,6 +215,64 @@ class FinanceSearchForm(Form):
         ('1', 'Paid'),
         ('2', 'Unpaid'),
     ])
+
+
+class CompanyAddForm(Form):
+    """
+    Mail subject and text edit form.
+    """
+    name = StringField(
+        "name",
+        validators=[validators.DataRequired(
+            "Please enter name."
+        )]
+    )
+    web_page = StringField(
+        "web_page",
+        validators=[validators.DataRequired(
+            "Please enter web site address."
+        )]
+    )
+    address = TextAreaField(
+        "address",
+        validators=[validators.DataRequired(
+            "Please enter address."
+        )]
+    )
+    telephone = StringField(
+        "telephone",
+        validators=[validators.DataRequired(
+            "Please enter pay reminder text."
+        )]
+    )
+
+
+class FoodRateForm(Form):
+    """
+    Food rating form.
+    """
+    rater_best = chr(9829)
+    rater_good = chr(9733)
+    rater_medium = chr(10138)+chr(10136)+chr(10137)
+    rater_bad = chr(9762)
+    rater_worst = chr(9760)
+    food = SelectField(
+        'food',
+        validators=[validators.DataRequired("Please choose food.")],
+        coerce=int,
+    )
+    rate = SelectField(
+        'rate',
+        coerce=int,
+        validators=[validators.DataRequired("Please rate.")],
+        choices=[
+            (1, 1*rater_worst),
+            (2, 2*rater_bad),
+            (3, rater_medium),
+            (4, 4*rater_good),
+            (5, 5*rater_best),
+        ],
+    )
 
 
 class FinanceBlockUserForm(Form):

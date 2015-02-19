@@ -12,8 +12,9 @@ from sqlalchemy import Column
 from sqlalchemy.types import (
     Integer, String, Boolean,
     Unicode, DateTime, Float,
-    PickleType,
+    Date, PickleType,
 )
+
 from sqlalchemy.ext.mutable import MutableDict
 
 from .main import db
@@ -32,6 +33,7 @@ class User(db.Model, UserMixin):
     username = Column(String(200), unique=True)
     admin = Column(Boolean, default=False)
     i_want_daily_reminder = Column(Boolean, default=False)
+    rate_timestamp = Column(Date)
 
     def is_active(self):
         """
@@ -100,6 +102,7 @@ class Food(db.Model):
     date_available_from = Column(DateTime)
     date_available_to = Column(DateTime)
     o_type = Column(String(100))
+    rating = Column(Float)
 
 
 class Finance(db.Model):
@@ -150,3 +153,16 @@ class Pizza(db.Model):
     ordered_pizzas = Column(MutableDict.as_mutable(PickleType))
     users_already_ordered = Column(String(5000))
     who_created = Column(String(100))
+
+
+class Company(db.Model):
+    """
+    Companies data base
+    """
+    __tablename__ = 'companies'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    web_page = Column(String(100))
+    address = Column(String(400))
+    telephone = Column(String(20))
+    date_added = Column(DateTime, default=datetime.utcnow)

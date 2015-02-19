@@ -12,6 +12,7 @@ MOCK_ADMIN.active = True
 MOCK_ADMIN.is_anonymous.return_value = False
 MOCK_ADMIN.is_active.return_value = True
 MOCK_ADMIN.email = 'mock@mock.com'
+MOCK_ADMIN.id = 1
 
 MOCK_DATA_KOZIOLEK = Mock()
 MOCK_DATA_KOZIOLEK.return_value = {

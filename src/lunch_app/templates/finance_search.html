@@ -3,23 +3,23 @@
 {% set page_id = 'finance_search' %}
 
 {% block content %}
-<div class="large-12 columns">
-    {% include "finance_base.html" %}
+    <div class="large-12 columns">
+        {% include "finance_base.html" %}
 
-    <div class="large-6 columns">
-        <h3>Search finance</h3>
+        <div class="large-6 columns">
+            <h3>Search finance</h3>
 
-        <form method="POST">
-            <b>Year</b>
-            {{ form.year }}
-            <b>Month</b>
-            {{ form.month }}
-            <b>All/Paid/Unpaid users</b>
-            {{ form.did_pay }}
+            <form method="POST">
+                <b>Year</b>
+                {{ form.year }}
+                <b>Month</b>
+                {{ form.month }}
+                <b>All/Paid/Unpaid users</b>
+                {{ form.did_pay }}
 
-            <input type="submit" value="submit" class="button right">
+                <input type="submit" value="submit" class="button right">
 
-        </form>
-    </div>
+            </form>
+        </div>
     </div>
 {% endblock %}
