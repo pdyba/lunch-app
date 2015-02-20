@@ -121,6 +121,22 @@ def run():
         from . import models
         db.create_all()
 
+        sample_msg = 'Sample message'
+        db.session.add(
+            models.MailText(
+                daily_reminder=sample_msg,
+                daily_reminder_subject=sample_msg,
+                monthly_pay_summary=sample_msg,
+                pay_reminder=sample_msg,
+                pay_slacker_reminder=sample_msg,
+                info_page_text=sample_msg,
+                blocked_user_text=sample_msg,
+                ordering_is_blocked_text=sample_msg,
+            ),
+        )
+        db.session.add(models.OrderingInfo(is_allowed=True))
+        db.session.commit()
+
     def action_db_migrate(action=('a', 'start'), debug=False):
         """Migrate database.
         This command is responsible for data base migrations.
@@ -132,7 +148,7 @@ def run():
         Options:
         - '--debug' use debug configuration
         """
-        from flask.ext.migrate import upgrade, init, migrate
+        from flask.ext.migrate import upgrade, init, migrate, stamp, heads
         if debug:
             app = make_debug(with_debug_layer=False)
         else:
@@ -145,6 +161,10 @@ def run():
                 migrate()
             elif action == 'upgrade':
                 upgrade()
+            elif action == 'stamp':
+                stamp()
+            else:
+                print('Unknown action')
 
     werkzeug.script.run()
 
