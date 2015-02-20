@@ -1093,7 +1093,7 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
     )
     def test_get_week_from_tomas(self):
         """
-        Tests web crawling functions works properly for Tomas add weak
+        Tests web crawling functions works properly for Tomas add week
         """
         data = get_week_from_tomas()
         self.assertEqual(len(data), 6)
