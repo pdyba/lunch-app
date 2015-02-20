@@ -78,6 +78,8 @@ def init_admin():
     admin.add_view(AdminModelViewWithAuth(models.Order, db.session))
     admin.add_view(AdminModelViewWithAuth(models.Food, db.session))
     admin.add_view(AdminModelViewWithAuth(models.Finance, db.session))
+    admin.add_view(AdminModelViewWithAuth(models.MailText, db.session))
+    admin.add_view(AdminModelViewWithAuth(models.Company, db.session))
 
 
 def init():
