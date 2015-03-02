@@ -1016,6 +1016,7 @@ def orders_summary_for_tv():
 
 @app.route('/finance_block_user', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def finance_block_user():
     """
     Allows to block specific user from ordering.
