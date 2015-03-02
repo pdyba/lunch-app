@@ -1058,6 +1058,7 @@ def finance_block_user():
 
 @app.route('/finance_block_ordering', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def finance_block_ordering():
     """
     Allows to block ordering for everyone.
@@ -1071,6 +1072,7 @@ def finance_block_ordering():
 
 @app.route('/finance_unblock_ordering', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
@@ -1084,6 +1086,7 @@ def finance_unblock_ordering():
 
 @app.route('/add_daily_koziolek', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def add_daily_koziolek():
     """
     Adds meal of a day from koziolek
@@ -1106,6 +1109,7 @@ def add_daily_koziolek():
 
 @app.route('/add_week_tomas', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def get_week_from_tomas_view():
     """
     Adds weak meals from Tomas ! use only on mondays !
