@@ -981,8 +981,9 @@ def food_rate():
             form.food.choices = [(food.id, food.description)]
             break
         else:
-            food_list.append((food.id, food.description))
-            form.food.choices = food_list
+            if food.description.strip():
+                food_list.append((food.id, food.description))
+                form.food.choices = food_list
     if request.method == 'POST' and form.validate():
         food = Food.query.get(form.food.data)
         if food.rating:
