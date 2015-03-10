@@ -7,6 +7,7 @@ from .main import db
 from .models import Order, Food, User, Finance, MailText, Company, OrderingInfo
 from .utils import get_current_month, get_current_year
 
+
 def fill_company():
     """
     Fill companies database for tests

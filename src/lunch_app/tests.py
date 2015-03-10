@@ -387,7 +387,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/company_summary/2015/1')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('123', str(resp.data))
-        resp = self.client.get('/company_summary/2015/{}'.format(get_current_month()))
+        resp = self.client.get(
+            '/company_summary/2015/{}'.format(get_current_month())
+        )
         self.assertIn('489', str(resp.data))
         db.session.close()
 
@@ -428,12 +430,19 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         data = {
             'did_user_pay_test@user.pl': 'on',
         }
-        resp = self.client.post('/finance/2015/{}/2'.format(get_current_month()), data=data)
+        resp = self.client.post(
+            '/finance/2015/{}/2'.format(get_current_month()),
+            data=data,
+        )
         self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/finance/2015/{}/2'.format(get_current_month()))
+        resp = self.client.get(
+            '/finance/2015/{}/2'.format(get_current_month())
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertNotIn('test@user.pl', str(resp.data))
-        resp = self.client.get('/finance/2015/{}/1'.format(get_current_month()))
+        resp = self.client.get(
+            '/finance/2015/{}/1'.format(get_current_month())
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertIn('test@user.pl', str(resp.data))
         db.session.close()
