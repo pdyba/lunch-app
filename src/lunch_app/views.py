@@ -171,15 +171,16 @@ def add_food():
         foods = foods.replace('\r', '').split('\n')
         number_of_foods_aded = 0
         for food in foods:
-            meal = Food()
-            meal.company = form.company.data
-            meal.description = food
-            meal.cost = form.cost.data
-            meal.date_available_from = form.date_available_from.data
-            meal.date_available_to = form.date_available_to.data
-            meal.o_type = form.o_type.data
-            db.session.add(meal)
-            number_of_foods_aded += 1
+            if food.strip():
+                meal = Food()
+                meal.company = form.company.data
+                meal.description = food
+                meal.cost = form.cost.data
+                meal.date_available_from = form.date_available_from.data
+                meal.date_available_to = form.date_available_to.data
+                meal.o_type = form.o_type.data
+                db.session.add(meal)
+                number_of_foods_aded += 1
         db.session.commit()
         flash('{} foods added'.format(number_of_foods_aded))
         return redirect('add_food')
@@ -959,7 +960,7 @@ def food_rate():
         )
     ).first()
     if not order:
-        flash("You didn't order anything today so You cannot rate the food")
+        flash("You didn't order anything today so you cannot rate the food")
         return redirect('overview')
     if current_user.rate_timestamp == datetime.date.today():
         flash("You already rated today come back tomorow :-)")
@@ -980,8 +981,9 @@ def food_rate():
             form.food.choices = [(food.id, food.description)]
             break
         else:
-            food_list.append((food.id, food.description))
-            form.food.choices = food_list
+            if food.description.strip():
+                food_list.append((food.id, food.description))
+                form.food.choices = food_list
     if request.method == 'POST' and form.validate():
         food = Food.query.get(form.food.data)
         if food.rating:
