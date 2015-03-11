@@ -86,6 +86,7 @@ def overview():
         user.i_want_daily_reminder = \
             request.form.get('i_want_daily_reminder') == 'y'
         db.session.commit()
+        flash('User preferences updated')
         return redirect('overview')
     return render_template('overview.html', form=form, user=user)
 
