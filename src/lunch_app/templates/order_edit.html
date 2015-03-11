@@ -3,7 +3,7 @@
 {% set page_id = 'order_edit' %}
 
 {% block content %}
-
+    <script src="{{ url_for('static', filename='js/vendor/jquery-ui.js') }}"></script>
     <script type="text/javascript">
         function confirmation() {
             swal({
@@ -29,11 +29,11 @@
     </script>
 
     <script>
-    $(function() {
-    $( "#user_name" ).autocomplete({
-      source: {{ users|tojson }}
-    });
-  });
+        $(function(){
+            $( "#user_name" ).autocomplete({
+                source: {{ users|tojson }}
+            });
+        });
     </script>
 
     <div class="large-6 columns">
@@ -52,7 +52,6 @@
             {{ form.description }}
             <b>User</b>
             {{ form.user_name }}
-
 
             <input type="submit" value="save" class="button right">
         </form>
