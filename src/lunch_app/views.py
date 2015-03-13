@@ -291,8 +291,8 @@ def order_details(order_id):
 
 
 @app.route('/order_edit/<int:order_id>/', methods=['GET', 'POST'])
-# @login.login_required
-# @user_is_admin
+@login.login_required
+@user_is_admin
 def edit_order(order_id):
     """
     Renders order edit page.
@@ -897,8 +897,10 @@ def random_food(courage):
         return resp
 
 
+
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def send_daily_reminder():
     """
     Sends daili reminder to all users.

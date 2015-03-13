@@ -15,6 +15,7 @@ from . import main, utils
 from .fixtures import fill_db, allow_ordering, fill_company
 from .mocks import (
     MOCK_ADMIN,
+    MOCK_USER,
     MOCK_DATA_TOMAS,
     MOCK_DATA_KOZIOLEK,
     MOCK_WWW_TOMAS,
@@ -619,6 +620,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
                 )
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_send_daily_reminder(self):
         """
         Test sends daily reminder to all users.
@@ -989,6 +991,102 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/pizza_time/1')
         self.assertNotIn('WielkaMargarittaZKotem', str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
+    def test_access_for_user(self):
+        """
+        Test access right for regular user.
+        """
+        fill_db()
+        # Accessiblee for user
+        resp = self.client.get('/')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/order')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/overview')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/info')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/order_list')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/my_orders')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/food_rate')
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/food_rate')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/order_details/1')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/order_list/1/2015')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get(
+            '/order_list/1/2015/{}'.format(
+                get_current_month()
+            )
+        )
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/random_meal/1')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/tv')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/order_pizza_for_everybody')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/pizza_time_stop/1')
+        self.assertEqual(resp.status_code, 302)
+
+        # restricted for user
+        resp = self.client.get('/add_food')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/day_summary')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/order_edit/1/')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/delete_order/1')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/company_summary')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get(
+            '/company_summary/2015/{}'.format(
+                get_current_month()
+            )
+        )
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance/2015/3/0')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance_mail_text')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance_mail_all')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/payment_remind/test@user.pl/0')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance_search')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/send_daily_reminder')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance_companies')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance_block_user')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance_block_ordering')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/finance_unblock_ordering')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/add_daily_koziolek')
+        self.assertEqual(resp.status_code, 401)
+        resp = self.client.get('/add_week_tomas')
+        self.assertEqual(resp.status_code, 401)
+
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
