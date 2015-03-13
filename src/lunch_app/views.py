@@ -213,9 +213,9 @@ def day_summary():
     }
     for comp in companies:
         order_details[comp.name] = {
-            '12:00': [],
+            '12:00': set([]),
             'cost12': 0,
-            '13:00': [],
+            '13:00': set([]),
             'cost13': 0,
         }
         orders_summary['12:00'][comp.name] = {}
@@ -228,14 +228,14 @@ def day_summary():
                         food != "!RANDOM ORDER!" and \
                         order.company == comp.name:
                     if order.arrival_time == '12:00':
-                        order_details[comp.name]['12:00'].append(order)
+                        order_details[comp.name]['12:00'].add(order)
                         order_details[comp.name]['cost12'] += order.cost
                         try:
                             orders_summary['12:00'][comp.name][food] += 1
                         except KeyError:
                             orders_summary['12:00'][comp.name][food] = 1
                     elif order.arrival_time == '13:00':
-                        order_details[comp.name]['13:00'].append(order)
+                        order_details[comp.name]['13:00'].add(order)
                         order_details[comp.name]['cost13'] += order.cost
                         try:
                             orders_summary['13:00'][comp.name][food] += 1
