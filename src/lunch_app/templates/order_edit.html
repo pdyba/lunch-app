@@ -30,9 +30,54 @@
 
     <script>
         $(function(){
-            $( "#user_name" ).autocomplete({
+            $("#user_name").autocomplete({
                 source: {{ users|tojson }}
             });
+        });
+    </script>
+
+    <script type="text/javascript">
+        $(function(){
+        $('#save_order').click(function(event){
+            event.preventDefault();
+            var currentuser = $("#user_name").val(),
+                    tab = {{ users|tojson }};
+            console.log(currentuser);
+            console.log(tab);
+            console.log($.inArray(currentuser, tab));
+            if ($.inArray(currentuser, tab) > -1) {
+                swal({
+                    title: "OK",
+                    text: "OK successfully edited",
+                    type: "success"
+                },
+                function() {
+                    $('#save_order').unbind('click');
+                    $('#save_order').click();
+                }
+                );
+            } else {
+            swal({
+                        title: "Are you sure?",
+                        text: "Are You sure there is no spelling error",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: '#DD6B55',
+                        confirmButtonText: 'Yes, create new user',
+                        cancelButtonText: "No, I misspelled username",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#save_order').unbind('click');
+                            $('#save_order').click();
+                        } else {
+                            swal("OK please correct");
+                        }
+                    });
+        }
+        });
         });
     </script>
 
@@ -53,7 +98,7 @@
             <b>User</b>
             {{ form.user_name }}
 
-            <input type="submit" value="save" class="button right">
+            <input type="submit" value="save" class="button right" id="save_order">
         </form>
 
         <a class="button alert left" onclick="confirmation()">delete</a>
