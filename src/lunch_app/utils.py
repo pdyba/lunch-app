@@ -4,13 +4,13 @@ helper functions for jinjna.
 """
 import datetime
 
-from flask import flash
+from flask import flash, request
 from flask.ext.mail import Message
 
 from sqlalchemy import and_
 
 from .main import mail, db
-from .models import Order, MailText, Food
+from .models import Order, MailText, Food, OrderingInfo
 from .models import User
 from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
 
@@ -84,6 +84,22 @@ def previous_month(year, month):
     else:
         month -= 1
     return year, month
+
+
+def ordering_is_active():
+    """
+    Returns value true if ordering is active for jinja.
+    """
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    return ordering_is_allowed.is_allowed
+
+
+def server_url():
+    """
+    Returns current server url.
+    """
+    url = str(request.url_root).rstrip('/')
+    return url
 
 
 def send_daily_reminder():
