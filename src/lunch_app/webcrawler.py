@@ -20,7 +20,7 @@ def get_dania_dnia_from_pod_koziolek():
     Returns data for new meal of a day.
     """
     url = app.config['URL_POD_KOZIOLKIEM']
-    webpage = request.urlopen("http://www.pod-koziolkiem.pl")
+    webpage = request.urlopen(url)
     magic_soup = BeautifulSoup(read_webpage(webpage))
     list_of_meals = []
     menu = magic_soup.find_all(
@@ -49,7 +49,7 @@ def get_dania_dnia_from_pod_koziolek():
     return meal_of_a_day
 
 
-def get_week_from_tomas():
+def get_week_from_tomas_crawler():
     """
     Returns weak of meals from Tomas ! use only on mondays !.
     """

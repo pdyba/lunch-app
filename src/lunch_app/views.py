@@ -43,26 +43,12 @@ from .utils import (
     send_daily_reminder,
     add_daily_koziolek,
     get_week_from_tomas,
+    ordering_is_active,
+    server_url,
 )
 
 
 log = logging.getLogger(__name__)
-
-
-def ordering_is_active():
-    """
-    Returns value true if ordering is active for jinja.
-    """
-    ordering_is_allowed = OrderingInfo.query.get(1)
-    return ordering_is_allowed.is_allowed
-
-
-def server_url():
-    """
-    Returns current server url.
-    """
-    url = str(request.url_root).rstrip('/')
-    return url
 
 
 @app.route('/')
@@ -1075,7 +1061,7 @@ def add_daily_koziolek_view():
     Adds meal of a day from pod koziolek
     """
     add_daily_koziolek()
-    flash('Meals of a day from Pod Koziolek have been added MANUALLY')
+    flash('Meals of a day from Pod Koziolek have been added')
     return redirect('add_food')
 
 

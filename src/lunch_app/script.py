@@ -166,29 +166,56 @@ def run():
             else:
                 print('Unknown action')
 
-    def action_send_daily_reminder():
+    def action_send_daily_reminder(debug=False):
         """
         This command is responsible for sending every one an reminding
         e-mail that they did not ordered on current day at 10:45
+        Options:
+        - '--debug' use debug configuration
         """
-        from .views import send_daily_reminder
-        send_daily_reminder()
+        from .utils import send_daily_reminder
 
-    def action_add_tomas():
+        if debug:
+            app = make_debug(with_debug_layer=False)
+        else:
+            app = make_app()
+
+        with app.app_context():
+            send_daily_reminder()
+
+    def action_add_tomas(debug=False):
         """
         This command is responsible for adding week menu from Tomas.
         use only on MONDAYS !
+        Options:
+        - '--debug' use debug configuration
         """
         from .utils import get_week_from_tomas
-        get_week_from_tomas()
 
-    def action_send_daily_reminder():
+        if debug:
+            app = make_debug(with_debug_layer=False)
+        else:
+            app = make_app()
+
+        with app.app_context():
+            get_week_from_tomas()
+
+    def action_add_koziolek(debug=False):
         """
         This command is responsible for adding meal of a day from pod koziolek.
         use in the morning from Monday to Friday.
+        Options:
+        - '--debug' use debug configuration
         """
         from .utils import add_daily_koziolek
-        add_daily_koziolek()
+
+        if debug:
+            app = make_debug(with_debug_layer=False)
+        else:
+            app = make_app()
+
+        with app.app_context():
+            add_daily_koziolek()
 
     werkzeug.script.run()
 

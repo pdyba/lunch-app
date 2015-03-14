@@ -21,7 +21,7 @@ from .mocks import (
     MOCK_WWW_KOZIOLEK,
 )
 from .models import Order, Food, MailText, User
-from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
+from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas_crawler
 from .utils import make_datetime, get_current_month
 
 
@@ -860,7 +860,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     @patch(
-        'lunch_app.utils.get_week_from_tomas',
+        'lunch_app.utils.get_week_from_tomas_crawler',
         new=MOCK_DATA_TOMAS,
     )
     def test_get_week_from_tomas_view(self):
@@ -1122,7 +1122,7 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
         """
         Tests web crawling functions works properly for Tomas add week
         """
-        data = get_week_from_tomas()
+        data = get_week_from_tomas_crawler()
         self.assertEqual(len(data), 6)
         self.assertGreaterEqual(len(data['diet']), 1)
         for i in range(1, 6):

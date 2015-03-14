@@ -4,15 +4,16 @@ helper functions for jinjna.
 """
 import datetime
 
-from flask import flash
+from flask import flash, request
 from flask.ext.mail import Message
 
 from sqlalchemy import and_
 
 from .main import mail, db
-from .models import Order, MailText, Food
+from .models import Order, MailText, Food, OrderingInfo
 from .models import User
-from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
+from .webcrawler import get_dania_dnia_from_pod_koziolek, \
+    get_week_from_tomas_crawler
 
 
 def get_current_datetime():
@@ -86,6 +87,22 @@ def previous_month(year, month):
     return year, month
 
 
+def ordering_is_active():
+    """
+    Returns value true if ordering is active for jinja.
+    """
+    ordering_is_allowed = OrderingInfo.query.get(1)
+    return ordering_is_allowed.is_allowed
+
+
+def server_url():
+    """
+    Returns current server url.
+    """
+    url = str(request.url_root).rstrip('/')
+    return url
+
+
 def send_daily_reminder():
     """
     Sends daily reminder to all users function.
@@ -99,7 +116,12 @@ def send_daily_reminder():
             Order.date <= today_end,
         )
     ).all()
-    users = User.query.filter(User.i_want_daily_reminder).all()
+    users = User.query.filter(
+        and_(
+            User.i_want_daily_reminder,
+            User.active
+        )
+    ).all()
     message_text = MailText.query.first()
     emails = ([])
     order_list = ([])
@@ -135,14 +157,13 @@ def add_daily_koziolek():
             new_meal.date_available_to = datetime.date.today()
             db.session.add(new_meal)
     db.session.commit()
-    flash('Meals of a day from Pod Koziolek have been added')
 
 
 def get_week_from_tomas():
     """
     Adds weak meals from Tomas ! use only on mondays ! - function
     """
-    foods = get_week_from_tomas()
+    foods = get_week_from_tomas_crawler()
     for meal in foods['diet']:
         new_meal = Food()
         new_meal.cost = 12
@@ -185,4 +206,3 @@ def get_week_from_tomas():
             new_meal.date_available_to = day_dif
             db.session.add(new_meal)
     db.session.commit()
-    flash('Weak of meals from Tomas have been added.')
