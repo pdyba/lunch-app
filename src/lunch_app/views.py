@@ -228,15 +228,17 @@ def day_summary():
                         food != "!RANDOM ORDER!" and \
                         order.company == comp.name:
                     if order.arrival_time == '12:00':
+                        if order not in order_details[comp.name]['12:00']:
+                            order_details[comp.name]['cost12'] += order.cost
                         order_details[comp.name]['12:00'].add(order)
-                        order_details[comp.name]['cost12'] += order.cost
                         try:
                             orders_summary['12:00'][comp.name][food] += 1
                         except KeyError:
                             orders_summary['12:00'][comp.name][food] = 1
                     elif order.arrival_time == '13:00':
+                        if order not in order_details[comp.name]['12:00']:
+                            order_details[comp.name]['cost13'] += order.cost
                         order_details[comp.name]['13:00'].add(order)
-                        order_details[comp.name]['cost13'] += order.cost
                         try:
                             orders_summary['13:00'][comp.name][food] += 1
                         except KeyError:
