@@ -16,12 +16,13 @@ MOCK_ADMIN.id = 1
 
 MOCK_DATA_KOZIOLEK = Mock()
 MOCK_DATA_KOZIOLEK.return_value = {
-    'danie_dania_1':
+    'dania_dnia': [
         '1.Kotlet schabowy z ziemniakami gotowanymi i kapusta zasmażana',
-    'danie_dania_2':
         '2.Placki ziemniaczane z gulaszem wieprzowym i surówka',
-    'zupa_dnia':
+    ],
+    'zupy': [
         'Zupa Ogórkowa'
+    ]
 }
 MOCK_DATA_TOMAS = Mock()
 MOCK_DATA_TOMAS.return_value = {

@@ -179,7 +179,7 @@ def run():
         This command is responsible for adding week menu from Tomas.
         use only on MONDAYS !
         """
-        from .views import get_week_from_tomas
+        from .utils import get_week_from_tomas
         get_week_from_tomas()
 
     def action_send_daily_reminder():
@@ -187,7 +187,7 @@ def run():
         This command is responsible for adding meal of a day from pod koziolek.
         use in the morning from Monday to Friday.
         """
-        from .views import add_daily_koziolek
+        from .utils import add_daily_koziolek
         add_daily_koziolek()
 
     werkzeug.script.run()

@@ -6,6 +6,7 @@ Defines views.
 from calendar import monthrange, month_name
 from collections import Counter
 import datetime
+import logging
 from random import choice
 
 
@@ -36,10 +37,14 @@ from .models import (
     Pizza, OrderingInfo,
 )
 from .permissions import user_is_admin
-from .utils import next_month, previous_month
-from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
+from .utils import (
+    next_month,
+    previous_month,
+    send_daily_reminder,
+    add_daily_koziolek,
+    get_week_from_tomas,
+)
 
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -884,40 +889,6 @@ def random_food(courage):
         return resp
 
 
-
-def send_daily_reminder():
-    """
-    Sends daily reminder to all users function.
-    """
-    day = datetime.date.today()
-    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
-    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-    orders = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-        )
-    ).all()
-    users = User.query.filter(User.i_want_daily_reminder).all()
-    message_text = MailText.query.first()
-    emails = ([])
-    order_list = ([])
-    for order in orders:
-        order_list.append(order.user_name)
-    for user in users:
-        if user.username not in order_list:
-            emails.append(user.username)
-    msg = Message(
-        '{} {}'.format(
-            message_text.daily_reminder_subject,
-            datetime.date.today()
-        ),
-        recipients=emails,
-    )
-    msg.body = message_text.daily_reminder
-    mail.send(msg)
-
-
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
@@ -1096,24 +1067,6 @@ def finance_unblock_ordering():
     return redirect('day_summary')
 
 
-def add_daily_koziolek():
-    """
-    Adds meal of a day from pod koziolek
-    """
-    food = get_dania_dnia_from_pod_koziolek()
-    for cat in food:
-        for meal in food[cat]:
-            new_meal = Food()
-            new_meal.cost = 2 if cat == 'zupy' else 11
-            new_meal.description = "Danie dnia Koziołek: {}".format(meal)
-            new_meal.company = "Pod Koziołkiem"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = datetime.date.today()
-            new_meal.date_available_to = datetime.date.today()
-            db.session.add(new_meal)
-    db.session.commit()
-    flash('Meals of a day from Pod Koziolek have been added')
-
 @app.route('/add_daily_koziolek', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
@@ -1124,56 +1077,6 @@ def add_daily_koziolek_view():
     add_daily_koziolek()
     flash('Meals of a day from Pod Koziolek have been added MANUALLY')
     return redirect('add_food')
-
-
-def get_week_from_tomas():
-    """
-    Adds weak meals from Tomas ! use only on mondays ! - function
-    """
-    foods = get_week_from_tomas()
-    for meal in foods['diet']:
-        new_meal = Food()
-        new_meal.cost = 12
-        new_meal.description = meal
-        new_meal.company = "Tomas"
-        new_meal.o_type = "tygodniowe"
-        new_meal.date_available_from = datetime.date.today()
-        new_meal.date_available_to = \
-            datetime.date.today() + \
-            datetime.timedelta(days=4)
-        db.session.add(new_meal)
-    for i in range(1, 6):
-        food = foods['dzien_{}'.format(i)]
-        day_dif = datetime.date.today() + datetime.timedelta(days=i-1)
-        for meal in food['zupy']:
-            new_meal = Food()
-            new_meal.cost = 4
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
-            db.session.add(new_meal)
-        for meal in food['dania']:
-            new_meal = Food()
-            new_meal.cost = 10
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
-            db.session.add(new_meal)
-        for meal in food['zupa_i_dania']:
-            new_meal = Food()
-            new_meal.cost = 12
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
-            db.session.add(new_meal)
-    db.session.commit()
-    flash('Weak of meals from Tomas have been added.')
 
 
 @app.route('/add_week_tomas', methods=['GET', 'POST'])
