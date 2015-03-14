@@ -658,7 +658,7 @@ def finance(year, month, did_pay):
 @user_is_admin
 def finance_mail_text():
     """
-    Renders mail all page.
+    Renders mail and info text edit page.
     """
     mail_data = MailText.query.first()
     form = MailTextForm(formdata=request.form, obj=mail_data)
@@ -884,11 +884,10 @@ def random_food(courage):
         return resp
 
 
-@app.route('/send_daily_reminder', methods=['GET', 'POST'])
-@login.login_required
+
 def send_daily_reminder():
     """
-    Sends daili reminder to all users.
+    Sends daily reminder to all users function.
     """
     day = datetime.date.today()
     today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
@@ -917,6 +916,16 @@ def send_daily_reminder():
     )
     msg.body = message_text.daily_reminder
     mail.send(msg)
+
+
+@app.route('/send_daily_reminder', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def send_daily_reminder_view():
+    """
+    Sends daily reminder to all users view.
+    """
+    send_daily_reminder()
     return redirect('overview')
 
 
@@ -1087,35 +1096,39 @@ def finance_unblock_ordering():
     return redirect('day_summary')
 
 
+def add_daily_koziolek():
+    """
+    Adds meal of a day from pod koziolek
+    """
+    food = get_dania_dnia_from_pod_koziolek()
+    for cat in food:
+        for meal in food[cat]:
+            new_meal = Food()
+            new_meal.cost = 2 if cat == 'zupy' else 11
+            new_meal.description = "Danie dnia Koziołek: {}".format(meal)
+            new_meal.company = "Pod Koziołkiem"
+            new_meal.o_type = "daniednia"
+            new_meal.date_available_from = datetime.date.today()
+            new_meal.date_available_to = datetime.date.today()
+            db.session.add(new_meal)
+    db.session.commit()
+    flash('Meals of a day from Pod Koziolek have been added')
+
 @app.route('/add_daily_koziolek', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
-def add_daily_koziolek():
+def add_daily_koziolek_view():
     """
-    Adds meal of a day from koziolek
+    Adds meal of a day from pod koziolek
     """
-    food = get_dania_dnia_from_pod_koziolek()
-    for meal in food.values():
-        new_meal = Food()
-        new_meal.cost = 2 if 'zupa' in meal.lower() else 11
-        new_meal.description = "Danie dnia Koziołek: "
-        new_meal.description += meal
-        new_meal.company = "Pod Koziołkiem"
-        new_meal.o_type = "daniednia"
-        new_meal.date_available_from = datetime.date.today()
-        new_meal.date_available_to = datetime.date.today()
-        db.session.add(new_meal)
-    db.session.commit()
-    flash('Meals of a day from Pod Koziolek have been added.')
+    add_daily_koziolek()
+    flash('Meals of a day from Pod Koziolek have been added MANUALLY')
     return redirect('add_food')
 
 
-@app.route('/add_week_tomas', methods=['GET', 'POST'])
-@login.login_required
-@user_is_admin
-def get_week_from_tomas_view():
+def get_week_from_tomas():
     """
-    Adds weak meals from Tomas ! use only on mondays !
+    Adds weak meals from Tomas ! use only on mondays ! - function
     """
     foods = get_week_from_tomas()
     for meal in foods['diet']:
@@ -1160,6 +1173,17 @@ def get_week_from_tomas_view():
             new_meal.date_available_to = day_dif
             db.session.add(new_meal)
     db.session.commit()
+    flash('Weak of meals from Tomas have been added.')
+
+
+@app.route('/add_week_tomas', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def get_week_from_tomas_view():
+    """
+    Adds weak meals from Tomas ! use only on mondays ! - view
+    """
+    get_week_from_tomas()
     flash('Weak of meals from Tomas have been added.')
     return redirect('add_food')
 

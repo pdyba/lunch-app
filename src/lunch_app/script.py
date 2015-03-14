@@ -166,6 +166,30 @@ def run():
             else:
                 print('Unknown action')
 
+    def action_send_daily_reminder():
+        """
+        This command is responsible for sending every one an reminding
+        e-mail that they did not ordered on current day at 10:45
+        """
+        from .views import send_daily_reminder
+        send_daily_reminder()
+
+    def action_add_tomas():
+        """
+        This command is responsible for adding week menu from Tomas.
+        use only on MONDAYS !
+        """
+        from .views import get_week_from_tomas
+        get_week_from_tomas()
+
+    def action_send_daily_reminder():
+        """
+        This command is responsible for adding meal of a day from pod koziolek.
+        use in the morning from Monday to Friday.
+        """
+        from .views import add_daily_koziolek
+        add_daily_koziolek()
+
     werkzeug.script.run()
 
 

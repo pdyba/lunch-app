@@ -844,7 +844,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/add_daily_koziolek')
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/order')
-        print(resp.data)
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Danie dnia", str(resp.data))
         food = Food.query.filter(
