@@ -6,6 +6,7 @@ Defines views.
 from calendar import monthrange, month_name
 from collections import Counter
 import datetime
+import json
 from random import choice
 
 
@@ -300,14 +301,26 @@ def edit_order(order_id):
     """
     companies = Company.query.all()
     order = Order.query.get(order_id)
+    users_db = User.query.all()
+    users = [user.username for user in users_db]
     form = OrderEditForm(formdata=request.form, obj=order)
     form.company.choices = [(comp.name, comp.name) for comp in companies]
     if request.method == 'POST' and form.validate():
         form.populate_obj(order)
+        if form.user_name.data not in users:
+            new_user = User()
+            new_user.username = form.user_name.data
+            new_user.email = form.user_name.data
+            db.session.add(new_user)
         db.session.commit()
-        flash('Order changed')
+        flash('Order edited')
         return redirect('day_summary')
-    return render_template('order_edit.html', form=form, order=order)
+    return render_template(
+        'order_edit.html',
+        form=form,
+        order=order,
+        users=users,
+    )
 
 
 @app.route('/delete_order/<int:order_id>', methods=['GET', 'POST'])
@@ -890,8 +903,10 @@ def random_food(courage):
         return resp
 
 
+
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def send_daily_reminder():
     """
     Sends daili reminder to all users.
