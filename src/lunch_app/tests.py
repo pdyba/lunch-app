@@ -21,7 +21,10 @@ from .mocks import (
     MOCK_WWW_KOZIOLEK,
 )
 from .models import Order, Food, MailText, User
-from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas_crawler
+from .webcrawler import (
+    get_dania_dnia_from_pod_koziolek,
+    get_week_from_tomas_crawler,
+)
 from .utils import make_datetime, get_current_month
 
 

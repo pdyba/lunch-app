@@ -33,10 +33,16 @@ def get_dania_dnia_from_pod_koziolek():
     for meal in menu:
         item = "{}".format(meal.text)
         item = item.strip("\xa0")
-        if item != "<br/>" and item and item != "\xa0" \
-                and item != ":):)" and "-201" not in item \
-                and len(item) > 2:
-                list_of_meals.append(item)
+        cleaner = (
+            item != "<br/>" and
+            item and
+            item != "\xa0" and
+            item != ":):)" and
+            "-201" not in item and
+            len(item) > 2
+        )
+        if cleaner:
+            list_of_meals.append(item)
     meal_of_a_day = {
         "zupy": [],
         "dania_dnia": [],

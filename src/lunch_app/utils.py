@@ -123,13 +123,9 @@ def send_daily_reminder():
         )
     ).all()
     message_text = MailText.query.first()
-    emails = ([])
-    order_list = ([])
-    for order in orders:
-        order_list.append(order.user_name)
-    for user in users:
-        if user.username not in order_list:
-            emails.append(user.username)
+    order_list = ([order.user_name for order in orders])
+    emails = ([user.username for user in users
+               if user.username not in order_list])
     msg = Message(
         '{} {}'.format(
             message_text.daily_reminder_subject,
@@ -146,10 +142,10 @@ def add_daily_koziolek():
     Adds meal of a day from pod koziolek
     """
     food = get_dania_dnia_from_pod_koziolek()
-    for cat in food:
-        for meal in food[cat]:
+    for category in food:
+        for meal in food[category]:
             new_meal = Food()
-            new_meal.cost = 2 if cat == 'zupy' else 11
+            new_meal.cost = 2 if category == 'zupy' else 11
             new_meal.description = "Danie dnia Koziołek: {}".format(meal)
             new_meal.company = "Pod Koziołkiem"
             new_meal.o_type = "daniednia"
@@ -177,15 +173,15 @@ def get_week_from_tomas():
         db.session.add(new_meal)
     for i in range(1, 6):
         food = foods['dzien_{}'.format(i)]
-        day_dif = datetime.date.today() + datetime.timedelta(days=i-1)
+        day_diff = datetime.date.today() + datetime.timedelta(days=i-1)
         for meal in food['zupy']:
             new_meal = Food()
             new_meal.cost = 4
             new_meal.description = meal
             new_meal.company = "Tomas"
             new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
+            new_meal.date_available_from = day_diff
+            new_meal.date_available_to = day_diff
             db.session.add(new_meal)
         for meal in food['dania']:
             new_meal = Food()
@@ -193,8 +189,8 @@ def get_week_from_tomas():
             new_meal.description = meal
             new_meal.company = "Tomas"
             new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
+            new_meal.date_available_from = day_diff
+            new_meal.date_available_to = day_diff
             db.session.add(new_meal)
         for meal in food['zupa_i_dania']:
             new_meal = Food()
@@ -202,7 +198,7 @@ def get_week_from_tomas():
             new_meal.description = meal
             new_meal.company = "Tomas"
             new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
+            new_meal.date_available_from = day_diff
+            new_meal.date_available_to = day_diff
             db.session.add(new_meal)
     db.session.commit()
