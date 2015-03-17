@@ -101,8 +101,7 @@ def create_order():
         texts = MailText.query.get(1)
         flash(texts.blocked_user_text)
         return redirect('overview')
-    ordering_is_allowed = OrderingInfo.query.get(1)
-    if not ordering_is_allowed.is_allowed:
+    if not ordering_is_active():
         texts = MailText.query.get(1)
         flash(texts.ordering_is_blocked_text)
         return redirect('overview')
@@ -832,6 +831,10 @@ def random_food(courage):
     """
     Orders random meal.
     """
+    if not ordering_is_active():
+        texts = MailText.query.get(1)
+        flash(texts.ordering_is_blocked_text)
+        return redirect('overview')
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
     today_to = datetime.datetime.combine(day, datetime.time(0, 0))
