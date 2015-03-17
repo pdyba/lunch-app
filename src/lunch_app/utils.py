@@ -4,6 +4,9 @@ helper functions for jinjna.
 """
 import datetime
 
+from flask import current_app, request, render_template, redirect
+from social.exceptions import SocialAuthBaseException
+from werkzeug.exceptions import HTTPException
 
 def get_current_datetime():
     """
@@ -74,3 +77,27 @@ def previous_month(year, month):
     else:
         month -= 1
     return year, month
+
+
+def error_handler(error):
+    msg = "Request resulted in {}".format(error)
+    current_app.logger.warning(msg, exc_info=error)
+
+    if isinstance(error, SocialAuthBaseException):
+        return redirect('/YouAreNotAHero')
+    elif isinstance(error, HTTPException):
+        description = error.get_description(request.environ)
+        code = error.code
+        name = error.name
+    else:
+        description = ("We encountered an error "
+                       "while trying to fulfill your request")
+        code = 500
+        name = "WTF"
+    return render_template(
+        'error.html',
+        code=code,
+        description=description,
+        name=name,
+        msg=msg,
+    )

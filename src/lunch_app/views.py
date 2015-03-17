@@ -61,14 +61,15 @@ def server_url():
 
 
 @app.route('/')
-def index():
+@app.route('/<error>')
+def index(error=None):
     """
     Login page.
     """
     if not current_user.is_anonymous() and \
             '@stxnext.pl' in current_user.username:
         return redirect('order')
-    elif not current_user.is_anonymous():
+    elif not current_user.is_anonymous() or error:
         msg = "Sadly you are not a hero, but you can try and join us."
         return render_template('index.html', msg=msg)
     return render_template('index.html')
