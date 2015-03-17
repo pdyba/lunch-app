@@ -998,21 +998,46 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         Test access right for regular user.
         """
         fill_db()
-        # Accessiblee for user
-        resp = self.client.get('/')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/order')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/overview')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/info')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/order_list')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/my_orders')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/food_rate')
+
+        # Accessible for user
+        # Test pages with response 200
+        good_url_list_200 = [
+            '/',
+            '/order',
+            '/overview',
+            '/info',
+            '/order_list',
+            '/my_orders',
+            '/order_details/1',
+            '/order_list/1/2015',
+            '/order_list/1/2015/{}'.format(get_current_month()),
+            '/tv',
+            '/random_meal/0',
+        ]
+        for link in good_url_list_200:
+            resp = self.client.get(link)
+            self.assertEqual(resp.status_code, 200, msg=link)
+
+        # Test pages with response 302
+        good_url_list_302 = [
+            '/food_rate',
+            '/random_meal/1',
+            '/random_meal/2',
+        ]
+        for link in good_url_list_302:
+            resp = self.client.get(link)
+            self.assertEqual(resp.status_code, 302, msg=link)
+
+
+        # Pizza link need to be in exactly that order
+        resp = self.client.get('/order_pizza_for_everybody')
         self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/pizza_time_stop/1')
+        self.assertEqual(resp.status_code, 302)
+
+        # To rate food You need to order the food before
         data = {
             'cost': '12',
             'company': 'Pod Koziołkiem',
@@ -1024,69 +1049,35 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/food_rate')
         self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/order_details/1')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/order_list/1/2015')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get(
-            '/order_list/1/2015/{}'.format(
-                get_current_month()
-            )
-        )
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/random_meal/1')
-        self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/tv')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/order_pizza_for_everybody')
-        self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/pizza_time/1')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/pizza_time_stop/1')
-        self.assertEqual(resp.status_code, 302)
 
-        # restricted for user
-        resp = self.client.get('/add_food')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/day_summary')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/order_edit/1/')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/delete_order/1')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/company_summary')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get(
-            '/company_summary/2015/{}'.format(
-                get_current_month()
-            )
-        )
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance/2015/3/0')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance_mail_text')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance_mail_all')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/payment_remind/test@user.pl/0')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance_search')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/send_daily_reminder')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance_companies')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance_block_user')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance_block_ordering')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/finance_unblock_ordering')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/add_daily_koziolek')
-        self.assertEqual(resp.status_code, 401)
-        resp = self.client.get('/add_week_tomas')
-        self.assertEqual(resp.status_code, 401)
-
+        # Restricted for user
+        # Test pages with response 401
+        bad_url_list_401 = [
+            '/add_food',
+            '/day_summary',
+            '/order_edit/1/',
+            '/delete_order/1',
+            '/company_summary',
+            '/company_summary/2015/{}'.format(get_current_month()),
+            '/finance/2015/{}/0'.format(get_current_month()),
+            '/finance/2015/{}/1'.format(get_current_month()),
+            '/finance/2015/{}/2'.format(get_current_month()),
+            '/finance_mail_text',
+            '/finance_mail_all',
+            '/payment_remind/test@user.pl/0',
+            '/payment_remind/test@user.pl/1',
+            '/finance_search',
+            '/send_daily_reminder',
+            '/finance_companies',
+            '/finance_block_user',
+            '/finance_block_ordering',
+            '/finance_unblock_ordering',
+            '/add_daily_koziolek',
+            '/add_week_tomas',
+        ]
+        for link in bad_url_list_401:
+            resp = self.client.get(link)
+            self.assertEqual(resp.status_code, 401, msg=link)
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):

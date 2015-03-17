@@ -300,7 +300,7 @@ def edit_order(order_id):
     companies = Company.query.all()
     order = Order.query.get(order_id)
     users_db = User.query.all()
-    users = ["{}".format(user.username) for user in users_db]
+    users = [user.username for user in users_db]
     form = OrderEditForm(formdata=request.form, obj=order)
     form.company.choices = [(comp.name, comp.name) for comp in companies]
     if request.method == 'POST' and form.validate():
