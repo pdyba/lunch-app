@@ -68,25 +68,40 @@ function confirmation_13() {
         <div class="tabs-content">
             {% for comp in companies %}
                 <div class="content" id="c{{ comp.id }}">
-                    <ul class="square">
+                     <table>
+            <thead>
+            <tr>
+                <th>*</th>
+                <th>Meal</th>
+                <th>Cost PLN</th>
+                <th>Rating</th>
+            </tr>
+            </thead>
+            <tbody>
+
                         {% for meal in foods %}
                             {% if meal.company == comp.name and meal.o_type != 'menu' %}
-                                <li>
-                 <span data-tooltip aria-haspopup="true" class="has-tip"
+                               <tr>
+                 <td>
+                     <span data-tooltip aria-haspopup="true" class="has-tip"
                        title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
-                                    <a class='meal_menu_link'
+                     </td>
+                     <td><a class='meal_menu_link'
                                        data-desc="{{ meal.description }}"
                                        data-cost="{{ meal.cost }}"
                                        data-comp="{{ meal.company }}"
                                        href="#">
-                                        {{ meal.description }}
-                                        (<b>{{ meal.cost }} PLN</b>) - {% if meal.rating %}<b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">{% if meal.rating > 4.5 %}&#9829;{% elif meal.rating > 3.5 %}&#9733;{% elif meal.rating > 2.5  %}&#10137;{% elif meal.rating > 1.6  %}&#9762;{% else %}&#9760;{% endif %} {{ meal.rating }}/5</b>{% endif %}
-                                    </a>
-                                </li>
+                                        {{ meal.description }}</a></td>
+                                   <td>{% if meal.rating %}<b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">{% if meal.rating > 4.5 %}&#9829;{% elif meal.rating > 3.5 %}&#9733;{% elif meal.rating > 2.5  %}&#10137;{% elif meal.rating > 1.6  %}&#9762;{% else %}&#9760;{% endif %} {{ meal.rating }}</b>{% endif %}</td>
+                                <td>{{ meal.cost }}</td>
+                               </td>
+
+                </tr>
                             {% endif %}
                         {% endfor %}
-                    </ul>
+               </tbody>
+        </table>
                 </div>
 
 
@@ -94,32 +109,52 @@ function confirmation_13() {
         </div>
         Standard menu
         <ul class="accordion" data-accordion>
-            <li class="accordion-navigation">
+
+
                 {% for comp in companies %}
+                    <li class="accordion-navigation">
                     <a href="#cm{{ comp.id }}">{{ comp.name }}</a>
-                {% endfor %}
-                {% for comp in companies %}
+
                     <div id="cm{{ comp.id }}" class="content">
+                       <table>
+                        <thead>
+            <tr>
+                <th>*</th>
+                <th>Meal</th>
+                <th>Cost PLN</th>
+                <th>Rating</th>
+            </tr>
+            </thead>
+            <tbody>
                         {% for meal in foods %}
                             {% if meal.company == comp.name and meal.o_type == 'menu' %}
+                                <tr>
+                 <td>
                                 <span data-tooltip aria-haspopup="true"
                                       class="has-tip"
                                       title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
+                               </td>
+                               <td>
                                 <a class='meal_menu_link'
                                    data-desc="{{ meal.description }}"
                                    data-cost="{{ meal.cost }}"
                                    data-comp="{{ meal.company }}"
                                    href="#">
-                                    {{ meal.description }}
-                                    (<b>{{ meal.cost }} PLN</b>)</a>
-                                <br>
+                                    {{ meal.description }}</a></td>
+
+                                      <td>{% if meal.rating %}<b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">{% if meal.rating > 4.5 %}&#9829;{% elif meal.rating > 3.5 %}&#9733;{% elif meal.rating > 2.5  %}&#10137;{% elif meal.rating > 1.6  %}&#9762;{% else %}&#9760;{% endif %} {{ meal.rating }}/5</b>{% endif %}</td>
+                                <td>{{ meal.cost }}</td>
+                                 </tr>
                             {% endif %}
                         {% endfor %}
+                    </tbody>
+        </table>
 
                     </div>
+                    </li>
                 {% endfor %}
-            </li>
+
         </ul>
 
 
