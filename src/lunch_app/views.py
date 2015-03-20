@@ -121,6 +121,16 @@ def create_order():
             Food.date_available_to >= today_to,
         )
     ).all()
+    companies_current = [
+        company
+        for company in companies
+        if any([meal.company == company.name for meal in foods if meal.o_type != 'menu'])
+    ]
+    companies_menu = [
+        company
+        for company in companies
+        if any([meal.company == company.name for meal in foods if meal.o_type == 'menu'])
+    ]
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
@@ -145,7 +155,8 @@ def create_order():
         'order.html',
         form=form,
         foods=foods,
-        companies=companies,
+        companies_current=companies_current,
+        companies_menu=companies_menu,
     )
 
 

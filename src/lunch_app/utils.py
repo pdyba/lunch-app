@@ -8,6 +8,7 @@ from flask import current_app, request, render_template, redirect
 from social.exceptions import SocialAuthBaseException
 from werkzeug.exceptions import HTTPException
 
+
 def get_current_datetime():
     """
     Returns current datetime as datetime type for jinjna.
@@ -81,7 +82,9 @@ def previous_month(year, month):
 
 def error_handler(error):
     msg = "Request resulted in {}".format(error)
-    current_app.logger.warning(msg, exc_info=error)
+    from .main import app
+    if not app.config.get('TESTING', False):
+        current_app.logger.warning(msg, exc_info=error)
 
     if isinstance(error, SocialAuthBaseException):
         return redirect('/YouAreNotAHero')
