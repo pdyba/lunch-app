@@ -3,19 +3,82 @@
 {% set page_id = 'order_edit' %}
 
 {% block content %}
+    <script src="{{ url_for('static', filename='js/vendor/jquery-ui.js') }}"></script>
+    <script type="text/javascript">
+        function confirmation() {
+            swal({
+                        title: "Are you sure?",
+                        text: "Are You sure You want delete order, there is no way to undo it !",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: '#DD6B55',
+                        confirmButtonText: 'Yes, delete it',
+                        cancelButtonText: "No",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            window.location = "{{ url_for('delete_order', order_id=order.id) }}";
+                        } else {
+                            swal("OK maybe next time");
+                        }
+                    });
+        }
+
+    </script>
+
+    <script>
+        $(function(){
+            $("#user_name").autocomplete({
+                source: {{ users|tojson }}
+            });
+        });
+    </script>
 
     <script type="text/javascript">
-        <!--
-        function confirmation() {
-            var answer = confirm("Are You sure You want delete order, there is no way to undo it !")
-            if (answer) {
-                window.location = "{{ url_for('delete_order', order_id=order.id) }}";
-            }
-            else {
-                alert("OK maybe next time")
-            }
+        $(function(){
+        $('#save_order').click(function(event){
+            event.preventDefault();
+            var currentuser = $("#user_name").val(),
+                    tab = {{ users|tojson }};
+            console.log(currentuser);
+            console.log(tab);
+            console.log($.inArray(currentuser, tab));
+            if ($.inArray(currentuser, tab) > -1) {
+                swal({
+                    title: "OK",
+                    text: "OK successfully edited",
+                    type: "success"
+                },
+                function() {
+                    $('#save_order').unbind('click');
+                    $('#save_order').click();
+                }
+                );
+            } else {
+            swal({
+                        title: "Are you sure?",
+                        text: "Are You sure there is no spelling error",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: '#DD6B55',
+                        confirmButtonText: 'Yes, create new user',
+                        cancelButtonText: "No, I misspelled username",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $('#save_order').unbind('click');
+                            $('#save_order').click();
+                        } else {
+                            swal("OK please correct");
+                        }
+                    });
         }
-        //-->
+        });
+        });
     </script>
 
     <div class="large-6 columns">
@@ -35,8 +98,7 @@
             <b>User</b>
             {{ form.user_name }}
 
-
-            <input type="submit" value="save" class="button right">
+            <input type="submit" value="save" class="button right" id="save_order">
         </form>
 
         <a class="button alert left" onclick="confirmation()">delete</a>
