@@ -12,7 +12,7 @@
             {{ form.year }}
             <b>Month</b>
             {{ form.month }}
-            {% if current_user.is_admin %}
+            {% if current_user.is_admin() %}
                 <b>User</b>
                 {{ form.user }}
             {% endif %}
