@@ -1027,7 +1027,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             resp = self.client.get(link)
             self.assertEqual(resp.status_code, 302, msg=link)
 
-
         # Pizza link need to be in exactly that order
         resp = self.client.get('/order_pizza_for_everybody')
         self.assertEqual(resp.status_code, 302)
@@ -1167,9 +1166,6 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
         """
         Tests if permissions decorator works properly
         """
-        #from werkzeug.exceptions import Unauthorized
-        #import pdb; pdb.set_trace()
-        #with self.assertRaises(Unauthorized):
         resp = self.client.get('add_food')
         self.assertEquals(resp.status_code, 200)
         resp = self.client.get('day_summary')

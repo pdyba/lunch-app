@@ -124,12 +124,20 @@ def create_order():
     companies_current = [
         company
         for company in companies
-        if any([meal.company == company.name for meal in foods if meal.o_type != 'menu'])
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type != 'menu'
+        ])
     ]
     companies_menu = [
         company
         for company in companies
-        if any([meal.company == company.name for meal in foods if meal.o_type == 'menu'])
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type == 'menu'
+        ])
     ]
     if request.method == 'POST' and form.validate():
         order = Order()
@@ -912,7 +920,6 @@ def random_food(courage):
         resp = jsonify(random_order)
         resp.status_code = 200
         return resp
-
 
 
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
