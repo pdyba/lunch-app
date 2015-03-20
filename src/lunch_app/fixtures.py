@@ -5,6 +5,7 @@ from datetime import datetime, date, timedelta
 
 from .main import db
 from .models import Order, Food, User, Finance, MailText, Company, OrderingInfo
+from .utils import get_current_month, get_current_year
 
 
 def fill_company():
@@ -135,18 +136,18 @@ def fill_finance():
     """
     finance = Finance()
     finance.user_name = 'test_user'
-    finance.month = 2
-    finance.year = 2015
+    finance.month = get_current_month()
+    finance.year = get_current_year()
     finance.did_user_pay = True
     finance_2 = Finance()
     finance_2.user_name = 'test@user.pl'
-    finance_2.month = 2
-    finance_2.year = 2015
+    finance_2.month = get_current_month()
+    finance_2.year = get_current_year()
     finance_2.did_user_pay = False
     finance_3 = Finance()
     finance_3.user_name = 'reminder@user.pl'
-    finance_3.month = 2
-    finance_3.year = 2015
+    finance_3.month = get_current_month()
+    finance_3.year = get_current_year()
     finance_3.did_user_pay = False
     db.session.add(finance)
     db.session.add(finance_3)

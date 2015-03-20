@@ -8,12 +8,14 @@ from datetime import datetime, date, timedelta
 import os.path
 import unittest
 from unittest.mock import patch
+from calendar import month_name
 
 from .main import app, db, mail
 from . import main, utils
 from .fixtures import fill_db, allow_ordering, fill_company
 from .mocks import (
     MOCK_ADMIN,
+    MOCK_USER,
     MOCK_DATA_TOMAS,
     MOCK_DATA_KOZIOLEK,
     MOCK_WWW_TOMAS,
@@ -21,7 +23,7 @@ from .mocks import (
 )
 from .models import Order, Food, MailText, User
 from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
-from .utils import make_datetime
+from .utils import make_datetime, get_current_month
 
 
 def setUp():
@@ -386,7 +388,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/company_summary/2015/1')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('123', str(resp.data))
-        resp = self.client.get('/company_summary/2015/2')
+        resp = self.client.get(
+            '/company_summary/2015/{}'.format(get_current_month())
+        )
         self.assertIn('489', str(resp.data))
         db.session.close()
 
@@ -397,7 +401,9 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         fill_db()
         # all users test
-        resp = self.client.get('/finance/2015/2/0')
+        resp = self.client.get(
+            '/finance/2015/{}/0'.format(get_current_month())
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertIn('test_user', str(resp.data))
         self.assertIn('test@user.pl', str(resp.data))
@@ -405,13 +411,17 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn('x@x.pl', str(resp.data))
 
         # paid user test
-        resp = self.client.get('/finance/2015/2/1')
+        resp = self.client.get(
+            '/finance/2015/{}/1'.format(get_current_month())
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertIn('test_user', str(resp.data))
         self.assertIn('checked="checked"', str(resp.data))
 
         # unpaid user test
-        resp = self.client.get('/finance/2015/2/2')
+        resp = self.client.get(
+            '/finance/2015/{}/2'.format(get_current_month())
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertIn('test@user.pl', str(resp.data))
         self.assertIn('x@x.pl', str(resp.data))
@@ -421,12 +431,19 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         data = {
             'did_user_pay_test@user.pl': 'on',
         }
-        resp = self.client.post('/finance/2015/2/2', data=data)
+        resp = self.client.post(
+            '/finance/2015/{}/2'.format(get_current_month()),
+            data=data,
+        )
         self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/finance/2015/2/2')
+        resp = self.client.get(
+            '/finance/2015/{}/2'.format(get_current_month())
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertNotIn('test@user.pl', str(resp.data))
-        resp = self.client.get('/finance/2015/2/1')
+        resp = self.client.get(
+            '/finance/2015/{}/1'.format(get_current_month())
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertIn('test@user.pl', str(resp.data))
         db.session.close()
@@ -496,7 +513,10 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertEqual(len(outbox), 2)
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch'))
-            self.assertIn('February', msg.body)
+            self.assertIn(
+                '{}'.format(month_name[get_current_month()]),
+                msg.body,
+            )
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_payment_remind_view(self):
@@ -513,6 +533,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertIn('reminder3', msg.body)
             self.assertEqual(msg.recipients, ['x@x.pl'])
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_finance_search_view(self):
         """
@@ -599,6 +620,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
                 )
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_send_daily_reminder(self):
         """
         Test sends daily reminder to all users.
@@ -613,6 +635,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertIn('daili1', msg.body)
             self.assertEqual(msg.recipients, ['reminder@user.pl'])
 
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_add_company(self):
         """
@@ -696,6 +719,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn("Duzy Gruby Nalesnik", str(resp.data))
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_finance_block_user(self):
         """
         Test block user view.
@@ -750,6 +774,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIs(order, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_finance_block_ordering(self):
         """
         Test blocking and unblocking order ability for all users
@@ -784,6 +809,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn("Tiramisu", str(resp.data))
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def z_test_finance_block_user_acces(self):
         """
         Test if blocking really blocks user from accesing
@@ -806,6 +832,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIs(order, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     @patch(
         'lunch_app.views.get_dania_dnia_from_pod_koziolek',
         new=MOCK_DATA_KOZIOLEK,
@@ -819,6 +846,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/add_daily_koziolek')
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/order')
+        print(resp.data)
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Danie dnia", str(resp.data))
         food = Food.query.filter(
@@ -832,6 +860,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(food.date_available_to, make_datetime(date.today()))
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     @patch(
         'lunch_app.views.get_week_from_tomas',
         new=MOCK_DATA_TOMAS,
@@ -963,6 +992,93 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/pizza_time/1')
         self.assertNotIn('WielkaMargarittaZKotem', str(resp.data))
 
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
+    def test_access_for_user(self):
+        """
+        Test access right for regular user.
+        """
+        fill_db()
+
+        # Accessible for user
+        # Test pages with response 200
+        good_url_list_200 = [
+            '/',
+            '/order',
+            '/overview',
+            '/info',
+            '/order_list',
+            '/my_orders',
+            '/order_details/1',
+            '/order_list/1/2015',
+            '/order_list/1/2015/{}'.format(get_current_month()),
+            '/tv',
+            '/random_meal/0',
+        ]
+        for link in good_url_list_200:
+            resp = self.client.get(link)
+            self.assertEqual(resp.status_code, 200, msg=link)
+
+        # Test pages with response 302
+        good_url_list_302 = [
+            '/food_rate',
+            '/random_meal/1',
+            '/random_meal/2',
+        ]
+        for link in good_url_list_302:
+            resp = self.client.get(link)
+            self.assertEqual(resp.status_code, 302, msg=link)
+
+
+        # Pizza link need to be in exactly that order
+        resp = self.client.get('/order_pizza_for_everybody')
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/pizza_time/1')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/pizza_time_stop/1')
+        self.assertEqual(resp.status_code, 302)
+
+        # To rate food You need to order the food before
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'dobre_jedzonko',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/food_rate')
+        self.assertEqual(resp.status_code, 200)
+
+        # Restricted for user
+        # Test pages with response 401
+        bad_url_list_401 = [
+            '/add_food',
+            '/day_summary',
+            '/order_edit/1/',
+            '/delete_order/1',
+            '/company_summary',
+            '/company_summary/2015/{}'.format(get_current_month()),
+            '/finance/2015/{}/0'.format(get_current_month()),
+            '/finance/2015/{}/1'.format(get_current_month()),
+            '/finance/2015/{}/2'.format(get_current_month()),
+            '/finance_mail_text',
+            '/finance_mail_all',
+            '/payment_remind/test@user.pl/0',
+            '/payment_remind/test@user.pl/1',
+            '/finance_search',
+            '/send_daily_reminder',
+            '/finance_companies',
+            '/finance_block_user',
+            '/finance_block_ordering',
+            '/finance_unblock_ordering',
+            '/add_daily_koziolek',
+            '/add_week_tomas',
+        ]
+        for link in bad_url_list_401:
+            resp = self.client.get(link)
+            self.assertEqual(resp.status_code, 401, msg=link)
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
@@ -1093,7 +1209,7 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
     )
     def test_get_week_from_tomas(self):
         """
-        Tests web crawling functions works properly for Tomas add weak
+        Tests web crawling functions works properly for Tomas add week
         """
         data = get_week_from_tomas()
         self.assertEqual(len(data), 6)

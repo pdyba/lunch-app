@@ -30,7 +30,7 @@ setup(
         'Flask-RESTful',
         'Flask-SQLAlchemy',
         'Flask-Login',
-        'python-social-auth',
+        'python-social-auth==0.2.1',
         'psycopg2',
         'Flask-Admin',
         'Flask-Mail',

@@ -6,6 +6,7 @@ Defines views.
 from calendar import monthrange, month_name
 from collections import Counter
 import datetime
+import json
 from random import choice
 
 from flask import redirect, render_template, request, flash, url_for, jsonify
@@ -85,6 +86,7 @@ def overview():
         user.i_want_daily_reminder = \
             request.form.get('i_want_daily_reminder') == 'y'
         db.session.commit()
+        flash('User preferences updated')
         return redirect('overview')
     return render_template('overview.html', form=form, user=user)
 
@@ -170,15 +172,16 @@ def add_food():
         foods = foods.replace('\r', '').split('\n')
         number_of_foods_aded = 0
         for food in foods:
-            meal = Food()
-            meal.company = form.company.data
-            meal.description = food
-            meal.cost = form.cost.data
-            meal.date_available_from = form.date_available_from.data
-            meal.date_available_to = form.date_available_to.data
-            meal.o_type = form.o_type.data
-            db.session.add(meal)
-            number_of_foods_aded += 1
+            if food.strip():
+                meal = Food()
+                meal.company = form.company.data
+                meal.description = food
+                meal.cost = form.cost.data
+                meal.date_available_from = form.date_available_from.data
+                meal.date_available_to = form.date_available_to.data
+                meal.o_type = form.o_type.data
+                db.session.add(meal)
+                number_of_foods_aded += 1
         db.session.commit()
         flash('{} foods added'.format(number_of_foods_aded))
         return redirect('add_food')
@@ -210,9 +213,9 @@ def day_summary():
     }
     for comp in companies:
         order_details[comp.name] = {
-            '12:00': [],
+            '12:00': set([]),
             'cost12': 0,
-            '13:00': [],
+            '13:00': set([]),
             'cost13': 0,
         }
         orders_summary['12:00'][comp.name] = {}
@@ -225,15 +228,17 @@ def day_summary():
                         food != "!RANDOM ORDER!" and \
                         order.company == comp.name:
                     if order.arrival_time == '12:00':
-                        order_details[comp.name]['12:00'].append(order)
-                        order_details[comp.name]['cost12'] += order.cost
+                        if order not in order_details[comp.name]['12:00']:
+                            order_details[comp.name]['cost12'] += order.cost
+                        order_details[comp.name]['12:00'].add(order)
                         try:
                             orders_summary['12:00'][comp.name][food] += 1
                         except KeyError:
                             orders_summary['12:00'][comp.name][food] = 1
                     elif order.arrival_time == '13:00':
-                        order_details[comp.name]['13:00'].append(order)
-                        order_details[comp.name]['cost13'] += order.cost
+                        if order not in order_details[comp.name]['12:00']:
+                            order_details[comp.name]['cost13'] += order.cost
+                        order_details[comp.name]['13:00'].add(order)
                         try:
                             orders_summary['13:00'][comp.name][food] += 1
                         except KeyError:
@@ -295,14 +300,26 @@ def edit_order(order_id):
     """
     companies = Company.query.all()
     order = Order.query.get(order_id)
+    users_db = User.query.all()
+    users = [user.username for user in users_db]
     form = OrderEditForm(formdata=request.form, obj=order)
     form.company.choices = [(comp.name, comp.name) for comp in companies]
     if request.method == 'POST' and form.validate():
         form.populate_obj(order)
+        if form.user_name.data not in users:
+            new_user = User()
+            new_user.username = form.user_name.data
+            new_user.email = form.user_name.data
+            db.session.add(new_user)
         db.session.commit()
-        flash('Order changed')
+        flash('Order edited')
         return redirect('day_summary')
-    return render_template('order_edit.html', form=form, order=order)
+    return render_template(
+        'order_edit.html',
+        form=form,
+        order=order,
+        users=users,
+    )
 
 
 @app.route('/delete_order/<int:order_id>', methods=['GET', 'POST'])
@@ -881,8 +898,10 @@ def random_food(courage):
         return resp
 
 
+
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def send_daily_reminder():
     """
     Sends daili reminder to all users.
@@ -958,7 +977,7 @@ def food_rate():
         )
     ).first()
     if not order:
-        flash("You didn't order anything today so You cannot rate the food")
+        flash("You didn't order anything today so you cannot rate the food")
         return redirect('overview')
     if current_user.rate_timestamp == datetime.date.today():
         flash("You already rated today come back tomorow :-)")
@@ -979,8 +998,9 @@ def food_rate():
             form.food.choices = [(food.id, food.description)]
             break
         else:
-            food_list.append((food.id, food.description))
-            form.food.choices = food_list
+            if food.description.strip():
+                food_list.append((food.id, food.description))
+                form.food.choices = food_list
     if request.method == 'POST' and form.validate():
         food = Food.query.get(form.food.data)
         if food.rating:
@@ -1015,6 +1035,7 @@ def orders_summary_for_tv():
 
 @app.route('/finance_block_user', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def finance_block_user():
     """
     Allows to block specific user from ordering.
@@ -1056,6 +1077,7 @@ def finance_block_user():
 
 @app.route('/finance_block_ordering', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def finance_block_ordering():
     """
     Allows to block ordering for everyone.
@@ -1069,6 +1091,7 @@ def finance_block_ordering():
 
 @app.route('/finance_unblock_ordering', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
@@ -1082,6 +1105,7 @@ def finance_unblock_ordering():
 
 @app.route('/add_daily_koziolek', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def add_daily_koziolek():
     """
     Adds meal of a day from koziolek
@@ -1104,6 +1128,7 @@ def add_daily_koziolek():
 
 @app.route('/add_week_tomas', methods=['GET', 'POST'])
 @login.login_required
+@user_is_admin
 def get_week_from_tomas_view():
     """
     Adds weak meals from Tomas ! use only on mondays !

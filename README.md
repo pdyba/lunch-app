@@ -1,37 +1,56 @@
 # STX Lunch
-Aplikacja do zamawiania lunchy
+Lunch ordering application.
 
 # Requirements
 * PostresSQL
-* UWSGI
+* uWSGI
 
-# Inicjalizacja
+# Install
 
 ```shell
 python3 bootstrap-buildout.py
 ./bin/buildout -vN
-./bin/flask-ctl init_db --debug
 ln -s /opt/python/3.4.2/bin/uwsgi uwsgi
 ```
 
-# Uruchomienie
+## DB initialization
 
+#### dev instance
+```shell
+./bin/flask-ctl init_db --debug
+./bin/flask-ctl db_migrate stamp --debug
+```
+
+#### prod instance
+```shell
+./bin/flask-ctl init_db
+./bin/flask-ctl db_migrate stamp
+```
+
+# Running
+
+#### dev instance
 ```shell
 ./bin/flask-ctl debug
 ```
 
-lub
-
+#### prod instance
 ```shell
 ./bin/flask-ctl serve start
 ./bin/flask-ctl serve stop
 ./bin/flask-ctl serve restart
 ```
 
-# Migrowanie
+# Update
 
+## DB migrate
+
+#### dev instance
 ```shell
-./bin/flask-ctl db_migrate init
-./bin/flask-ctl db_migrate migrate
+./bin/flask-ctl db_migrate upgrade --debug
+```
+
+#### prod instance
+```shell
 ./bin/flask-ctl db_migrate upgrade
 ```
