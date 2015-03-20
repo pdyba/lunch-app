@@ -185,7 +185,41 @@ def add_food():
         db.session.commit()
         flash('{} foods added'.format(number_of_foods_aded))
         return redirect('add_food')
-    return render_template('add_food.html', form=form)
+    companies = Company.query.all()
+    day = datetime.date.today()
+    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
+    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
+    foods = Food.query.filter(
+        and_(
+            Food.date_available_from <= today_from,
+            Food.date_available_to >= today_to,
+        )
+    ).all()
+    companies_current = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type != 'menu'
+        ])
+    ]
+    companies_menu = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type == 'menu'
+        ])
+    ]
+    return render_template(
+        'add_food.html',
+        form=form,
+        foods=foods,
+        companies_current=companies_current,
+        companies_menu=companies_menu,
+    )
 
 
 @app.route('/day_summary', methods=['GET', 'POST'])
@@ -898,7 +932,6 @@ def random_food(courage):
         return resp
 
 
-
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
@@ -1305,7 +1338,7 @@ def food_edit_view(food_id):
         form.populate_obj(food)
         db.session.commit()
         flash('Food edited')
-        return redirect('day_summary')
+        return redirect('add_food')
     return render_template(
         'food_edit.html',
         form=form,
