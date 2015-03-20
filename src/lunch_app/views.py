@@ -8,7 +8,6 @@ from collections import Counter
 import datetime
 from random import choice
 
-
 from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user
@@ -1264,3 +1263,25 @@ def pizza_time_stop(happening):
     pizzas_db.pizza_ordering_is_allowed = False
     db.session.commit()
     return redirect(url_for('pizza_time_view', happening=happening))
+
+
+@app.route('/food_edit/<int:food_id>', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def food_edit_view(food_id):
+    """
+    Renders food edit page.
+    """
+    companies = Company.query.all()
+    food = Food.query.get(food_id)
+    form = AddFood(formdata=request.form, obj=food)
+    form.company.choices = [(comp.name, comp.name) for comp in companies]
+    if request.method == 'POST' and form.validate():
+        form.populate_obj(food)
+        db.session.commit()
+        flash('Food edited')
+        return redirect('day_summary')
+    return render_template(
+        'food_edit.html',
+        form=form,
+    )

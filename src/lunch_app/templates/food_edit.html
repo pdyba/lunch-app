@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% set page_id = 'edit_food' %}
+
+{% block content %}
+
+    <div class="large-6 columns">
+        <h3>Edit food</h3>
+
+        <form action="" method="post" name="order">
+
+            {{ form.crsf_token }}
+
+            {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+                {% for error in field_errors %}
+                    <div data-alert class="alert-box alert radius">
+                        {{ error }}
+                        <a href="#" class="close">&times;</a>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            <div class="small-12 columns">
+                Company {{ form.company }}
+                Description {{ form.description }}
+            </div>
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Cost</label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.cost }}
+            </div>
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Type</label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.o_type }}
+            </div>
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Available from</label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.date_available_from }}
+            </div>
+
+            <div class="small-4 columns">
+                <label for="right-label" class="right">Available to</label>
+            </div>
+            <div class="small-8 columns">
+                {{ form.date_available_to }}
+
+                <input type="submit" value="save" class="button right"
+                       name="add_meal">
+
+                </div>
+        </form>
+    </div>
+
+
+{% endblock %}
