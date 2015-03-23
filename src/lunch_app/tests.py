@@ -1028,7 +1028,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             resp = self.client.get(link)
             self.assertEqual(resp.status_code, 302, msg=link)
 
-
         # Pizza link need to be in exactly that order
         resp = self.client.get('/order_pizza_for_everybody')
         self.assertEqual(resp.status_code, 302)
