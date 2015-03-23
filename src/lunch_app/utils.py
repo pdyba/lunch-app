@@ -4,16 +4,15 @@ helper functions for jinjna.
 """
 import datetime
 
-from flask import flash, current_app, request, render_template, redirect
+from flask import current_app, request, render_template, redirect
 from social.exceptions import SocialAuthBaseException
+from sqlalchemy import and_
 from werkzeug.exceptions import HTTPException
 from flask.ext.mail import Message
 
-from .main import mail, db
-from .models import Order, MailText, Food, OrderingInfo
-from .models import User
 from .webcrawler import get_dania_dnia_from_pod_koziolek, \
     get_week_from_tomas_crawler
+
 
 def get_current_datetime():
     """
@@ -87,6 +86,9 @@ def previous_month(year, month):
 
 
 def error_handler(error):
+    """
+    Error handler for the app and google API login.
+    """
     msg = "Request resulted in {}".format(error)
     from .main import app
     if not app.config.get('TESTING', False):
@@ -102,7 +104,7 @@ def error_handler(error):
         description = ("We encountered an error "
                        "while trying to fulfill your request")
         code = 500
-        name = "WTF"
+        name = "Unknown and unexpected error"
     return render_template(
         'error.html',
         code=code,
@@ -116,6 +118,8 @@ def ordering_is_active():
     """
     Returns value true if ordering is active for jinja.
     """
+    from .models import OrderingInfo
+
     ordering_is_allowed = OrderingInfo.query.get(1)
     return ordering_is_allowed.is_allowed
 
@@ -128,19 +132,31 @@ def server_url():
     return url
 
 
-def send_daily_reminder():
+def current_day_orders():
     """
-    Sends daily reminder to all users function.
+    Returns all orders for current day.
     """
+    from .models import Order
+
     day = datetime.date.today()
     today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
     today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-    orders = Order.query.filter(
+    return Order.query.filter(
         and_(
             Order.date >= today_beg,
             Order.date <= today_end,
         )
     ).all()
+
+
+def send_daily_reminder():
+    """
+    Sends daily reminder to all users function.
+    """
+    from .models import MailText, User
+    from .main import mail
+
+    orders = current_day_orders()
     users = User.query.filter(
         and_(
             User.i_want_daily_reminder,
@@ -166,6 +182,9 @@ def add_daily_koziolek():
     """
     Adds meal of a day from pod koziolek
     """
+    from .models import Food
+    from .main import db
+
     food = get_dania_dnia_from_pod_koziolek()
     for category in food:
         for meal in food[category]:
@@ -184,6 +203,9 @@ def get_week_from_tomas():
     """
     Adds weak meals from Tomas ! use only on mondays ! - function
     """
+    from .main import db
+    from .models import Food
+
     foods = get_week_from_tomas_crawler()
     for meal in foods['diet']:
         new_meal = Food()

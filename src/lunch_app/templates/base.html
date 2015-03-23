@@ -28,11 +28,11 @@
           type="image/x-icon">
 
 
-
     <div id="main">
         <div class="large-12 columns">
             <ul class="title-area">
-                <img src="{{ url_for('static', filename='img/stxnext_logo.png') }}" alt="STX Next">
+                <img src="{{ url_for('static', filename='img/stxnext_logo.png') }}"
+                     alt="STX Next">
 
 
                 {% if current_user and current_user.is_authenticated() %}
@@ -74,9 +74,10 @@
                                     </ul>
                                 </li>
 
-                            <li {% if page_id == 'food_rate' %}
+                                <li {% if page_id == 'food_rate' %}
                                     class="active" {% endif %}><a
-                                        href="{{ url_for('food_rate') }}">Rate food</a>
+                                        href="{{ url_for('food_rate') }}">Rate
+                                    food</a>
                                 </li>
 
                                 {% if current_user.is_admin() %}
@@ -107,11 +108,44 @@
                                         TV</a>
                                     </li>
                                 {% endif %}
+                                {% if 'dziergwa' in current_user.username or current_user.is_admin() %}
+                                    <script>
+                                        function pizza_conf() {
+                                            swal({
+                                                        title: "Are you sure?",
+                                                        text: "Macieju are you sure you want to order Pizza for everyone?",
+                                                        type: "success",
+                                                        showCancelButton: true,
+                                                        confirmButtonColor: '#DD6B55',
+                                                        confirmButtonText: 'Yes, I do!',
+                                                        cancelButtonText: "No, I'm a coward",
+                                                        closeOnConfirm: false,
+                                                        closeOnCancel: false
+                                                    },
+                                                    function (isConfirm) {
+                                                        if (isConfirm) {
+                                                            window.location = "{{ url_for('order_pizza_for_everybody') }}";
+                                                        } else {
+                                                            swal({
+                                                                title: "Why :( ?",
+                                                                text: "Why :( ?",
+                                                                timer: 800
+                                                            });
+                                                        }
+                                                    });
+                                        }
+                                    </script>
+
+                                <li><a onclick="pizza_conf()">PizzaParty</a>
+                                    </li>
+
+
+                                {% endif %}
                             </ul>
                         </section>
                     </nav>
                 {% endif %}
-               </ul>
+            </ul>
         </div>
     </div>
 
@@ -144,12 +178,14 @@
 </body>
 
 
-    <div class="large-12 columns small-text-right">
+<div class="large-12 columns small-text-right">
 
-        <hr>
-        <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
-    </div>
+    <hr>
+    <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
+</div>
 <script>
-     $('.alert-box > a.close').click(function() { $(this).closest('[data-alert]').fadeOut(); });
+    $('.alert-box > a.close').click(function () {
+        $(this).closest('[data-alert]').fadeOut();
+    });
 </script>
 </html>

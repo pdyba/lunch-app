@@ -1079,7 +1079,11 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         ]
         for link in bad_url_list_401:
             resp = self.client.get(link)
-            self.assertIn('401', str(resp.data), msg=link)
+            self.assertIn(
+                '<h1 class="error-code">401</h1>',
+                str(resp.data),
+                msg=link,
+            )
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
@@ -1173,7 +1177,7 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
         resp = self.client.get('add_food')
         self.assertEquals(resp.status_code, 200)
         resp = self.client.get('day_summary')
-        self.assertIn('401', str(resp.data))
+        self.assertIn('<h1 class="error-code">401</h1>', str(resp.data))
 
 
 class LunchWebCrawlersTestCases(unittest.TestCase):

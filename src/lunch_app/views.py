@@ -7,7 +7,6 @@ from calendar import monthrange, month_name
 from collections import Counter
 import datetime
 import logging
-import json
 from random import choice
 
 from flask import redirect, render_template, request, flash, url_for, jsonify
@@ -45,6 +44,7 @@ from .utils import (
     get_week_from_tomas,
     ordering_is_active,
     server_url,
+    current_day_orders,
 )
 
 
@@ -155,6 +155,7 @@ def create_order():
         foods=foods,
         companies_current=companies_current,
         companies_menu=companies_menu,
+        random_ordering_is_allowed=False,
     )
 
 
@@ -240,15 +241,7 @@ def day_summary():
     Day orders summary.
     """
     companies = Company.query.all()
-    day = datetime.date.today()
-    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
-    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-    orders = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-        )
-    ).all()
+    orders = current_day_orders()
 
     order_details = {}
     orders_summary = {
@@ -1042,15 +1035,7 @@ def orders_summary_for_tv():
     """
     View for TV showing all orders and reveling hard random orders.
     """
-    day = datetime.date.today()
-    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
-    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-    orders = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-        )
-    ).all()
+    orders = current_day_orders()
     return render_template('tv.html', orders=orders)
 
 
