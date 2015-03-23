@@ -59,3 +59,8 @@
     height: 30px;
     width: 130px;
 }
+}
+
+ul.accordion {
+    margin-left: 0;
+}

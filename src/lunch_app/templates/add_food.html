@@ -62,7 +62,7 @@
         To add few meal at one time separate them with enter and click bulk,
         all meals will be added with same company, cost, dates and type.
 <hr><h4>If something gone wrong</h4>
-        To add meal of a day from "Pod Koziołek" click <a href="{{ url_for("add_daily_koziolek") }}">here</a>.
+        To add meal of a day from "Pod Koziołek" click <a href="{{ url_for("add_daily_koziolek_view") }}">here</a>.
 <br><br>
     !!! WARNING: use ONLY on MODAY !!!<br>
     To add a weak from "Tomas" click <a href="{{ url_for("get_week_from_tomas_view") }}">here</a>.<br>
@@ -70,5 +70,86 @@
 
 
 <hr>
+<h4>Edit today's meals</h4>
+
+        Daily menu
+        <ul class="tabs" data-tab role="tablist">
+            {% for comp in companies_current %}
+                <li class="tab-title"><a
+                        href="#c{{ comp.id }}">{{ comp.name }}</a></li>
+            {% endfor %}
+        </ul>
+
+
+        <div class="tabs-content">
+            {% for comp in companies_current %}
+                <div class="content" id="c{{ comp.id }}">
+                        <ul>
+                        {% for meal in foods %}
+                            {% if meal.company == comp.name and meal.o_type != 'menu' %}
+                                <li>
+                                <a href="{{ url_for('food_edit_view', food_id=meal.id) }}">
+                                    {{ meal.description }}
+                                    (<b>{{ meal.cost }} PLN</b>)
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+               </ul>
+                </div>
+
+
+            {% endfor %}
         </div>
+
+        Standard menu
+         <ul class="accordion" data-accordion>
+
+
+                {% for comp in companies_menu %}
+                    <li class="accordion-navigation">
+                    <a href="#cm{{ comp.id }}">{{ comp.name }}</a>
+
+                    <div id="cm{{ comp.id }}" class="content">
+                        <ul>
+                        {% for meal in foods %}
+                            {% if meal.company == comp.name and meal.o_type == 'menu' %}
+                                <li>
+                                <a href="{{ url_for('food_edit_view', food_id=meal.id) }}">
+                                    {{ meal.description }}
+                                    (<b>{{ meal.cost }} PLN</b>)
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+
+                    </div>
+                    </li>
+                {% endfor %}
+
+        </ul>
+                    </div>
+
+
+        <script src="{{ url_for('static', filename='js/foundation/foundation.accordion.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.tooltip.js') }}"></script>
+
+<script>
+        $(document).foundation({
+            accordion: {
+                callback: function (accordion) {
+                }
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
+    <script>
+        $(document).foundation({
+            tab: {
+                callback: function (tab) {
+                }
+            }
+        });
+    </script>
 {% endblock %}

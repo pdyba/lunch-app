@@ -22,7 +22,10 @@ from .mocks import (
     MOCK_WWW_KOZIOLEK,
 )
 from .models import Order, Food, MailText, User
-from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
+from .webcrawler import (
+    get_dania_dnia_from_pod_koziolek,
+    get_week_from_tomas_crawler,
+)
 from .utils import make_datetime, get_current_month
 
 
@@ -619,6 +622,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
                     user_order.description,
                 )
 
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     def test_send_daily_reminder(self):
@@ -834,7 +838,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     @patch(
-        'lunch_app.views.get_dania_dnia_from_pod_koziolek',
+        'lunch_app.utils.get_dania_dnia_from_pod_koziolek',
         new=MOCK_DATA_KOZIOLEK,
     )
     def test_add_daily_koziolek(self):
@@ -861,7 +865,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     @patch(
-        'lunch_app.views.get_week_from_tomas',
+        'lunch_app.utils.get_week_from_tomas_crawler',
         new=MOCK_DATA_TOMAS,
     )
     def test_get_week_from_tomas_view(self):
@@ -1198,8 +1202,8 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
         """
         data = get_dania_dnia_from_pod_koziolek()
         self.assertGreaterEqual(len(data), 2)
-        self.assertGreaterEqual(len(data["zupa_dnia"]), 1)
-        self.assertGreaterEqual(len(data['danie_dania_1']), 1)
+        self.assertGreaterEqual(len(data["zupy"]), 1)
+        self.assertGreaterEqual(len(data['dania_dnia']), 1)
 
     @patch(
         'lunch_app.webcrawler.read_webpage',
@@ -1209,7 +1213,7 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
         """
         Tests web crawling functions works properly for Tomas add week
         """
-        data = get_week_from_tomas()
+        data = get_week_from_tomas_crawler()
         self.assertEqual(len(data), 6)
         self.assertGreaterEqual(len(data['diet']), 1)
         for i in range(1, 6):
