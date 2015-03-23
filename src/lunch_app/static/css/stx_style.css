@@ -38,3 +38,7 @@
 .ui-helper-hidden-accessible {
     display: none;
 }
+
+ul.accordion {
+    margin-left: 0;
+}

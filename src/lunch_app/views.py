@@ -6,6 +6,7 @@ Defines views.
 from calendar import monthrange, month_name
 from collections import Counter
 import datetime
+import logging
 import json
 from random import choice
 
@@ -36,28 +37,18 @@ from .models import (
     Pizza, OrderingInfo,
 )
 from .permissions import user_is_admin
-from .utils import next_month, previous_month
-from .webcrawler import get_dania_dnia_from_pod_koziolek, get_week_from_tomas
+from .utils import (
+    next_month,
+    previous_month,
+    send_daily_reminder,
+    add_daily_koziolek,
+    get_week_from_tomas,
+    ordering_is_active,
+    server_url,
+)
 
-import logging
 
 log = logging.getLogger(__name__)
-
-
-def ordering_is_active():
-    """
-    Returns value true if ordering is active for jinja.
-    """
-    ordering_is_allowed = OrderingInfo.query.get(1)
-    return ordering_is_allowed.is_allowed
-
-
-def server_url():
-    """
-    Returns current server url.
-    """
-    url = str(request.url_root).rstrip('/')
-    return url
 
 
 @app.route('/')
@@ -706,7 +697,7 @@ def finance(year, month, did_pay):
 @user_is_admin
 def finance_mail_text():
     """
-    Renders mail all page.
+    Renders mail and info text edit page.
     """
     mail_data = MailText.query.first()
     form = MailTextForm(formdata=request.form, obj=mail_data)
@@ -935,37 +926,11 @@ def random_food(courage):
 @app.route('/send_daily_reminder', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
-def send_daily_reminder():
+def send_daily_reminder_view():
     """
-    Sends daili reminder to all users.
+    Sends daily reminder to all users view.
     """
-    day = datetime.date.today()
-    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
-    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-    orders = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-        )
-    ).all()
-    users = User.query.filter(User.i_want_daily_reminder).all()
-    message_text = MailText.query.first()
-    emails = ([])
-    order_list = ([])
-    for order in orders:
-        order_list.append(order.user_name)
-    for user in users:
-        if user.username not in order_list:
-            emails.append(user.username)
-    msg = Message(
-        '{} {}'.format(
-            message_text.daily_reminder_subject,
-            datetime.date.today()
-        ),
-        recipients=emails,
-    )
-    msg.body = message_text.daily_reminder
-    mail.send(msg)
+    send_daily_reminder()
     return redirect('overview')
 
 
@@ -1139,23 +1104,12 @@ def finance_unblock_ordering():
 @app.route('/add_daily_koziolek', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
-def add_daily_koziolek():
+def add_daily_koziolek_view():
     """
-    Adds meal of a day from koziolek
+    Adds meal of a day from pod koziolek
     """
-    food = get_dania_dnia_from_pod_koziolek()
-    for meal in food.values():
-        new_meal = Food()
-        new_meal.cost = 2 if 'zupa' in meal.lower() else 11
-        new_meal.description = "Danie dnia Koziołek: "
-        new_meal.description += meal
-        new_meal.company = "Pod Koziołkiem"
-        new_meal.o_type = "daniednia"
-        new_meal.date_available_from = datetime.date.today()
-        new_meal.date_available_to = datetime.date.today()
-        db.session.add(new_meal)
-    db.session.commit()
-    flash('Meals of a day from Pod Koziolek have been added.')
+    add_daily_koziolek()
+    flash('Meals of a day from Pod Koziolek have been added')
     return redirect('add_food')
 
 
@@ -1164,51 +1118,9 @@ def add_daily_koziolek():
 @user_is_admin
 def get_week_from_tomas_view():
     """
-    Adds weak meals from Tomas ! use only on mondays !
+    Adds weak meals from Tomas ! use only on mondays ! - view
     """
-    foods = get_week_from_tomas()
-    for meal in foods['diet']:
-        new_meal = Food()
-        new_meal.cost = 12
-        new_meal.description = meal
-        new_meal.company = "Tomas"
-        new_meal.o_type = "tygodniowe"
-        new_meal.date_available_from = datetime.date.today()
-        new_meal.date_available_to = \
-            datetime.date.today() + \
-            datetime.timedelta(days=4)
-        db.session.add(new_meal)
-    for i in range(1, 6):
-        food = foods['dzien_{}'.format(i)]
-        day_dif = datetime.date.today() + datetime.timedelta(days=i-1)
-        for meal in food['zupy']:
-            new_meal = Food()
-            new_meal.cost = 4
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
-            db.session.add(new_meal)
-        for meal in food['dania']:
-            new_meal = Food()
-            new_meal.cost = 10
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
-            db.session.add(new_meal)
-        for meal in food['zupa_i_dania']:
-            new_meal = Food()
-            new_meal.cost = 12
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_dif
-            new_meal.date_available_to = day_dif
-            db.session.add(new_meal)
-    db.session.commit()
+    get_week_from_tomas()
     flash('Weak of meals from Tomas have been added.')
     return redirect('add_food')
 
