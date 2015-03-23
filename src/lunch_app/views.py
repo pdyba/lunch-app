@@ -45,6 +45,9 @@ from .utils import (
     ordering_is_active,
     server_url,
     current_day_orders,
+    current_day_meals,
+    current_day_meals_and_companies,
+    month_orders,
 )
 
 
@@ -72,7 +75,7 @@ def overview():
     """
     Overview page.
     """
-    user = User.query.filter(User.username == current_user.username).first()
+    user = User.query.get(current_user.id)
     form = UserDailyReminderForm(formdata=request.form, obj=user)
     if request.method == 'POST' and form.validate():
         user.i_want_daily_reminder = \
@@ -90,45 +93,18 @@ def create_order():
     Create new order page.
     """
     if not current_user.is_active():
-        texts = MailText.query.get(1)
-        flash(texts.blocked_user_text)
+        flash(MailText.query.get(1).blocked_user_text)
         return redirect('overview')
     if not ordering_is_active():
-        texts = MailText.query.get(1)
-        flash(texts.ordering_is_blocked_text)
+        flash(MailText.query.get(1).ordering_is_blocked_text)
         return redirect('overview')
-    companies = Company.query.all()
     form = OrderForm(request.form)
+    companies = Company.query.all()
     form.company.choices = [
         (comp.name, "Order from {}".format(comp.name)) for comp in companies
     ]
-    day = datetime.date.today()
-    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
-    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
-    foods = Food.query.filter(
-        and_(
-            Food.date_available_from <= today_from,
-            Food.date_available_to >= today_to,
-        )
-    ).all()
-    companies_current = [
-        company
-        for company in companies
-        if any([
-            meal.company == company.name
-            for meal in foods
-            if meal.o_type != 'menu'
-        ])
-    ]
-    companies_menu = [
-        company
-        for company in companies
-        if any([
-            meal.company == company.name
-            for meal in foods
-            if meal.o_type == 'menu'
-        ])
-    ]
+    foods, companies_current, companies_menu = \
+        current_day_meals_and_companies(companies)
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
@@ -197,33 +173,8 @@ def add_food():
         flash('{} foods added'.format(number_of_foods_aded))
         return redirect('add_food')
     companies = Company.query.all()
-    day = datetime.date.today()
-    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
-    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
-    foods = Food.query.filter(
-        and_(
-            Food.date_available_from <= today_from,
-            Food.date_available_to >= today_to,
-        )
-    ).all()
-    companies_current = [
-        company
-        for company in companies
-        if any([
-            meal.company == company.name
-            for meal in foods
-            if meal.o_type != 'menu'
-        ])
-    ]
-    companies_menu = [
-        company
-        for company in companies
-        if any([
-            meal.company == company.name
-            for meal in foods
-            if meal.o_type == 'menu'
-        ])
-    ]
+    foods, companies_current, companies_menu = \
+        current_day_meals_and_companies(companies)
     return render_template(
         'add_food.html',
         form=form,
@@ -242,7 +193,6 @@ def day_summary():
     """
     companies = Company.query.all()
     orders = current_day_orders()
-
     order_details = {}
     orders_summary = {
         '12:00': {},
@@ -310,8 +260,7 @@ def info():
     """
     Renders info page.
     """
-    texts = MailText.query.get(1)
-    temp = "{}".format(texts.info_page_text)
+    temp = "{}".format(MailText.query.get(1).info_page_text)
     info = temp.split('\n')
     if len(info) < 2:
         info = "None"
@@ -324,7 +273,7 @@ def order_details(order_id):
     """
     Renders orders detail page.
     """
-    order = Order.query.filter(Order.id == order_id).first()
+    order = Order.query.get(order_id)
     return render_template('order_details.html', order=order)
 
 
@@ -379,11 +328,7 @@ def order_list():
     Renders order list page form.
     """
     form = UserOrders(request.form)
-    users = User.query.all()
-    user_list = []
-    for user in users:
-        user_list.append((user.id, user.username))
-    form.user.choices = user_list
+    form.user.choices = [(user.id, user.username) for user in User.query.all()]
     if request.method == 'POST' and form.validate():
         if form.data['month']:
             return redirect(url_for(
@@ -423,7 +368,7 @@ def order_list_year_view(year, user_id):
         minute=59,
         second=59
     )
-    user = User.query.filter(User.id == user_id).first()
+    user = User.query.get(user_id)
     orders = Order.query.filter(
         and_(
             Order.date >= year_begin,
@@ -460,7 +405,6 @@ def order_list_year_view(year, user_id):
             if month_begin <= order.date <= month_end:
                 monthly_data['number of orders'] += 1
                 monthly_data['month cost'] += order.cost
-
         year_data.append(monthly_data)
 
     return render_template(
@@ -499,7 +443,7 @@ def order_list_month_view(year, month, user_id):
         second=59
     )
     pub_date = {'year': year, 'month': month_name[month]}
-    user = User.query.filter(User.id == user_id).first()
+    user = User.query.get(user_id)
     orders = Order.query.filter(
         and_(
             Order.date >= month_begin,
@@ -542,31 +486,8 @@ def company_summary_month_view(year, month):
     Renders companies month list page.
     """
     companies = Company.query.all()
-    month_begin = datetime.datetime(
-        year=year,
-        month=month,
-        day=1,
-        hour=0,
-        minute=0,
-        second=1
-    )
-
-    day = monthrange(year, month)[1]
-    month_end = datetime.datetime(
-        year=year,
-        month=month,
-        day=day,
-        hour=23,
-        minute=59,
-        second=59
-    )
     pub_date = {'year': year, 'month': month_name[month]}
-    orders = Order.query.filter(
-        and_(
-            Order.date >= month_begin,
-            Order.date <= month_end,
-        )
-    ).all()
+    orders = month_orders(year, month)
     orders_data = {}
     for comp in companies:
         orders_data[comp.name] = 0
@@ -593,30 +514,8 @@ def finance(year, month, did_pay):
     did_pay = 1 - filter only paid
     did_pay = 2 - filter only unpaid
     """
-    month_begin = datetime.datetime(
-        year=year,
-        month=month,
-        day=1,
-        hour=0,
-        minute=0,
-        second=1
-    )
-    day = monthrange(year, month)[1]
-    month_end = datetime.datetime(
-        year=year,
-        month=month,
-        day=day,
-        hour=23,
-        minute=59,
-        second=59
-    )
     users = User.query.all()
-    orders = Order.query.filter(
-        and_(
-            Order.date >= month_begin,
-            Order.date <= month_end,
-        )
-    ).all()
+    orders = orders = month_orders(year, month)
     finances = Finance.query.filter(
         and_(
             Finance.month == month,
@@ -738,39 +637,20 @@ def finance_mail_all():
     """
     Renders mail to all page.
     """
-    this_month = datetime.date.today()
-    month_begin = datetime.datetime(
-        year=this_month.year,
-        month=this_month.month,
-        day=1,
-        hour=0,
-        minute=0,
-        second=1
+    year, month = previous_month(
+        datetime.date.today().year,
+        datetime.date.today().month,
     )
-    day = monthrange(this_month.year, this_month.month)[1]
-    month_end = datetime.datetime(
-        year=this_month.year,
-        month=this_month.month,
-        day=day,
-        hour=23,
-        minute=59,
-        second=59
-    )
-    users = User.query.all()
-    orders = Order.query.filter(
-        and_(
-            Order.date >= month_begin,
-            Order.date <= month_end,
-        )
-    ).all()
+    orders = month_orders(year, month)
     finances = Finance.query.filter(
         and_(
-            Finance.month == this_month.month,
-            Finance.year == this_month.year,
+            Finance.month == month,
+            Finance.year == year,
         )
     ).all()
     finance_data = {}
     finance_user_list = []
+    users = User.query.all()
     for user in users:
         finance_data[user.username] = {
             'username': user.username,
@@ -791,24 +671,26 @@ def finance_mail_all():
             # user didn't bought anything
             finance_data[user.username]['month_cost'] == 0
         )
+
         if should_drop:
             del finance_data[user.username]
     message_text = MailText.query.first()
     if request.method == 'POST' and request.form['send_mail'] == 'all':
         for record in finance_data.values():
             msg = Message(
-                'Lunch {} / {} summary'.format(month_name[this_month.month],
-                                               this_month.year),
+                'Lunch {} / {} summary'.format(month_name[month],
+                                               year),
                 recipients=[record['username']],
             )
             msg.body = "In {} you ordered {} meals for {} PLN.\n {}".format(
-                month_name[this_month.month],
+                month_name[month],
                 record['number_of_orders'],
                 record['month_cost'],
                 message_text.monthly_pay_summary,
                 )
             mail.send(msg)
-            flash('Mail send')
+        flash('Mail send')
+        return redirect('finance_mail_all')
     if request.method == 'POST' and request.form['send_mail'] == 'remind_all':
         for record in finance_data.values():
             if not record['did_user_pay']:
@@ -817,7 +699,7 @@ def finance_mail_all():
                     recipients=[record['username']],
                 )
                 msg.body = "In {} you ordered {} meals for {} PLN.\n{}".format(
-                    month_name[this_month.month],
+                    month_name[month],
                     record['number_of_orders'],
                     record['month_cost'],
                     message_text.pay_reminder,
@@ -882,33 +764,16 @@ def random_food(courage):
     Orders random meal.
     """
     if not ordering_is_active():
-        texts = MailText.query.get(1)
-        flash(texts.ordering_is_blocked_text)
+        flash(MailText.query.get(1).ordering_is_blocked_text)
         return redirect('overview')
-    day = datetime.date.today()
-    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
-    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
-    foods = Order.query.filter(
-        and_(
-            Order.date <= today_from,
-            Order.date >= today_to,
-        )
-    ).all()
-    food_list = [order.description for order in foods]
-    food_dict = Counter(food_list)
-    food_dict = food_dict.most_common()
+    foods = current_day_orders()
+    food_dict = Counter([order.description for order in foods]).most_common()
     if len(food_dict) >= 3:
         foods = [food_dict[0][0], food_dict[1][0], food_dict[2][0]]
         food = choice(foods)
         food = Order.query.filter(Order.description == food).first()
     else:
-        foods = Food.query.filter(
-            and_(
-                Food.date_available_from <= today_from,
-                Food.date_available_to >= today_to,
-                Food.o_type != 'menu',
-            )
-        ).all()
+        foods = current_day_meals()
         food = choice(foods)
     if food.description.startswith('!RANDOM O'):
         food.description = food.description[15:]
@@ -996,14 +861,7 @@ def food_rate():
     if current_user.rate_timestamp == datetime.date.today():
         flash("You already rated today come back tomorow :-)")
         return redirect('overview')
-    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
-    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
-    foods = Food.query.filter(
-        and_(
-            Food.date_available_from <= today_from,
-            Food.date_available_to >= today_to,
-        )
-    ).all()
+    foods = current_day_meals()
     food_list = []
     order.description = order.description.strip()
     for food in foods:
@@ -1088,8 +946,7 @@ def finance_block_ordering():
     """
     Allows to block ordering for everyone.
     """
-    ordering_is_allowed = OrderingInfo.query.get(1)
-    ordering_is_allowed.is_allowed = False
+    OrderingInfo.query.get(1).is_allowed = False
     db.session.commit()
     flash('Now users can NOT order !')
     return redirect('day_summary')
@@ -1102,8 +959,7 @@ def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
     """
-    ordering_is_allowed = OrderingInfo.query.get(1)
-    ordering_is_allowed.is_allowed = True
+    OrderingInfo.query.get(1).is_allowed = True
     db.session.commit()
     flash('Now users can order :)')
     return redirect('day_summary')

@@ -16,8 +16,6 @@ from wtforms import (
     StringField,
 )
 
-from datetime import datetime
-
 
 class OrderForm(Form):
     """
@@ -113,12 +111,10 @@ class AddFood(Form):
     )
     date_available_from = DateField(
         label='date_available',
-        default=datetime(2015, 1, 1, 0, 0, 0),
         format='%Y-%m-%d',
     )
     date_available_to = DateField(
         label='date_avalible_upto',
-        default=datetime(2015, 1, 1, 23, 59, 59),
         format="%Y-%m-%d",
     )
     o_type = SelectField(

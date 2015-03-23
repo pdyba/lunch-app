@@ -517,7 +517,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch'))
             self.assertIn(
-                '{}'.format(month_name[get_current_month()]),
+                '{}'.format(month_name[get_current_month()-1]),
                 msg.body,
             )
 

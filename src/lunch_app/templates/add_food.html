@@ -3,7 +3,7 @@
 {% set page_id = 'add_food' %}
 
 {% block content %}
-
+    <script src="{{ url_for('static', filename='js/vendor/jquery-ui.js') }}"></script>
     <div class="large-6 columns">
         <h3>Add food</h3>
 
@@ -131,10 +131,9 @@
         </ul>
                     </div>
 
-
         <script src="{{ url_for('static', filename='js/foundation/foundation.accordion.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.tooltip.js') }}"></script>
-
+<script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
 <script>
         $(document).foundation({
             accordion: {
@@ -142,14 +141,19 @@
                 }
             }
         });
-    </script>
-    <script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
-    <script>
         $(document).foundation({
             tab: {
                 callback: function (tab) {
                 }
             }
         });
-    </script>
+  $(function() {
+    $( "#date_available_from" ).datepicker({
+        dateFormat: 'yy-mm-dd'
+    });
+    $( "#date_available_to" ).datepicker({
+        dateFormat: 'yy-mm-dd'
+    });
+    });
+  </script>
 {% endblock %}

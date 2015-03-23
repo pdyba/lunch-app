@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name, no-member
 """
 helper functions for jinjna.
 """
+from calendar import monthrange
 import datetime
 
 from flask import current_app, request, render_template, redirect
@@ -249,3 +251,85 @@ def get_week_from_tomas():
             new_meal.date_available_to = day_diff
             db.session.add(new_meal)
     db.session.commit()
+
+
+def current_day_meals():
+    """
+    Gets meals from current day.
+    """
+    from .models import Food
+    day = datetime.date.today()
+    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
+    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
+    foods = Food.query.filter(
+        and_(
+            Food.date_available_from <= today_from,
+            Food.date_available_to >= today_to,
+        )
+    ).all()
+    return foods
+
+
+def current_day_meals_and_companies(companies):
+    """
+    Gets meals from current day, and companies for daily and manu.
+    """
+    foods = current_day_meals()
+    companies_current = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type != 'menu'
+        ])
+    ]
+    companies_menu = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type == 'menu'
+        ])
+    ]
+    return foods, companies_current, companies_menu
+
+
+def month_orders(year, month, user=None):
+    """
+    Gets meals from current day, and companies for daily and manu.
+    """
+    from .models import Order
+
+    month_begin = datetime.datetime(
+        year=year,
+        month=month,
+        day=1,
+        hour=0,
+        minute=0,
+        second=1
+    )
+    day = monthrange(year, month)[1]
+    month_end = datetime.datetime(
+        year=year,
+        month=month,
+        day=day,
+        hour=23,
+        minute=59,
+        second=59
+    )
+    if user:
+        return Order.query.filter(
+            and_(
+                Order.date >= month_begin,
+                Order.date <= month_end,
+                Order.user_name == user,
+            )
+        ).all()
+    return Order.query.filter(
+        and_(
+            Order.date >= month_begin,
+            Order.date <= month_end,
+        )
+    ).all()
