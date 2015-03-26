@@ -22,21 +22,43 @@
 	top: 0;
 	left: 0;
 	cursor: default;
-    background: #299C92;
+    background: #009694;
     color: white;
 }
 
 .top-bar {
-    background: #299C92;
+    background: #009694;
 }
-.top-bar-section li:not(.has-form) a:not(.button) {
-    background: #299C92;
+.top-bar-section li:not(.has-form) a:not(.button){
+    background: #009694;
 }
+.top-bar-section .dropdown li:not(.has-form):not(.active) > a:not(.button) {
+    background: #009694;
+}
+
 .top-bar-section > ul > .divider, .top-bar-section > ul > [role="separator"] {
     border-right: solid 1px #FFFFFF;
 }
+.top-bar-section li:not(.has-form) a:not(.button):hover {
+        background: #2F9F9F;
+}
+.top-bar-section .dropdown li:not(.has-form):not(.active):hover > a:not(.button) {
+        background: #2F9F9F; }
+.top-bar-section .has-dropdown > a:after {
+        background: #009694; }
+.top-bar-section {
+             background: #009694; }
 .ui-helper-hidden-accessible {
     display: none;
+}
+.top-bar-section ul li:hover:not(.has-form) > a {
+    background: #009694;
+}
+.random-box {
+    margin: 0;
+    height: 30px;
+    width: 130px;
+}
 }
 
 ul.accordion {

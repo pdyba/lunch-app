@@ -7,7 +7,6 @@ from calendar import monthrange, month_name
 from collections import Counter
 import datetime
 import logging
-import json
 from random import choice
 
 from flask import redirect, render_template, request, flash, url_for, jsonify
@@ -45,6 +44,7 @@ from .utils import (
     get_week_from_tomas,
     ordering_is_active,
     server_url,
+    current_day_orders,
 )
 
 
@@ -52,14 +52,15 @@ log = logging.getLogger(__name__)
 
 
 @app.route('/')
-def index():
+@app.route('/<error>')
+def index(error=None):
     """
     Login page.
     """
     if not current_user.is_anonymous() and \
             '@stxnext.pl' in current_user.username:
         return redirect('order')
-    elif not current_user.is_anonymous():
+    elif not current_user.is_anonymous() or error:
         msg = "Sadly you are not a hero, but you can try and join us."
         return render_template('index.html', msg=msg)
     return render_template('index.html')
@@ -92,8 +93,7 @@ def create_order():
         texts = MailText.query.get(1)
         flash(texts.blocked_user_text)
         return redirect('overview')
-    ordering_is_allowed = OrderingInfo.query.get(1)
-    if not ordering_is_allowed.is_allowed:
+    if not ordering_is_active():
         texts = MailText.query.get(1)
         flash(texts.ordering_is_blocked_text)
         return redirect('overview')
@@ -111,6 +111,24 @@ def create_order():
             Food.date_available_to >= today_to,
         )
     ).all()
+    companies_current = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type != 'menu'
+        ])
+    ]
+    companies_menu = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type == 'menu'
+        ])
+    ]
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
@@ -135,7 +153,9 @@ def create_order():
         'order.html',
         form=form,
         foods=foods,
-        companies=companies,
+        companies_current=companies_current,
+        companies_menu=companies_menu,
+        random_ordering_is_allowed=False,
     )
 
 
@@ -221,15 +241,7 @@ def day_summary():
     Day orders summary.
     """
     companies = Company.query.all()
-    day = datetime.date.today()
-    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
-    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-    orders = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-        )
-    ).all()
+    orders = current_day_orders()
 
     order_details = {}
     orders_summary = {
@@ -869,6 +881,10 @@ def random_food(courage):
     """
     Orders random meal.
     """
+    if not ordering_is_active():
+        texts = MailText.query.get(1)
+        flash(texts.ordering_is_blocked_text)
+        return redirect('overview')
     day = datetime.date.today()
     today_from = datetime.datetime.combine(day, datetime.time(23, 59))
     today_to = datetime.datetime.combine(day, datetime.time(0, 0))
@@ -1019,15 +1035,7 @@ def orders_summary_for_tv():
     """
     View for TV showing all orders and reveling hard random orders.
     """
-    day = datetime.date.today()
-    today_beg = datetime.datetime.combine(day, datetime.time(00, 00))
-    today_end = datetime.datetime.combine(day, datetime.time(23, 59))
-    orders = Order.query.filter(
-        and_(
-            Order.date >= today_beg,
-            Order.date <= today_end,
-        )
-    ).all()
+    orders = current_day_orders()
     return render_template('tv.html', orders=orders)
 
 

@@ -16,6 +16,9 @@ from social.apps.flask_app.default.models import init_social
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
 
+from werkzeug.exceptions import default_exceptions
+from .utils import error_handler
+
 
 def init_social_login():
     """
@@ -93,6 +96,11 @@ def init():
     init_api()
     init_admin()
     mail.init_app(app)
+
+    for exception in default_exceptions:
+        app.register_error_handler(exception, error_handler)
+
+    app.register_error_handler(Exception, error_handler)
 
 
 app = Flask(__name__)
