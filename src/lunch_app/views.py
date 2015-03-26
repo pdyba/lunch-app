@@ -33,7 +33,7 @@ from .forms import (
 from .models import (
     Order, Food, User,
     Finance, MailText, Company,
-    Pizza, OrderingInfo,
+    Pizza,
 )
 from .permissions import user_is_admin
 from .utils import (
@@ -48,6 +48,8 @@ from .utils import (
     current_day_meals,
     current_day_meals_and_companies,
     month_orders,
+    add_a_new_meal,
+    block_unblock_ordering,
 )
 
 
@@ -160,14 +162,14 @@ def add_food():
         number_of_foods_aded = 0
         for food in foods:
             if food.strip():
-                meal = Food()
-                meal.company = form.company.data
-                meal.description = food
-                meal.cost = form.cost.data
-                meal.date_available_from = form.date_available_from.data
-                meal.date_available_to = form.date_available_to.data
-                meal.o_type = form.o_type.data
-                db.session.add(meal)
+                add_a_new_meal(
+                    form.cost.data,
+                    food,
+                    form.date_available_from.data,
+                    form.date_available_to.data,
+                    form.company.data,
+                    type=form.o_type.data
+                )
                 number_of_foods_aded += 1
         db.session.commit()
         flash('{} foods added'.format(number_of_foods_aded))
@@ -424,33 +426,9 @@ def order_list_month_view(year, month, user_id):
     """
     Renders order month list page.
     """
-    month_begin = datetime.datetime(
-        year=year,
-        month=month,
-        day=1,
-        hour=0,
-        minute=0,
-        second=1
-    )
-
-    day = monthrange(year, month)[1]
-    month_end = datetime.datetime(
-        year=year,
-        month=month,
-        day=day,
-        hour=23,
-        minute=59,
-        second=59
-    )
     pub_date = {'year': year, 'month': month_name[month]}
     user = User.query.get(user_id)
-    orders = Order.query.filter(
-        and_(
-            Order.date >= month_begin,
-            Order.date <= month_end,
-            Order.user_name == user.username,
-        )
-    ).all()
+    orders = month_orders(year, month, user=user.username)
     orders_cost = sum(order.cost for order in orders)
     return render_template(
         'orders_list_month_view.html',
@@ -515,7 +493,7 @@ def finance(year, month, did_pay):
     did_pay = 2 - filter only unpaid
     """
     users = User.query.all()
-    orders = orders = month_orders(year, month)
+    orders = month_orders(year, month)
     finances = Finance.query.filter(
         and_(
             Finance.month == month,
@@ -558,11 +536,8 @@ def finance(year, month, did_pay):
         )
         if should_drop:
             del finance_data[user.username]
-
     pub_date = {'year': year, 'month': month_name[month]}
-
     finance_record = Finance()
-
     if request.method == 'POST':
         for row in finance_data.values():
             finance_record.did_user_pay = request.form.get(
@@ -617,10 +592,9 @@ def finance_mail_text():
             texts = MailText()
             form.populate_obj(texts)
             db.session.add(texts)
-            db.session.commit()
         else:
             form.populate_obj(mail_data)
-            db.session.commit()
+        db.session.commit()
         flash('Messages text updated')
         return redirect('finance_mail_text')
 
@@ -887,16 +861,6 @@ def food_rate():
     return render_template('food_rate.html', form=form)
 
 
-@app.route('/tv', methods=['GET', 'POST'])
-@login.login_required
-def orders_summary_for_tv():
-    """
-    View for TV showing all orders and reveling hard random orders.
-    """
-    orders = current_day_orders()
-    return render_template('tv.html', orders=orders)
-
-
 @app.route('/finance_block_user', methods=['GET', 'POST'])
 @login.login_required
 @user_is_admin
@@ -946,8 +910,7 @@ def finance_block_ordering():
     """
     Allows to block ordering for everyone.
     """
-    OrderingInfo.query.get(1).is_allowed = False
-    db.session.commit()
+    block_unblock_ordering(False)
     flash('Now users can NOT order !')
     return redirect('day_summary')
 
@@ -959,8 +922,7 @@ def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
     """
-    OrderingInfo.query.get(1).is_allowed = True
-    db.session.commit()
+    block_unblock_ordering(True)
     flash('Now users can order :)')
     return redirect('day_summary')
 
@@ -1031,6 +993,16 @@ def order_pizza_for_everybody():
     mail.send(msg)
     flash(text)
     return redirect(url_for("pizza_time_view", happening=new_event_id))
+
+
+@app.route('/tv', methods=['GET', 'POST'])
+@login.login_required
+def orders_summary_for_tv():
+    """
+    View for TV showing all orders and reveling hard random orders.
+    """
+    orders = current_day_orders()
+    return render_template('tv.html', orders=orders)
 
 
 @app.route('/pizza_time/<int:happening>', methods=['GET', 'POST'])
