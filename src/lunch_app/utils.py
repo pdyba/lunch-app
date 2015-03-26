@@ -15,6 +15,7 @@ from flask.ext.mail import Message
 from .webcrawler import get_dania_dnia_from_pod_koziolek, \
     get_week_from_tomas_crawler
 
+
 def db_session_commit():
     """
     Commits changes to database.
@@ -22,6 +23,7 @@ def db_session_commit():
     from .main import db
 
     db.session.commit()
+
 
 def get_current_datetime():
     """
@@ -334,7 +336,7 @@ def month_orders(year, month, user=None):
     ).all()
 
 
-def block_unblock_ordering(block_or_not):
+def change_ordering_status(block_or_not):
     """
     Allows to block or unblock ordering for everyone.
     """

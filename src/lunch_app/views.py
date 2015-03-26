@@ -17,18 +17,10 @@ from sqlalchemy import and_
 
 from .main import app, db, mail
 from .forms import (
-    OrderForm,
-    AddFood,
-    OrderEditForm,
-    UserOrders,
-    CompanyOrders,
-    MailTextForm,
-    UserDailyReminderForm,
-    FinanceSearchForm,
-    CompanyAddForm,
-    FoodRateForm,
-    FinanceBlockUserForm,
-    PizzaChooseForm,
+    OrderForm, AddFood, OrderEditForm,
+    UserOrders, CompanyOrders, MailTextForm,
+    UserDailyReminderForm, FinanceSearchForm, CompanyAddForm,
+    FoodRateForm, FinanceBlockUserForm, PizzaChooseForm,
 )
 from .models import (
     Order, Food, User,
@@ -37,21 +29,12 @@ from .models import (
 )
 from .permissions import user_is_admin
 from .utils import (
-    next_month,
-    previous_month,
-    send_daily_reminder,
-    add_daily_koziolek,
-    get_week_from_tomas,
-    ordering_is_active,
-    server_url,
-    current_day_orders,
-    current_day_meals,
-    current_day_meals_and_companies,
-    month_orders,
-    add_a_new_meal,
-    block_unblock_ordering,
+    next_month, previous_month, send_daily_reminder,
+    add_daily_koziolek, get_week_from_tomas, ordering_is_active,
+    server_url, current_day_orders, current_day_meals,
+    current_day_meals_and_companies, month_orders, add_a_new_meal,
+    change_ordering_status,
 )
-
 
 log = logging.getLogger(__name__)
 
@@ -910,7 +893,7 @@ def finance_block_ordering():
     """
     Allows to block ordering for everyone.
     """
-    block_unblock_ordering(False)
+    change_ordering_status(False)
     flash('Now users can NOT order !')
     return redirect('day_summary')
 
@@ -922,7 +905,7 @@ def finance_unblock_ordering():
     """
     Allows to unblock ordering for everyone.
     """
-    block_unblock_ordering(True)
+    change_ordering_status(True)
     flash('Now users can order :)')
     return redirect('day_summary')
 

@@ -224,7 +224,7 @@ def run():
         Options:
         - '--debug' use debug configuration
         """
-        from .utils import block_unblock_ordering
+        from .utils import change_ordering_status
 
         if debug:
             app = make_debug(with_debug_layer=False)
@@ -232,7 +232,7 @@ def run():
             app = make_app()
 
         with app.app_context():
-            block_unblock_ordering(True)
+            change_ordering_status(True)
 
     werkzeug.script.run()
 
