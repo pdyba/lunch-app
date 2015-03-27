@@ -104,6 +104,22 @@ def fill_order():
     order_4.user_name = 'x@x.pl'
     order_4.arrival_time = '12:00'
     db.session.add(order_4)
+    order_5 = Order()
+    order_5.date = date(get_current_year(), get_current_month()-1, 5)
+    order_5.description = 'Duzy Gruby Nalesnik'
+    order_5.company = 'Tomas'
+    order_5.cost = 123
+    order_5.user_name = 'test_user'
+    order_5.arrival_time = '12:00'
+    db.session.add(order_5)
+    order_6 = Order()
+    order_6.date = date(get_current_year(), get_current_month()-1, 5)
+    order_6.description = 'Duzy Gruby Nalesnik'
+    order_6.company = 'Tomas'
+    order_6.cost = 123
+    order_6.user_name = 'x@x.pl'
+    order_6.arrival_time = '12:00'
+    db.session.add(order_6)
     db.session.commit()
 
 

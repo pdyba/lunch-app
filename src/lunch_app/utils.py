@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name, no-member
 """
-helper functions for jinjna.
+Helper functions.
 """
+from calendar import monthrange
 import datetime
 
 from flask import current_app, request, render_template, redirect
@@ -14,23 +16,32 @@ from .webcrawler import get_dania_dnia_from_pod_koziolek, \
     get_week_from_tomas_crawler
 
 
+def db_session_commit():
+    """
+    Commits changes to database.
+    """
+    from .main import db
+
+    db.session.commit()
+
+
 def get_current_datetime():
     """
-    Returns current datetime as datetime type for jinjna.
+    Returns current datetime as datetime type for jinja.
     """
     return datetime.datetime.today()
 
 
 def get_current_date():
     """
-    Returns current date as date type for jinjna.
+    Returns current date as date type for jinja.
     """
     return datetime.date.today()
 
 
 def get_current_month():
     """
-    Returns current date as date type for jinjna.
+    Returns current date as date type for jinja.
     """
     date = datetime.date.today()
     return date.month
@@ -38,7 +49,7 @@ def get_current_month():
 
 def get_current_year():
     """
-    Returns current date as date type for jinjna.
+    Returns current date as date type for jinja.
     """
     date = datetime.date.today()
     return date.year
@@ -46,14 +57,14 @@ def get_current_year():
 
 def make_date(new_date):
     """
-    Converts datetime to date type for jinjna.
+    Converts datetime to date type for jinja.
     """
     return new_date.date()
 
 
 def make_datetime(new_date):
     """
-    Converts date to datetime type for jinjna.
+    Converts date to datetime type for jinja.
     """
     date = datetime.datetime.combine(new_date, datetime.time(0, 0))
     return date
@@ -149,6 +160,25 @@ def current_day_orders():
     ).all()
 
 
+def add_a_new_meal(price, meal, date_from, date_to, comp, type="daniednia"):
+    """
+    Adds a new meal to menu
+    """
+    from .models import Food
+    from .main import db
+
+    db.session.add(
+        Food(
+            cost=price,
+            description=meal,
+            company=comp,
+            o_type=type,
+            date_available_from=date_from,
+            date_available_to=date_to,
+        )
+    )
+
+
 def send_daily_reminder():
     """
     Sends daily reminder to all users function.
@@ -182,70 +212,134 @@ def add_daily_koziolek():
     """
     Adds meal of a day from pod koziolek
     """
-    from .models import Food
-    from .main import db
-
     food = get_dania_dnia_from_pod_koziolek()
     for category in food:
         for meal in food[category]:
-            new_meal = Food()
-            new_meal.cost = 2 if category == 'zupy' else 11
-            new_meal.description = "Danie dnia Koziołek: {}".format(meal)
-            new_meal.company = "Pod Koziołkiem"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = datetime.date.today()
-            new_meal.date_available_to = datetime.date.today()
-            db.session.add(new_meal)
-    db.session.commit()
+            cost = 2 if category == 'zupy' else 11
+            add_a_new_meal(
+                cost,
+                "Danie dnia Koziołek: {}".format(meal),
+                datetime.date.today(),
+                datetime.date.today(),
+                "Pod Koziołkiem",
+                type="daniednia",
+            )
+
+    db_session_commit()
 
 
 def get_week_from_tomas():
     """
     Adds weak meals from Tomas ! use only on mondays ! - function
     """
-    from .main import db
-    from .models import Food
-
     foods = get_week_from_tomas_crawler()
     for meal in foods['diet']:
-        new_meal = Food()
-        new_meal.cost = 12
-        new_meal.description = meal
-        new_meal.company = "Tomas"
-        new_meal.o_type = "tygodniowe"
-        new_meal.date_available_from = datetime.date.today()
-        new_meal.date_available_to = \
-            datetime.date.today() + \
-            datetime.timedelta(days=4)
-        db.session.add(new_meal)
+        add_a_new_meal(
+            12,
+            meal,
+            datetime.date.today(),
+            datetime.date.today() + datetime.timedelta(days=4),
+            "Tomas",
+            type="tygodniowe"
+        )
     for i in range(1, 6):
         food = foods['dzien_{}'.format(i)]
         day_diff = datetime.date.today() + datetime.timedelta(days=i-1)
         for meal in food['zupy']:
-            new_meal = Food()
-            new_meal.cost = 4
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_diff
-            new_meal.date_available_to = day_diff
-            db.session.add(new_meal)
+            add_a_new_meal(4, meal, day_diff, day_diff, "Tomas")
         for meal in food['dania']:
-            new_meal = Food()
-            new_meal.cost = 10
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_diff
-            new_meal.date_available_to = day_diff
-            db.session.add(new_meal)
+            add_a_new_meal(10, meal, day_diff, day_diff, "Tomas")
         for meal in food['zupa_i_dania']:
-            new_meal = Food()
-            new_meal.cost = 12
-            new_meal.description = meal
-            new_meal.company = "Tomas"
-            new_meal.o_type = "daniednia"
-            new_meal.date_available_from = day_diff
-            new_meal.date_available_to = day_diff
-            db.session.add(new_meal)
-    db.session.commit()
+            add_a_new_meal(12, meal, day_diff, day_diff, "Tomas")
+    db_session_commit()
+
+
+def current_day_meals():
+    """
+    Gets meals from current day.
+    """
+    from .models import Food
+    day = datetime.date.today()
+    today_from = datetime.datetime.combine(day, datetime.time(23, 59))
+    today_to = datetime.datetime.combine(day, datetime.time(0, 0))
+    foods = Food.query.filter(
+        and_(
+            Food.date_available_from <= today_from,
+            Food.date_available_to >= today_to,
+        )
+    ).all()
+    return foods
+
+
+def current_day_meals_and_companies(companies):
+    """
+    Gets meals from current day, and companies for daily and manu.
+    """
+    foods = current_day_meals()
+    companies_current = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type != 'menu'
+        ])
+    ]
+    companies_menu = [
+        company
+        for company in companies
+        if any([
+            meal.company == company.name
+            for meal in foods
+            if meal.o_type == 'menu'
+        ])
+    ]
+    return foods, companies_current, companies_menu
+
+
+def month_orders(year, month, user=None):
+    """
+    Gets meals from current day, and companies for daily and manu.
+    """
+    from .models import Order
+
+    month_begin = datetime.datetime(
+        year=year,
+        month=month,
+        day=1,
+        hour=0,
+        minute=0,
+        second=1
+    )
+    day = monthrange(year, month)[1]
+    month_end = datetime.datetime(
+        year=year,
+        month=month,
+        day=day,
+        hour=23,
+        minute=59,
+        second=59
+    )
+    if user:
+        return Order.query.filter(
+            and_(
+                Order.date >= month_begin,
+                Order.date <= month_end,
+                Order.user_name == user,
+            )
+        ).all()
+    return Order.query.filter(
+        and_(
+            Order.date >= month_begin,
+            Order.date <= month_end,
+        )
+    ).all()
+
+
+def change_ordering_status(block_or_not):
+    """
+    Allows to block or unblock ordering for everyone.
+    """
+    from .models import OrderingInfo
+    OrderingInfo.query.get(1).is_allowed = block_or_not
+    db_session_commit()
