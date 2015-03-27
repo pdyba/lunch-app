@@ -4,11 +4,11 @@ Presence analyzer unit tests.
 """
 # pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
 
+from calendar import month_name
 from datetime import datetime, date, timedelta
 import os.path
 import unittest
 from unittest.mock import patch
-from calendar import month_name
 
 from .main import app, db, mail
 from . import main, utils

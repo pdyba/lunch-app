@@ -43,7 +43,7 @@ log = logging.getLogger(__name__)
 @app.route('/<error>')
 def index(error=None):
     """
-    Login page.
+    Gplus login page.
     """
     if not current_user.is_anonymous() and \
             '@stxnext.pl' in current_user.username:
