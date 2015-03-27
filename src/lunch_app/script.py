@@ -217,6 +217,23 @@ def run():
         with app.app_context():
             add_daily_koziolek()
 
+    def action_unblock_ordering(debug=False):
+        """
+        This command is responsible for blocking or unblocking the ability
+        to create new orders. Use on 00:01 every day.
+        Options:
+        - '--debug' use debug configuration
+        """
+        from .utils import change_ordering_status
+
+        if debug:
+            app = make_debug(with_debug_layer=False)
+        else:
+            app = make_app()
+
+        with app.app_context():
+            change_ordering_status(True)
+
     werkzeug.script.run()
 
 

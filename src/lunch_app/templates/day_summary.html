@@ -80,7 +80,7 @@
                             {% for order in order_details[comp.name]['12:00'] %}
 
                                 <li>
-                                    <span title="{{ order.user_name }}">
+                                    <span data-tooltip aria-haspopup="true" class="has-tip" title="{{ order.user_name }}">
                                     <a href="{{ url_for('edit_order', order_id=order.id) }}">
                                     {{ order.description }} <b> {{ order.cost }} PLN </b>
                                     </a>
@@ -102,7 +102,7 @@
 
                             {% for order in order_details[comp.name]['13:00'] %}
                                 <li>
-                                <span title="{{ order.user_name }}">
+                                <span data-tooltip aria-haspopup="true" class="has-tip"  title="{{ order.user_name }}">
                                 <a href="{{ url_for('edit_order', order_id=order.id) }}">
                                     {{ order.description }} <b> {{ order.cost }} PLN </b>
                                 </a>

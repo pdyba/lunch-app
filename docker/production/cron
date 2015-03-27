@@ -1,0 +1,4 @@
+45 10 * * 1-5 cd /root/lunch-app && ./bin/flask-app send_daily_reminder > /dev/null 2>&1
+0 9 * * 1 cd /root/lunch-app && ./bin/flask-app add_tomas > /dev/null 2>&1
+40 8 * * 1-5 cd /root/lunch-app && ./bin/flask-app add_koziolek > /dev/null 2>&1
+1 0 * * 1-5 cd /root/lunch-app && ./bin/flask-app unblock_ordering > /dev/null 2>&1

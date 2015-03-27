@@ -8,7 +8,7 @@ MAINTAINER Paweł Jastrzębski <pawel.jastrzebski@stxnext.pl>
 # Prepare base system
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
-RUN apt-get install -y curl locales
+RUN apt-get install -y curl locales cron
 
 # Configure system locales
 RUN echo 'en_US.UTF-8 UTF-8\npl_PL.UTF-8 UTF-8' > /etc/locale.gen && locale-gen
@@ -28,8 +28,10 @@ RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf 
 # Building
 ADD lunch-app /root/lunch-app
 ADD buildout.cfg /root/lunch-app/buildout.cfg
+ADD cron /root/cron
+RUN crontab /root/cron
 WORKDIR /root/lunch-app
 RUN mkdir /root/lunch-app/download-cache && python3 bootstrap-buildout.py && ./bin/buildout -vN && ln -s /usr/local/bin/uwsgi /root/lunch-app/bin/uwsgi
 RUN ./bin/flask-ctl db_migrate upgrade
-CMD ./bin/flask-ctl serve fg
+CMD cron -f & ./bin/flask-ctl serve fg
 EXPOSE 8080
