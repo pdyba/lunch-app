@@ -109,16 +109,24 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         fill_db()
         resp = self.client.get('/overview')
         self.assertEqual(resp.status_code, 200)
-        data = {'i_want_daily_reminder': 'y'}
+        data = {
+            'i_want_daily_reminder': 'y',
+            'preferred_food_arrival_time': "13:00",
+        }
         resp = self.client.post('/overview', data=data)
         self.assertEqual(resp.status_code, 302)
         user = User.query.get(1)
         self.assertEqual(user.i_want_daily_reminder, True)
-        data = {'i_want_daily_reminder': 'n'}
+        self.assertEqual(user.preferred_arrival_time, "13:00")
+        data = {
+            'i_want_daily_reminder': 'n',
+            'preferred_food_arrival_time': "12:00",
+        }
         resp = self.client.post('/overview', data=data)
         self.assertEqual(resp.status_code, 302)
         user = User.query.get(1)
         self.assertEqual(user.i_want_daily_reminder, False)
+        self.assertEqual(user.preferred_arrival_time, "12:00")
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_create_order_view(self):
@@ -285,6 +293,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertIn('CieplyKot<b> 3 szt.', str(resp.data))
         self.assertIn('Marchewka W Keczupie<b> 3 szt.', str(resp.data))
 
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_order_list_view(self):
         """
         Test order list page.
@@ -994,6 +1003,47 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 302)
         resp = self.client.get('/pizza_time/1')
         self.assertNotIn('WielkaMargarittaZKotem', str(resp.data))
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_food_edit(self):
+        """
+        Test food edit
+        """
+        fill_db()
+        resp = self.client.get('/food_edit/1')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'cost': '96.0',
+            'description': 'wyedytowane jedzonko',
+            'date_available_to': '2018-01-01',
+            'company': 'Pod Koziołkiem',
+            'date_available_from': '2015-01-01',
+            'o_type': 'menu',
+        }
+        resp = self.client.post('/food_edit/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        food = Food.query.get(1)
+        self.assertEqual(food.cost, float(data['cost']))
+        self.assertEqual(food.description, data['description'])
+        self.assertEqual(food.date_available_to, datetime(2018, 1, 1, 0, 0))
+        self.assertEqual(food.date_available_from, datetime(2015, 1, 1, 0, 0))
+        self.assertEqual(food.company, data['company'])
+        self.assertEqual(food.o_type, data['o_type'])
+
+    @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_food_delete(self):
+        """
+        Test food delete.
+        """
+        fill_db()
+        resp = self.client.get('/food_edit/1')
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/food_delete/1')
+        self.assertEqual(resp.status_code, 302)
+        food = Food.query.get(1)
+        self.assertEqual(food, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_access_for_user(self):
