@@ -59,8 +59,11 @@
     height: 30px;
     width: 130px;
 }
-}
 
 ul.accordion {
-    margin-left: 0;
+    margin-left: 0!important;
+}
+
+tr.danie-dnia {
+    background-color:rgba(0,150,148,0.1)!important;
 }

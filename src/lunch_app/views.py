@@ -196,6 +196,7 @@ def day_summary():
             foods = order.description
             foods = foods.replace('\r', '').split('\n')
             for food in foods:
+                food = food.strip()
                 if food and \
                         food != "!RANDOM ORDER!" and \
                         order.company == comp.name:
@@ -314,6 +315,8 @@ def order_list():
     """
     form = UserOrders(request.form)
     form.user.choices = [(user.id, user.username) for user in User.query.all()]
+    if not current_user.is_admin():
+        form.user.data = current_user.id
     if request.method == 'POST' and form.validate():
         if form.data['month']:
             return redirect(url_for(
