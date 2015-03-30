@@ -13,6 +13,7 @@ MOCK_ADMIN.is_anonymous.return_value = False
 MOCK_ADMIN.is_active.return_value = True
 MOCK_ADMIN.email = 'mock@mock.com'
 MOCK_ADMIN.id = 1
+MOCK_ADMIN.preferred_arrival_time = "12:00"
 
 MOCK_USER = Mock()
 MOCK_USER.username = 'mock_user'
@@ -21,6 +22,7 @@ MOCK_USER.is_anonymous.return_value = False
 MOCK_USER.is_active.return_value = True
 MOCK_USER.email = 'mock_user@mock.com'
 MOCK_USER.id = 1
+MOCK_USER.preferred_arrival_time = "12:00"
 
 MOCK_DATA_KOZIOLEK = Mock()
 MOCK_DATA_KOZIOLEK.return_value = {

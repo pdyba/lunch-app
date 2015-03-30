@@ -34,6 +34,7 @@ class User(db.Model, UserMixin):
     admin = Column(Boolean, default=False)
     i_want_daily_reminder = Column(Boolean, default=False)
     rate_timestamp = Column(Date)
+    preferred_arrival_time = Column(String(5), default="12:00")
 
     def is_active(self):
         """

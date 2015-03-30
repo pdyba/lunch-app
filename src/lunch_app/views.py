@@ -19,7 +19,7 @@ from .main import app, db, mail
 from .forms import (
     OrderForm, AddFood, OrderEditForm,
     UserOrders, CompanyOrders, MailTextForm,
-    UserDailyReminderForm, FinanceSearchForm, CompanyAddForm,
+    UserPreferences, FinanceSearchForm, CompanyAddForm,
     FoodRateForm, FinanceBlockUserForm, PizzaChooseForm,
 )
 from .models import (
@@ -61,10 +61,14 @@ def overview():
     Overview page.
     """
     user = User.query.get(current_user.id)
-    form = UserDailyReminderForm(formdata=request.form, obj=user)
+    form = UserPreferences(formdata=request.form, obj=user)
+    form.preferred_food_arrival_time.data = user.preferred_arrival_time
     if request.method == 'POST' and form.validate():
         user.i_want_daily_reminder = \
             request.form.get('i_want_daily_reminder') == 'y'
+        user.preferred_arrival_time = request.form.get(
+            'preferred_food_arrival_time'
+        )
         db.session.commit()
         flash('User preferences updated')
         return redirect('overview')
@@ -88,6 +92,7 @@ def create_order():
     form.company.choices = [
         (comp.name, "Order from {}".format(comp.name)) for comp in companies
     ]
+    form.arrival_time.default = current_user.preferred_arrival_time
     foods, companies_current, companies_menu = \
         current_day_meals_and_companies(companies)
     if request.method == 'POST' and form.validate():
@@ -1076,4 +1081,17 @@ def food_edit_view(food_id):
     return render_template(
         'food_edit.html',
         form=form,
+        food=food,
     )
+
+
+@app.route('/food_delete/<int:food_id>', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
+def delete_food(food_id):
+    """
+    Deletes food.
+    """
+    db.session.delete(Food.query.get(food_id))
+    db.session.commit()
+    return redirect('add_food')

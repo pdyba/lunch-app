@@ -185,12 +185,19 @@ class MailTextForm(Form):
     )
 
 
-class UserDailyReminderForm(Form):
+class UserPreferences(Form):
     """
     User daily reminder form.
     """
     i_want_daily_reminder = BooleanField(
         'i_want_daily_reminder',
+    )
+    preferred_food_arrival_time = SelectField(
+        'preferred_food_arrival_time',
+        choices=[
+            ('12:00', '12:00'),
+            ('13:00', '13:00'),
+        ]
     )
 
 

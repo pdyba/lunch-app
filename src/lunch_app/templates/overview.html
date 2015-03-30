@@ -4,33 +4,32 @@
 
 {% block content %}
 
+    <h3>My settings</h3>
+    <form method="POST">
+    <div class="large-6 columns">
 
-        <h3>My settings</h3>
-
-        <div class="large-6 columns">
-
-
-                <form method="POST">
-                    <div class="large-11 columns">
-                    I desire receiving email every day at 10:45 with reminder
-                    that I did <b>not</b> commit order on that marvelous day.
-                    </div>
-                        <div class="large-1 columns">
-                    <div class="switch small">
-                    {{ form.i_want_daily_reminder }}
-                        <label for="i_want_daily_reminder"></label>
-                    </div>
-                    </div>
-
-                    <br>
-
-                    <input type="submit" value="submit" class="button right">
-                    </form>
-
+        <div class="large-11 columns">
+            I desire receiving email every day at 10:45 with reminder
+            that I did <b>not</b> commit order on that marvelous day.
         </div>
-
-        <div class="large-6 columns">
+        <div class="large-1 columns">
+            <div class="switch small">
+                {{ form.i_want_daily_reminder }}
+            <label for="i_want_daily_reminder"></label>
+            </div>
         </div>
+    </div>
 
+    <div class="large-6 columns">
+        <div class="large-9 columns">
+            I prefer my meals to be brought default at this hour.
+        </div>
+        <div class="large-3 columns right">
+            {{ form.preferred_food_arrival_time }}
+        </div>
+    </div>
+    <input type="submit" value="submit" class="button right">
+
+    </form>
 
 {% endblock %}
