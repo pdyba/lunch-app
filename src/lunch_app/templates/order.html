@@ -83,7 +83,7 @@ function confirmation_13() {
 
                         {% for meal in foods %}
                             {% if meal.company == comp.name and meal.o_type != 'menu' %}
-                               <tr>
+                               <tr {% if "Danie dnia" in meal.description %}class="danie-dnia"{% endif %}>
                  <td>
                      <span data-tooltip aria-haspopup="true" class="has-tip"
                        title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
