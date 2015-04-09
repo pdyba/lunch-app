@@ -528,13 +528,12 @@ def finance(year, month, did_pay):
         if should_drop:
             del finance_data[user.username]
     pub_date = {'year': year, 'month': month_name[month]}
-    finance_record = Finance()
     if request.method == 'POST':
         for row in finance_data.values():
-            finance_record.did_user_pay = request.form.get(
+            finance_record = Finance()
+            finance_record.did_user_pay = (request.form.get(
                 'did_user_pay_'+row['username'],
-                'off',
-            ) == 'on'
+            ) == 'on')
             finance_record.month = month
             finance_record.year = year
             finance_record.user_name = row['username']
