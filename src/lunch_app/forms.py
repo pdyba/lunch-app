@@ -192,8 +192,8 @@ class UserPreferences(Form):
     i_want_daily_reminder = BooleanField(
         'i_want_daily_reminder',
     )
-    preferred_food_arrival_time = SelectField(
-        'preferred_food_arrival_time',
+    preferred_arrival_time = SelectField(
+        'preferred_arrival_time',
         choices=[
             ('12:00', '12:00'),
             ('13:00', '13:00'),

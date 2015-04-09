@@ -5,6 +5,7 @@ Webrcrawlers functions
 """
 from bs4 import BeautifulSoup
 from urllib import request
+import re
 
 
 def read_webpage(webpage):
@@ -42,12 +43,25 @@ def get_dania_dnia_from_pod_koziolek():
             "-201" not in item and
             len(item) > 2
         )
-        if cleaner:
+        if cleaner and len(re.findall('[0-9]+', item)) <= 1:
             list_of_meals.append(item)
+        elif cleaner:
+            new_meal_list = re.split('[0-9].', item)
+            for meal in enumerate(new_meal_list):
+                if meal[1]:
+                    list_of_meals.append("{}.{}".format(meal[0], meal[1]))
     meal_of_a_day = {
         "zupy": [],
         "dania_dnia": [],
     }
+    number = 0
+    while number < len(list_of_meals)-1:
+        if list_of_meals[number][0].isdigit() and \
+                not list_of_meals[number+1][0].isdigit():
+            list_of_meals[number] += list_of_meals[number+1]
+            list_of_meals.pop(number+1)
+            number = 0
+        number += 1
     for meal in list_of_meals:
         if not meal[0].isdigit():
             meal_of_a_day["zupy"].append(meal)
