@@ -62,12 +62,11 @@ def overview():
     """
     user = User.query.get(current_user.id)
     form = UserPreferences(formdata=request.form, obj=user)
-    form.preferred_food_arrival_time.data = user.preferred_arrival_time
     if request.method == 'POST' and form.validate():
         user.i_want_daily_reminder = \
             request.form.get('i_want_daily_reminder') == 'y'
         user.preferred_arrival_time = request.form.get(
-            'preferred_food_arrival_time'
+            'preferred_arrival_time'
         )
         db.session.commit()
         flash('User preferences updated')
@@ -92,12 +91,13 @@ def create_order():
     form.company.choices = [
         (comp.name, "Order from {}".format(comp.name)) for comp in companies
     ]
-    form.arrival_time.default = current_user.preferred_arrival_time
+    form.arrival_time.data = current_user.preferred_arrival_time
     foods, companies_current, companies_menu = \
         current_day_meals_and_companies(companies)
     if request.method == 'POST' and form.validate():
         order = Order()
         form.populate_obj(order)
+        order.arrival_time = request.form['arrival_time']
         order.user_name = current_user.username
         order.description = order.description.strip()
         db.session.add(order)
@@ -528,13 +528,12 @@ def finance(year, month, did_pay):
         if should_drop:
             del finance_data[user.username]
     pub_date = {'year': year, 'month': month_name[month]}
-    finance_record = Finance()
     if request.method == 'POST':
         for row in finance_data.values():
-            finance_record.did_user_pay = request.form.get(
+            finance_record = Finance()
+            finance_record.did_user_pay = (request.form.get(
                 'did_user_pay_'+row['username'],
-                'off',
-            ) == 'on'
+            ) == 'on')
             finance_record.month = month
             finance_record.year = year
             finance_record.user_name = row['username']

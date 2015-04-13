@@ -111,7 +111,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         data = {
             'i_want_daily_reminder': 'y',
-            'preferred_food_arrival_time': "13:00",
+            'preferred_arrival_time': "13:00",
         }
         resp = self.client.post('/overview', data=data)
         self.assertEqual(resp.status_code, 302)
@@ -120,7 +120,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(user.preferred_arrival_time, "13:00")
         data = {
             'i_want_daily_reminder': 'n',
-            'preferred_food_arrival_time': "12:00",
+            'preferred_arrival_time': "12:00",
         }
         resp = self.client.post('/overview', data=data)
         self.assertEqual(resp.status_code, 302)
