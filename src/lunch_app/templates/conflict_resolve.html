@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% set page_id = 'conflict_resolve' %}
+
+{% block content %}
+<div class="large-12 columns">
+<h3>Conflict Resolve</h3>
+       <form method="POST">
+    <div class="large-6 columns">
+
+        <div class="large-11 columns">
+        Is the conflict resolved:
+        </div>
+        <div class="large-1 columns">
+            <div class="switch small">
+                {{ form.resolved }}
+            <label for="resolved"></label>
+            </div>
+        </div>
+
+        <div class="large-9 columns">
+            Resolve conflict by:
+        </div>
+        <div class="large-3 columns right">
+            {{ form.resolved_by }}
+        </div>
+
+        <div class="large-9 columns">
+            Add some notes:
+            {{ form.notes }}
+        </div>
+    </div>
+    <input type="submit" value="submit" class="button right">
+
+    </form>
+    </div>
+{% endblock %}

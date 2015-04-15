@@ -13,7 +13,7 @@ from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 
 from .main import app, db, mail
 from .forms import (
@@ -21,11 +21,12 @@ from .forms import (
     UserOrders, CompanyOrders, MailTextForm,
     UserPreferences, FinanceSearchForm, CompanyAddForm,
     FoodRateForm, FinanceBlockUserForm, PizzaChooseForm,
+    CreateConflict, ResolveConflict,
 )
 from .models import (
     Order, Food, User,
     Finance, MailText, Company,
-    Pizza,
+    Pizza, Conflict,
 )
 from .permissions import user_is_admin
 from .utils import (
@@ -1094,3 +1095,56 @@ def delete_food(food_id):
     db.session.delete(Food.query.get(food_id))
     db.session.commit()
     return redirect('add_food')
+
+
+@app.route('/conflicts', methods=['GET', 'POST'])
+@login.login_required
+def conflicts():
+    if not current_user.is_admin():
+        conflicts = Conflict.query.filter(
+            or_(
+                Conflict.created_by_user == current_user.username,
+                Conflict.user_connected == current_user.username,
+            )
+        ).all()
+    else:
+        conflicts = Conflict.query.filter(Conflict.resolved == False).all()
+
+    return render_template("conflicts.html", conflicts=conflicts)
+
+
+@app.route('/conflict_create/<int:order_id>', methods=['GET', 'POST'])
+@login.login_required
+def conflict_create(order_id):
+    order = Order.query.get(order_id)
+    form = CreateConflict(formdata=request.form)
+    form.user_connected.choices = [
+        (user.username, user.username) for user in User.query.all()
+    ]
+    if request.method == 'POST' and form.validate():
+        conflict = Conflict()
+        form.populate_obj(conflict)
+        conflict.order_connected = order.id
+        conflict.created_by_user = current_user.username
+        conflict.resolved = False
+        db.session.add(conflict)
+        db.session.commit()
+        flash('Conflict created')
+        return redirect('my_orders')
+    return render_template("conflict_create.html", form=form)
+
+
+@app.route('/conflict_resolve/<int:conf_id>', methods=['GET', 'POST'])
+@login.login_required
+def conflict_resolve(conf_id):
+    form = ResolveConflict(formdata=request.form)
+    conflict = Conflict.query.get(conf_id)
+    form.resolved_by.choices = [
+        ("Order did not come", "Order did not come"),
+        ("Order come but someone ate it", "Order come but someone ate it"),
+    ]
+    if request.method == 'POST' and form.validate():
+        conflict.resolved = request.form.resolved
+        conflict.resolved_by = request.form.resolved_by
+        conflict.notes = request.form.notes
+    return render_template("conflict_resolve.html", form=form)

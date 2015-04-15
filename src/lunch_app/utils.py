@@ -343,3 +343,25 @@ def change_ordering_status(block_or_not):
     from .models import OrderingInfo
     OrderingInfo.query.get(1).is_allowed = block_or_not
     db_session_commit()
+
+
+def get_conflicts_amount(user):
+    """
+    Get current conflicts number.
+    """
+    from sqlalchemy import or_
+    from .models import Conflict
+
+    if not user.is_admin():
+        return len(Conflict.query.filter(
+            and_(
+                Conflict.resolved == False,
+                or_(
+                    Conflict.created_by_user == user.username,
+                    Conflict.user_connected == user.username,
+                ),
+            )
+        ).all())
+    else:
+        return len(Conflict.query.filter(Conflict.resolved == False).all())
+

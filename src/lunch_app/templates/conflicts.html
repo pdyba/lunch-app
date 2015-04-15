@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% set page_id = 'conflicts' %}
+
+{% block content %}
+<div class="large-12 columns">
+        <h3>My conflicts</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Order description</th>
+                <th>Resolved</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for conflict in conflicts %}
+                <tr>
+                    <td>{{ conflict.date_added.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ conflict.order_connected }}</td>
+                    <td>{{ conflict.resolved }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+{% endblock %}
