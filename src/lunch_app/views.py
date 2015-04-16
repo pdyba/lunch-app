@@ -91,7 +91,8 @@ def create_order():
     form.company.choices = [
         (comp.name, "Order from {}".format(comp.name)) for comp in companies
     ]
-    form.arrival_time.data = current_user.preferred_arrival_time
+    if current_user.preferred_arrival_time:
+        form.arrival_time.data = current_user.preferred_arrival_time
     foods, companies_current, companies_menu = \
         current_day_meals_and_companies(companies)
     if request.method == 'POST' and form.validate():
