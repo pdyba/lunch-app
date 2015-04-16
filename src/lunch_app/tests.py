@@ -1046,9 +1046,36 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(food, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_USER)
+    def test_conflicts(self):
+        """
+        Test food delete.
+        """
+        fill_db()
+        resp = self.client.get('/conflicts')
+        self.assertEqual(resp.status_code, 200)
+
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
+    def test_conflicts_create(self):
+        """
+        Test conflicts list view.
+        """
+        fill_db()
+        resp = self.client.get('/conflicts')
+        self.assertEqual(resp.status_code, 200)
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_conflicts_resolve(self):
+        """
+        Test conflict create view.
+        """
+        fill_db()
+        resp = self.client.get('/conflicts')
+        self.assertEqual(resp.status_code, 200)
+
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_access_for_user(self):
         """
-        Test access right for regular user.
+        Test conflict resolve view.
         """
         fill_db()
 

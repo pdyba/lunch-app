@@ -316,7 +316,7 @@ class CreateConflict(Form):
     i_know_who = BooleanField(
         'i_know_who',
     )
-    user_connected = SelectField('user_connected')
+    user_connected = SelectField('user_connected', default=None)
 
 
 class ResolveConflict(Form):
@@ -328,9 +328,6 @@ class ResolveConflict(Form):
     )
     resolved_by = SelectField(
         'resolved_by',
-        validators=[validators.DataRequired(
-            'Please enter how it was resolved.'
-        )],
     )
     notes = TextAreaField(
         "notes",

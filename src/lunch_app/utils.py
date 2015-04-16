@@ -352,7 +352,7 @@ def get_conflicts_amount(user):
     from sqlalchemy import or_
     from .models import Conflict
 
-    if not user.is_admin():
+    if user.is_admin():
         return len(Conflict.query.filter(
             and_(
                 Conflict.resolved == False,

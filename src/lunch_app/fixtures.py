@@ -4,7 +4,10 @@ Fixtures for database.
 from datetime import datetime, date, timedelta
 
 from .main import db
-from .models import Order, Food, User, Finance, MailText, Company, OrderingInfo
+from .models import (
+    Order, Food, User, Finance,
+    MailText, Company, OrderingInfo, Conflict,
+)
 from .utils import get_current_month, get_current_year
 
 
@@ -170,6 +173,52 @@ def fill_finance():
     db.session.add(finance_2)
     db.session.commit()
 
+
+def fill_conflicts():
+    """
+    Fill conflict database for tests
+    """
+    conflict = Conflict()
+    conflict.created_by_user = " "
+    conflict.user_connected = " "
+    conflict.order_connected = " "
+    conflict.i_know_who = " "
+    conflict.did_order_come = " "
+    conflict.resolved = " "
+    conflict.resolved_by = " "
+    conflict.notes = " "
+    conflict_2 = Conflict()
+    conflict.created_by_user = " "
+    conflict.user_connected = " "
+    conflict.order_connected = " "
+    conflict.i_know_who = " "
+    conflict.did_order_come = " "
+    conflict.resolved = " "
+    conflict.resolved_by = " "
+    conflict.notes = " "
+    conflict_3 = Conflict()
+    conflict.created_by_user = " "
+    conflict.user_connected = " "
+    conflict.order_connected = " "
+    conflict.i_know_who = " "
+    conflict.did_order_come = " "
+    conflict.resolved = " "
+    conflict.resolved_by = " "
+    conflict.notes = " "
+    conflict_4 = Conflict()
+    conflict.created_by_user = " "
+    conflict.user_connected = " "
+    conflict.order_connected = " "
+    conflict.i_know_who = " "
+    conflict.did_order_come = " "
+    conflict.resolved = " "
+    conflict.resolved_by = " "
+    conflict.notes = " "
+    db.session.add(conflict)
+    db.session.add(conflict_2)
+    db.session.add(conflict_3)
+    db.session.add(conflict_4)
+    db.session.commit()
 
 def fill_db():
     """

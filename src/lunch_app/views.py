@@ -92,7 +92,8 @@ def create_order():
     form.company.choices = [
         (comp.name, "Order from {}".format(comp.name)) for comp in companies
     ]
-    form.arrival_time.data = current_user.preferred_arrival_time
+    if current_user.preferred_arrival_time:
+        form.arrival_time.data = current_user.preferred_arrival_time
     foods, companies_current, companies_menu = \
         current_day_meals_and_companies(companies)
     if request.method == 'POST' and form.validate():
@@ -1100,7 +1101,7 @@ def delete_food(food_id):
 @app.route('/conflicts', methods=['GET', 'POST'])
 @login.login_required
 def conflicts():
-    if not current_user.is_admin():
+    if current_user.is_admin():
         conflicts = Conflict.query.filter(
             or_(
                 Conflict.created_by_user == current_user.username,
@@ -1121,6 +1122,8 @@ def conflict_create(order_id):
     form.user_connected.choices = [
         (user.username, user.username) for user in User.query.all()
     ]
+    form.user_connected.choices.append(("None", "None"))
+    form.user_connected.default = ("None", "None")
     if request.method == 'POST' and form.validate():
         conflict = Conflict()
         form.populate_obj(conflict)
@@ -1137,14 +1140,17 @@ def conflict_create(order_id):
 @app.route('/conflict_resolve/<int:conf_id>', methods=['GET', 'POST'])
 @login.login_required
 def conflict_resolve(conf_id):
-    form = ResolveConflict(formdata=request.form)
     conflict = Conflict.query.get(conf_id)
+    form = ResolveConflict(formdata=request.form, obj=conflict)
     form.resolved_by.choices = [
         ("Order did not come", "Order did not come"),
         ("Order come but someone ate it", "Order come but someone ate it"),
     ]
     if request.method == 'POST' and form.validate():
-        conflict.resolved = request.form.resolved
-        conflict.resolved_by = request.form.resolved_by
-        conflict.notes = request.form.notes
+        conflict.resolved = (request.form.get("resolved") == "y")
+        conflict.resolved_by = request.form["resolved_by"]
+        conflict.notes = request.form["notes"]
+        db.session.commit()
+        flash('Conflict updated')
+        return redirect('conflicts')
     return render_template("conflict_resolve.html", form=form)
