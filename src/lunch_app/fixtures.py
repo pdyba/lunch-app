@@ -179,41 +179,29 @@ def fill_conflicts():
     Fill conflict database for tests
     """
     conflict = Conflict()
-    conflict.created_by_user = " "
-    conflict.user_connected = " "
-    conflict.order_connected = " "
-    conflict.i_know_who = " "
-    conflict.did_order_come = " "
-    conflict.resolved = " "
-    conflict.resolved_by = " "
+    conflict.created_by_user = "test@user.pl"
+    conflict.user_connected = "x@x.pl"
+    conflict.order_connected = 1
+    conflict.i_know_who = True
+    conflict.did_order_come = True
+    conflict.resolved = False
+    conflict.resolved_by = None
     conflict.notes = " "
     conflict_2 = Conflict()
-    conflict.created_by_user = " "
-    conflict.user_connected = " "
-    conflict.order_connected = " "
-    conflict.i_know_who = " "
-    conflict.did_order_come = " "
-    conflict.resolved = " "
-    conflict.resolved_by = " "
-    conflict.notes = " "
+    conflict.created_by_user = "x@x.pl"
+    conflict.user_connected = "test@user.pl"
+    conflict.order_connected = 2
+    conflict.i_know_who = True
+    conflict.did_order_come = True
     conflict_3 = Conflict()
-    conflict.created_by_user = " "
-    conflict.user_connected = " "
-    conflict.order_connected = " "
-    conflict.i_know_who = " "
-    conflict.did_order_come = " "
-    conflict.resolved = " "
-    conflict.resolved_by = " "
-    conflict.notes = " "
+    conflict.created_by_user = "test@user.pl"
+    conflict.order_connected = 3
+    conflict.i_know_who = False
+    conflict.did_order_come = True
     conflict_4 = Conflict()
-    conflict.created_by_user = " "
-    conflict.user_connected = " "
-    conflict.order_connected = " "
-    conflict.i_know_who = " "
-    conflict.did_order_come = " "
-    conflict.resolved = " "
-    conflict.resolved_by = " "
-    conflict.notes = " "
+    conflict.created_by_user = "test@user.pl"
+    conflict.order_connected = 4
+    conflict.did_order_come = False
     db.session.add(conflict)
     db.session.add(conflict_2)
     db.session.add(conflict_3)

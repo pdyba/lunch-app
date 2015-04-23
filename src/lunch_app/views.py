@@ -1124,14 +1124,29 @@ def conflict_create(order_id):
     ]
     form.user_connected.choices.append(("None", "None"))
     form.user_connected.default = ("None", "None")
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
         conflict = Conflict()
-        form.populate_obj(conflict)
+        conflict.did_order_come = request.form.get("did_order_come") == 'y'
+        conflict.i_know_who = request.form.get("i_know_who") == 'y'
+        conflict.user_connected = request.form.get("user_connected")
         conflict.order_connected = order.id
         conflict.created_by_user = current_user.username
         conflict.resolved = False
         db.session.add(conflict)
         db.session.commit()
+        if conflict.i_know_who:
+            new_conflict = Conflict.query.all()[-1]
+            conflict_url = server_url() + url_for(
+                "conflict_resolve",
+                conf_id=new_conflict.id,
+            )
+            msg = Message(
+                'Lunch app new conflict',
+                recipients=[conflict.user_connected],
+            )
+            msg.body = 'Yoy ware choosen as the one who ate my lunch! Please use ' \
+                       'the link below to respond \n\n {}'.format(conflict_url)
+            mail.send(msg)
         flash('Conflict created')
         return redirect('my_orders')
     return render_template("conflict_create.html", form=form)
@@ -1142,14 +1157,32 @@ def conflict_create(order_id):
 def conflict_resolve(conf_id):
     conflict = Conflict.query.get(conf_id)
     form = ResolveConflict(formdata=request.form, obj=conflict)
-    form.resolved_by.choices = [
-        ("Order did not come", "Order did not come"),
-        ("Order come but someone ate it", "Order come but someone ate it"),
-    ]
+    if current_user.is_admin():
+        form.resolved_by.choices = [
+            ("Not resolved yet", "Not resolved yet"),
+            ("Order did not come", "Order did not come"),
+            ("Order come but someone ate it", "Order come but someone ate it"),
+        ]
+    elif current_user.username == conflict.user_connected:
+        form.resolved_by.choices = [
+            ("I did not eat your lunch", "I did not eat your lunch"),
+            ("I'm sorry, I ate your meal", "I'm sorry, I ate your meal"),
+        ]
+    else:
+        flash("You cannot resolve conflicts by yourself")
+        return redirect('conflicts')
     if request.method == 'POST' and form.validate():
         conflict.resolved = (request.form.get("resolved") == "y")
         conflict.resolved_by = request.form["resolved_by"]
-        conflict.notes = request.form["notes"]
+        conflict.notes = request.form.get("notes")
+        if conflict.resolved_by == "Order did not come":
+            order = Order.query.get(conflict.order_connected)
+            order.cost = 0
+            order.description = "ORDER DID NOT COME\n" + order.description
+        elif conflict.resolved_by == "I'm sorry, I ate your meal":
+            conflict.resolved = True
+            order = Order.query.get(conflict.order_connected)
+            order.user_name = current_user.username
         db.session.commit()
         flash('Conflict updated')
         return redirect('conflicts')

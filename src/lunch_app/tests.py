@@ -12,16 +12,15 @@ from unittest.mock import patch
 
 from .main import app, db, mail
 from . import main, utils
-from .fixtures import fill_db, allow_ordering, fill_company
-from .mocks import (
-    MOCK_ADMIN,
-    MOCK_USER,
-    MOCK_DATA_TOMAS,
-    MOCK_DATA_KOZIOLEK,
-    MOCK_WWW_TOMAS,
-    MOCK_WWW_KOZIOLEK,
+from .fixtures import (
+    fill_db, allow_ordering, fill_company,
+    fill_user, fill_conflicts,
 )
-from .models import Order, Food, MailText, User
+from .mocks import (
+    MOCK_ADMIN, MOCK_USER, MOCK_DATA_TOMAS,
+    MOCK_DATA_KOZIOLEK, MOCK_WWW_TOMAS, MOCK_WWW_KOZIOLEK,
+)
+from .models import Order, Food, MailText, User, Conflict
 from .webcrawler import (
     get_dania_dnia_from_pod_koziolek,
     get_week_from_tomas_crawler,
@@ -1050,27 +1049,108 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         """
         Test food delete.
         """
-        fill_db()
+        allow_ordering()
         resp = self.client.get('/conflicts')
         self.assertEqual(resp.status_code, 200)
 
     @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_conflicts_create(self):
         """
-        Test conflicts list view.
+        Test conflicts create view.
         """
-        fill_db()
-        resp = self.client.get('/conflicts')
+        fill_company()
+        allow_ordering()
+        fill_user()
+        resp = self.client.post('/order')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'food_for_my_odrder_view',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/conflict_create/1')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            "did_order_come": "n",
+        }
+        resp = self.client.post('/conflict_create/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'food_for_my_odrder_view',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/conflict_create/2')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            "did_order_come": "y",
+            "i_know_who": "n",
+        }
+        resp = self.client.post('/conflict_create/2', data=data)
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'food_for_my_odrder_view',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/conflict_create/3')
         self.assertEqual(resp.status_code, 200)
 
+        data = {
+            "did_order_come": "y",
+            "i_know_who": "y",
+            "user_connected": "x@x.pl",
+        }
+        print(resp.data)
+        resp = self.client.post('/conflict_create/3', data=data)
+        self.assertEqual(resp.status_code, 302)
+
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
-    def test_conflicts_resolve(self):
+    def test_conflicts_admin_resolve(self):
         """
         Test conflict create view.
         """
         fill_db()
+        fill_conflicts()
         resp = self.client.get('/conflicts')
         self.assertEqual(resp.status_code, 200)
+        resp = self.client.get('/conflict_resolve/1')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            "resolved": "y",
+            "resolved_by": "Order did not come",
+            'notes': "",
+        }
+        resp = self.client.post('/conflict_resolve/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        conflict = Conflict.query.get(1)
+        self.assertEqual(conflict.resolved, True)
+        self.assertEqual(conflict.resolved_by, data['resolved_by'])
+        self.assertEqual(conflict.notes, data['notes'])
+        resp = self.client.get('/conflict_resolve/2')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            "resolved_by": "Not resolved yet",
+            'notes': "Need some more data",
+        }
+        resp = self.client.post('/conflict_resolve/2', data=data)
+        self.assertEqual(resp.status_code, 302)
+        conflict = Conflict.query.get(2)
+        self.assertEqual(conflict.resolved, False)
+        self.assertEqual(conflict.resolved_by, data['resolved_by'])
+        self.assertEqual(conflict.notes, data['notes'])
 
     @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_access_for_user(self):
