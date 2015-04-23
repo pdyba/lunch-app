@@ -45,10 +45,10 @@
                                checked="checked" {% endif %}/></td>
                     </td>
                     <td>
-                        <a href="{{ url_for('payment_remind', username=record['username'], slack=0) }}">
+                        <a href="{{ url_for('payment_remind', email=record['email'], slack=0) }}">
                             Send e-mail</a></td>
                     <td>
-                        <a href="{{ url_for('payment_remind', username=record['username'], slack=1) }}">
+                        <a href="{{ url_for('payment_remind', email=record['email'], slack=1) }}">
                             ! SLACKER !</a>
 
                     </td>
