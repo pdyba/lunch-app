@@ -54,11 +54,11 @@ def fill_user():
     Fill user database for tests
     """
     user = User()
-    user.email = 'e@e.pl'
+    user.email = 'test_user'
     user.username = 'test_user'
     db.session.add(user)
     user_2 = User()
-    user_2.email = 'd@d.pl'
+    user_2.email = 'test@user.pl'
     user_2.username = 'test@user.pl'
     user_2.i_want_daily_reminder = True
     db.session.add(user_2)

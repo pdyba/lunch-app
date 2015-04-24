@@ -498,6 +498,7 @@ def finance(year, month, did_pay):
     for user in users:
         finance_data[user.username] = {
             'username': user.username,
+            'email': user.email,
             'number_of_orders': 0,
             'month_cost': 0,
             'did_user_pay': False,
@@ -620,6 +621,7 @@ def finance_mail_all():
     for user in users:
         finance_data[user.username] = {
             'username': user.username,
+            'email': user.email,
             'number_of_orders': 0,
             'month_cost': 0,
             'did_user_pay': False,
@@ -646,7 +648,7 @@ def finance_mail_all():
             msg = Message(
                 'Lunch {} / {} summary'.format(month_name[month],
                                                year),
-                recipients=[record['username']],
+                recipients=[record['email']],
             )
             msg.body = "In {} you ordered {} meals for {} PLN.\n {}".format(
                 month_name[month],
@@ -662,7 +664,7 @@ def finance_mail_all():
             if not record['did_user_pay']:
                 msg = Message(
                     'Lunch app payment reminder',
-                    recipients=[record['username']],
+                    recipients=[record['email']],
                 )
                 msg.body = "In {} you ordered {} meals for {} PLN.\n{}".format(
                     month_name[month],
@@ -677,13 +679,13 @@ def finance_mail_all():
     return render_template('finance_mail_all.html', finance_data=finance_data)
 
 
-@app.route('/payment_remind/<string:username>/<int:slack>', methods=[
+@app.route('/payment_remind/<string:email>/<int:slack>', methods=[
     'GET',
     'POST',
 ])
 @login.login_required
 @user_is_admin
-def payment_remind(username, slack=0):
+def payment_remind(email, slack=0):
     """
     Sends mail to user with reminder or slack reminder.
     """
@@ -694,7 +696,7 @@ def payment_remind(username, slack=0):
             month_name[this_month.month],
             this_month.year
         ),
-        recipients=[username],
+        recipients=[email],
     )
     if slack == 1:
         msg.body = message_text.pay_slacker_reminder
@@ -966,7 +968,7 @@ def order_pizza_for_everybody():
         happening=new_event_id,
     )
     users = User.query.filter(User.active).all()
-    emails = [user.username for user in users]
+    emails = [user.email for user in users]
     text = 'You succesfully orderd pizza for all You can check who wants' \
            ' what here:\n{}\n to finish the pizza orgy click here\n{}\n ' \
            'than order pizza!'.format(event_url, stop_url)

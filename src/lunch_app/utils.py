@@ -195,7 +195,7 @@ def send_daily_reminder():
     ).all()
     message_text = MailText.query.first()
     order_list = ([order.user_name for order in orders])
-    emails = ([user.username for user in users
+    emails = ([user.email for user in users
                if user.username not in order_list])
     msg = Message(
         '{} {}'.format(
