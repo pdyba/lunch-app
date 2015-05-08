@@ -1208,7 +1208,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
                 self.assertEqual(msg.subject, 'Lunch app conflict update')
                 self.assertIn('is sorry he ate Your meal the', msg.body)
 
-
     @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_access_for_user(self):
         """

@@ -47,7 +47,7 @@ def index(error=None):
     Gplus login page.
     """
     if not current_user.is_anonymous() and \
-                    '@stxnext.pl' in current_user.username:
+            '@stxnext.pl' in current_user.username:
         return redirect('order')
     elif not current_user.is_anonymous() or error:
         msg = "Sadly you are not a hero, but you can try and join us."
@@ -204,9 +204,7 @@ def day_summary():
             foods = foods.replace('\r', '').split('\n')
             for food in foods:
                 food = food.strip()
-                if food and \
-                                food != "!RANDOM ORDER!" and \
-                                order.company == comp.name:
+                if food != "!RANDOM ORDER!" and order.company == comp.name:
                     if order.arrival_time == '12:00':
                         if order not in order_details[comp.name]['12:00']:
                             order_details[comp.name]['cost12'] += order.cost
@@ -883,7 +881,7 @@ def finance_block_user():
         flash('User blocked')
         return redirect('finance_block_user')
     elif request.method == 'POST' and \
-                    request.form['block_change'] == 'unblock':
+            request.form['block_change'] == 'unblock':
         user = User.query.get(request.form['user_select'])
         user.active = True
         db.session.commit()
@@ -1103,6 +1101,9 @@ def delete_food(food_id):
 @app.route('/conflicts', methods=['GET', 'POST'])
 @login.login_required
 def conflicts():
+    """
+    Renders conflict view page.
+    """
     if current_user.is_admin():
         conflicts = Conflict.query.filter(
             or_(
@@ -1119,6 +1120,9 @@ def conflicts():
 @app.route('/conflict_create/<int:order_id>', methods=['GET', 'POST'])
 @login.login_required
 def conflict_create(order_id):
+    """
+    Renders conflict create page.
+    """
     order = Order.query.get(order_id)
     form = CreateConflict(formdata=request.form)
     form.user_connected.choices = [
@@ -1158,6 +1162,9 @@ def conflict_create(order_id):
 @app.route('/conflict_resolve/<int:conf_id>', methods=['GET', 'POST'])
 @login.login_required
 def conflict_resolve(conf_id):
+    """
+    Renders conflict resolve page.
+    """
     conflict = Conflict.query.get(conf_id)
     form = ResolveConflict(formdata=request.form, obj=conflict)
     if current_user.is_admin():
@@ -1202,8 +1209,8 @@ def conflict_resolve(conf_id):
                        "assigned to him/her".format(conflict.user_connected)
         else:
             url = server_url() + url_for("conflict_resolve", conf_id=conf_id)
-            msg.body = "Your conflict was updated check out the changes here:" \
-                       "\n {}".format(url)
+            msg.body = "Your conflict was updated check out the changes " \
+                       "here: \n {}".format(url)
         mail.send(msg)
         db.session.commit()
         flash('Conflict updated')

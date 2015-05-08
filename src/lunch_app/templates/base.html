@@ -141,15 +141,17 @@
 
 
                                 {% endif %}
-                            {% if get_conflicts_amount(current_user) > -1 %}
+
 
                                 <li {% if page_id == 'conflicts' %}
                                     class="active" {% endif %}><a
                                         href="{{ url_for('conflicts') }}">Conflicts
                                     </a>
+                                    {% if get_conflicts_amount(current_user) > 0 %}
                                 <span class="conflicts-number">{{ get_conflicts_amount(current_user) }}</span>
-                                </li>
                                 {% endif %}
+                                        </li>
+
                             </ul>
                         </section>
                     </nav>

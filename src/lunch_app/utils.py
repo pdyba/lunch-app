@@ -364,4 +364,3 @@ def get_conflicts_amount(user):
         ).all())
     else:
         return len(Conflict.query.filter(Conflict.resolved == False).all())
-

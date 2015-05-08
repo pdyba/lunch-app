@@ -212,6 +212,7 @@ def fill_conflicts():
     db.session.add(conflict_4)
     db.session.commit()
 
+
 def fill_db():
     """
     Fill the database for tests
