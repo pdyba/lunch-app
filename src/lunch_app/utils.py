@@ -343,3 +343,30 @@ def change_ordering_status(block_or_not):
     from .models import OrderingInfo
     OrderingInfo.query.get(1).is_allowed = block_or_not
     db_session_commit()
+
+
+def send_rate_reminder():
+    """
+    Sends reminder to all users who orderd lunch.
+    """
+    from .models import User
+    from .main import mail
+
+    orders = current_day_orders()
+    orders_users = [order.user_name for order in orders]
+    today = datetime.datetime.combine(
+        datetime.date.today(),
+        datetime.time(0, 1)
+    )
+    users = User.query.filter(User.rate_timestamp < today).all()
+    url = server_url()
+    emails = ([user.email for user in users
+               if user.username in orders_users])
+    msg = Message(
+        '{} {}'.format(
+            today, url,
+        ),
+        recipients=emails,
+    )
+    msg.body = '{} {}'
+    mail.send(msg)

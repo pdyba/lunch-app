@@ -1097,3 +1097,12 @@ def delete_food(food_id):
     db.session.delete(Food.query.get(food_id))
     db.session.commit()
     return redirect('add_food')
+
+@app.route('/snr', methods=['GET', 'POST'])
+def send_mail_rate():
+    """
+    Deletes food.
+    """
+    from .utils import send_rate_reminder
+    send_rate_reminder()
+    return 'it works'
