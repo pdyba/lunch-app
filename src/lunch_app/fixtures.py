@@ -70,7 +70,11 @@ def fill_user():
     user_4.email = 'reminder@user.pl'
     user_4.username = 'reminder@user.pl'
     user_4.i_want_daily_reminder = True
+    user_5 = User()
+    user_5.email = 'mock_user@mock.com'
+    user_5.username = 'mock_user@mock.com'
     db.session.add(user_4)
+    db.session.add(user_5)
     db.session.commit()
 
 
