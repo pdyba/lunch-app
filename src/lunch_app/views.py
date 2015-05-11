@@ -1105,14 +1105,14 @@ def conflicts():
     Renders conflict view page.
     """
     if current_user.is_admin():
+        conflicts = Conflict.query.all()
+    else:
         conflicts = Conflict.query.filter(
             or_(
                 Conflict.created_by_user == current_user.username,
                 Conflict.user_connected == current_user.username,
             )
         ).all()
-    else:
-        conflicts = Conflict.query.filter(Conflict.resolved == False).all()
 
     return render_template("conflicts.html", conflicts=conflicts)
 
@@ -1150,7 +1150,7 @@ def conflict_create(order_id):
                 'Lunch app new conflict',
                 recipients=[conflict.user_connected],
             )
-            msg.body = 'You ware chosen as the one who ate my lunch! ' \
+            msg.body = 'You were chosen as the one who ate my lunch! ' \
                        'Please use the link below to respond' \
                        ' \n\n {}'.format(conflict_url)
             mail.send(msg)
@@ -1174,12 +1174,20 @@ def conflict_resolve(conf_id):
             ("Order did not come", "Order did not come"),
             ("Order come but someone ate it", "Order come but someone ate it"),
         ]
+        info = ["Order did not come -- means that the order cost will be "
+                "changed to 0 and there will be additional description in "
+                "the order",
+                "Order come but someone ate it -- does not change anything.",
+                "Not resolved yet -- does not change anything"]
     elif current_user.username == conflict.user_connected:
         print('\n\n', 'is user', '\n\n')
         form.resolved_by.choices = [
             ("I did not eat your lunch", "I did not eat your lunch"),
             ("I'm sorry, I ate your meal", "I'm sorry, I ate your meal"),
         ]
+        info = ["I'm sorry, I ate your meal -- means that the order will be "
+                "asinged to you.",
+                "I did not eat your lunch -- does not change anything"]
     else:
         flash("You cannot resolve conflicts by yourself")
         return redirect('conflicts')
@@ -1215,4 +1223,4 @@ def conflict_resolve(conf_id):
         db.session.commit()
         flash('Conflict updated')
         return redirect('conflicts')
-    return render_template("conflict_resolve.html", form=form)
+    return render_template("conflict_resolve.html", form=form, info=info)
