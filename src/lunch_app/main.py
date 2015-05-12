@@ -12,6 +12,8 @@ from flask.ext.mail import Mail
 from flask.ext.migrate import Migrate
 from flask.ext.sqlalchemy import SQLAlchemy
 
+from raven.contrib.flask import Sentry
+
 from social.apps.flask_app.default.models import init_social
 from social.apps.flask_app.routes import social_auth
 from social.apps.flask_app.template_filters import backends
@@ -109,3 +111,4 @@ admin = Admin(app)
 api = restful.Api(app)
 migrate = Migrate(app, db)
 mail = Mail()
+sentry = Sentry(app)
