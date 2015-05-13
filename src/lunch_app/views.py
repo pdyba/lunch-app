@@ -13,7 +13,8 @@ from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, desc
+from sqlalchemy.orm import load_only
 
 from .main import app, db, mail
 from .forms import (
@@ -1126,7 +1127,9 @@ def conflict_create(order_id):
     order = Order.query.get(order_id)
     form = CreateConflict(formdata=request.form)
     form.user_connected.choices = [
-        (user.username, user.username) for user in User.query.all()
+        (user.username, user.username) for user in User.query.options(
+            load_only("username")
+        ).all()
     ]
     form.user_connected.choices.append(("None", "None"))
     form.user_connected.default = ("None", "None")
@@ -1137,11 +1140,10 @@ def conflict_create(order_id):
         conflict.user_connected = request.form.get("user_connected")
         conflict.order_connected = order.id
         conflict.created_by_user = current_user.username
-        conflict.resolved = False
         db.session.add(conflict)
         db.session.commit()
         if conflict.i_know_who:
-            new_conflict = Conflict.query.all()[-1]
+            new_conflict = Conflict.query.order_by(Conflict.date_added.desc()).first()
             conflict_url = server_url() + url_for(
                 "conflict_resolve",
                 conf_id=new_conflict.id,
@@ -1168,7 +1170,6 @@ def conflict_resolve(conf_id):
     conflict = Conflict.query.get(conf_id)
     form = ResolveConflict(formdata=request.form, obj=conflict)
     if current_user.is_admin():
-        print('\n\n', 'is admin', '\n\n')
         form.resolved_by.choices = [
             ("Not resolved yet", "Not resolved yet"),
             ("Order did not come", "Order did not come"),
@@ -1180,7 +1181,6 @@ def conflict_resolve(conf_id):
                 "Order come but someone ate it -- does not change anything.",
                 "Not resolved yet -- does not change anything"]
     elif current_user.username == conflict.user_connected:
-        print('\n\n', 'is user', '\n\n')
         form.resolved_by.choices = [
             ("I did not eat your lunch", "I did not eat your lunch"),
             ("I'm sorry, I ate your meal", "I'm sorry, I ate your meal"),
@@ -1191,10 +1191,8 @@ def conflict_resolve(conf_id):
     else:
         flash("You cannot resolve conflicts by yourself")
         return redirect('conflicts')
-    print('\n\n', form.validate(), '\n\n')
-    print('\n\n', form.resolved_by.choices, '\n\n')
-    if request.method == 'POST' and form.validate():
 
+    if request.method == 'POST' and form.validate():
         conflict.resolved = (request.form.get("resolved") == "y")
         conflict.resolved_by = request.form["resolved_by"]
         conflict.notes = request.form.get("notes")

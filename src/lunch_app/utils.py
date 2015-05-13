@@ -353,9 +353,9 @@ def get_conflicts_amount(user):
     from .models import Conflict
 
     if user.is_admin():
-        return len(Conflict.query.filter(Conflict.resolved == False).all())
+        return Conflict.query.filter(Conflict.resolved == False).count()
     else:
-        return len(Conflict.query.filter(
+        return Conflict.query.filter(
             and_(
                 Conflict.resolved == False,
                 or_(
@@ -363,4 +363,4 @@ def get_conflicts_amount(user):
                     Conflict.user_connected == user.username,
                 ),
             )
-        ).all())
+        ).count()

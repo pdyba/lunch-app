@@ -1119,7 +1119,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertEqual(len(outbox), 1)
             msg = outbox[0]
             self.assertEqual(msg.subject, 'Lunch app new conflict')
-            self.assertIn('You ware chosen as the one who ate', msg.body)
+            self.assertIn('You were chosen as the one who ate', msg.body)
 
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_conflicts_admin_resolve(self):
