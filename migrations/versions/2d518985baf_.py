@@ -19,7 +19,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_by_user', sa.String(length=100), nullable=True),
     sa.Column('user_connected', sa.String(length=100), nullable=True),
-    sa.Column('order_connected', sa.String(length=10), nullable=True),
+    sa.Column('order_connected', sa.Integer(), nullable=True),
     sa.Column('date_added', sa.DateTime(), nullable=True),
     sa.Column('resolved', sa.Boolean(), nullable=True),
     sa.Column('i_know_who', sa.Boolean(), nullable=True),
