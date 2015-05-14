@@ -13,6 +13,7 @@ from .utils import (
     make_date,
     get_current_month,
     get_current_year,
+    get_conflicts_amount,
 )
 app.jinja_env.globals["get_current_date"] = get_current_date
 app.jinja_env.globals["get_current_datetime"] = get_current_datetime
@@ -20,3 +21,4 @@ app.jinja_env.globals["make_date"] = make_date
 app.jinja_env.globals["get_current_month"] = get_current_month
 app.jinja_env.globals["get_current_year"] = get_current_year
 app.jinja_env.globals["ordering_is_active"] = views.ordering_is_active
+app.jinja_env.globals["get_conflicts_amount"] = get_conflicts_amount

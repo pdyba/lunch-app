@@ -12,16 +12,15 @@ from unittest.mock import patch
 
 from .main import app, db, mail
 from . import main, utils
-from .fixtures import fill_db, allow_ordering, fill_company
-from .mocks import (
-    MOCK_ADMIN,
-    MOCK_USER,
-    MOCK_DATA_TOMAS,
-    MOCK_DATA_KOZIOLEK,
-    MOCK_WWW_TOMAS,
-    MOCK_WWW_KOZIOLEK,
+from .fixtures import (
+    fill_db, allow_ordering, fill_company,
+    fill_user, fill_conflicts,
 )
-from .models import Order, Food, MailText, User
+from .mocks import (
+    MOCK_ADMIN, MOCK_USER, MOCK_USER_2, MOCK_DATA_TOMAS,
+    MOCK_DATA_KOZIOLEK, MOCK_WWW_TOMAS, MOCK_WWW_KOZIOLEK,
+)
+from .models import Order, Food, MailText, User, Conflict
 from .webcrawler import (
     get_dania_dnia_from_pod_koziolek,
     get_week_from_tomas_crawler,
@@ -417,7 +416,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             '/finance/2015/{}/0'.format(get_current_month())
         )
         self.assertEqual(resp.status_code, 200)
-        # self.assertIn('test_user', str(resp.data))
+        self.assertIn('test_user', str(resp.data))
         self.assertIn('test@user.pl', str(resp.data))
         self.assertIn('checked="checked"', str(resp.data))
         self.assertIn('x@x.pl', str(resp.data))
@@ -951,7 +950,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch app PIZZA'))
             self.assertIn('pizza for everyone', msg.body)
-            self.assertEqual(len(msg.recipients), 4)
+            self.assertEqual(len(msg.recipients), 5)
         resp = self.client.get('/pizza_time/1')
         self.assertEqual(resp.status_code, 200)
 
@@ -1046,9 +1045,173 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(food, None)
 
     @patch('lunch_app.views.current_user', new=MOCK_USER)
+    def test_conflicts(self):
+        """
+        Test food delete.
+        """
+        allow_ordering()
+        resp = self.client.get('/conflicts')
+        self.assertEqual(resp.status_code, 200)
+
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
+    def test_conflicts_create(self):
+        """
+        Test conflicts create view.
+        """
+        fill_company()
+        allow_ordering()
+        fill_user()
+
+        resp = self.client.post('/order')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'food_for_my_odrder_view',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/conflict_create/1')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            "did_order_come": "n",
+        }
+        resp = self.client.post('/conflict_create/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'food_for_my_odrder_view',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/conflict_create/2')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            "did_order_come": "y",
+            "i_know_who": "n",
+        }
+        resp = self.client.post('/conflict_create/2', data=data)
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'cost': '12',
+            'company': 'Pod Koziołkiem',
+            'description': 'food_for_my_odrder_view',
+            'send_me_a_copy': 'false',
+            'arrival_time': '12:00',
+        }
+        resp = self.client.post('/order', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/conflict_create/3')
+        self.assertEqual(resp.status_code, 200)
+        with mail.record_messages() as outbox:
+            data = {
+                "did_order_come": "y",
+                "i_know_who": "y",
+                "user_connected": "x@x.pl",
+            }
+            resp = self.client.post('/conflict_create/3', data=data)
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertEqual(msg.subject, 'Lunch app new conflict')
+            self.assertIn('You were chosen as the one who ate', msg.body)
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_conflicts_admin_resolve(self):
+        """
+        Test conflict resolve view for admin.
+        """
+        fill_db()
+        fill_conflicts()
+        with mail.record_messages() as outbox:
+            resp = self.client.get('/conflicts')
+            self.assertEqual(resp.status_code, 200)
+            resp = self.client.get('/conflict_resolve/1')
+            self.assertEqual(resp.status_code, 200)
+            data = {
+                "resolved": "y",
+                "resolved_by": "Order did not come",
+                'notes': "",
+            }
+            resp = self.client.post('/conflict_resolve/1', data=data)
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertEqual(msg.subject, 'Lunch app conflict update')
+            self.assertIn('did not come so it', msg.body)
+            conflict = Conflict.query.get(1)
+            self.assertEqual(conflict.resolved, True)
+            self.assertEqual(conflict.resolved_by, data['resolved_by'])
+            self.assertEqual(conflict.notes, data['notes'])
+
+            resp = self.client.get('/conflict_resolve/2')
+            self.assertEqual(resp.status_code, 200)
+            data = {
+                "resolved_by": "Not resolved yet",
+                'notes': "Need some more data",
+            }
+            resp = self.client.post('/conflict_resolve/2', data=data)
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 2)
+            msg = outbox[1]
+            self.assertEqual(msg.subject, 'Lunch app conflict update')
+            self.assertIn('Your conflict was updated check', msg.body)
+            conflict = Conflict.query.get(2)
+            self.assertEqual(conflict.resolved, False)
+            self.assertEqual(conflict.resolved_by, data['resolved_by'])
+            self.assertEqual(conflict.notes, data['notes'])
+
+    def test_conflicts_user_resolve(self):
+        """
+        Test conflict resolve view for users.
+        """
+        fill_company()
+        allow_ordering()
+        fill_user()
+        with patch('lunch_app.views.current_user', new=MOCK_USER):
+            self.client.post('/order')
+            data = {
+                'cost': '12',
+                'company': 'Pod Koziołkiem',
+                'description': 'food_for_my_odrder_view',
+                'send_me_a_copy': 'false',
+                'arrival_time': '12:00',
+            }
+            self.client.post('/order', data=data)
+            self.client.get('/conflict_create/1')
+            data = {
+                "did_order_come": "y",
+                "i_know_who": "y",
+                "user_connected": "mock_user2@mock.com",
+            }
+            self.client.post('/conflict_create/1', data=data)
+        with patch('lunch_app.views.current_user', new=MOCK_USER_2):
+            resp = self.client.get('/conflict_resolve/1')
+            self.assertEqual(resp.status_code, 200)
+
+            data = {
+                "resolved": "y",
+                "resolved_by": "I'm sorry, I ate your meal",
+                'notes': "I am terribly sorry",
+            }
+            with mail.record_messages() as outbox:
+                resp = self.client.post('/conflict_resolve/1', data=data)
+                print(resp)
+                self.assertEqual(resp.status_code, 302)
+                self.assertEqual(len(outbox), 1)
+                msg = outbox[0]
+                self.assertEqual(msg.subject, 'Lunch app conflict update')
+                self.assertIn('is sorry he ate Your meal the', msg.body)
+
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_access_for_user(self):
         """
-        Test access right for regular user.
+        Test conflict resolve view.
         """
         fill_db()
 

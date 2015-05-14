@@ -13,13 +13,14 @@
                 <th>Company</th>
                 <th>Cost</th>
                 <th>Description</th>
+                <th>Report</th>
             </tr>
             </thead>
             <tbody>
             {% for order in orders %}
                 <tr>
 
-                    <td>{{ order.date }}</td>
+                    <td>{{ order.date.strftime('%Y-%m-%d')  }}</td>
                     <td>{{ order.company }}</td>
                     <td>{{ order.cost }} PLN</td>
                     <td>
@@ -28,6 +29,7 @@
                                 !RANDOM ORDER!
                                 {% else %}{{ order.description }} {% endif %}</a>
                     </td>
+                <td><a href="{{ url_for('conflict_create', order_id=order.id) }}">report</a></td>
 
                 </tr>
             {% endfor %}

@@ -167,3 +167,20 @@ class Company(db.Model):
     address = Column(String(400))
     telephone = Column(String(20))
     date_added = Column(DateTime, default=datetime.utcnow)
+
+
+class Conflict(db.Model):
+    """
+    Conflicts data base
+    """
+    __tablename__ = 'conflicts'
+    id = Column(Integer, primary_key=True)
+    created_by_user = Column(String(100), db.ForeignKey('user.username'))
+    user_connected = Column(String(100), db.ForeignKey('user.username'))
+    order_connected = Column(String(10), db.ForeignKey('order.id'))
+    date_added = Column(DateTime, default=datetime.utcnow)
+    resolved = Column(Boolean, default=False)
+    resolved_by = Column(String(200))
+    notes = Column(String(500))
+    i_know_who = Column(Boolean, default=False)
+    did_order_come = Column(Boolean, default=False)

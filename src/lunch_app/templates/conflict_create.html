@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% set page_id = 'conflict_resolve' %}
+
+{% block content %}
+<div class="large-12 columns">
+<h3>Conflict Create</h3>
+       <form method="POST">
+    <div class="large-6 columns">
+
+        <div class="large-11 columns">
+        Did the order come ? (just click submit if you don't know)
+        </div>
+        <div class="large-1 columns">
+            <div class="switch small did_order_come_class">
+                {{ form.did_order_come }}
+            <label for="did_order_come"></label>
+            </div>
+        </div>
+
+        <div class="i_know_who_class" style="display: none">
+        <div class="large-11 columns">
+        I know who ate my order:
+        </div>
+        <div class="large-1 columns">
+            <div class="switch small">
+                {{ form.i_know_who }}
+            <label for="i_know_who"></label>
+            </div>
+        </div>
+        </div>
+        <div class="large-12 columns user_connected_class" style="display: none">
+            This user are my meal:
+            {{ form.user_connected }}
+        </div>
+    </div>
+    <input type="submit" value="submit" class="button right">
+
+    </form>
+    </div>
+    <script>
+        $('#did_order_come').change( function() {
+                    if (this.checked === true){
+                        $('div.i_know_who_class').css({display: "block"});
+                    } else {
+                        $('div.i_know_who_class').css({display: "none"});
+                        $('div.user_connected_class').css({display: "none"});
+                    }
+                });
+        $('#i_know_who').change( function() {
+                    if (this.checked === true){
+                        $('div.user_connected_class').css({display: "block"})
+                    } else {
+                        $('div.user_connected_class').css({display: "none"})
+                    }
+                });
+    </script>
+{% endblock %}

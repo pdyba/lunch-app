@@ -4,7 +4,10 @@ Fixtures for database.
 from datetime import datetime, date, timedelta
 
 from .main import db
-from .models import Order, Food, User, Finance, MailText, Company, OrderingInfo
+from .models import (
+    Order, Food, User, Finance,
+    MailText, Company, OrderingInfo, Conflict,
+)
 from .utils import get_current_month, get_current_year
 
 
@@ -67,7 +70,11 @@ def fill_user():
     user_4.email = 'reminder@user.pl'
     user_4.username = 'reminder@user.pl'
     user_4.i_want_daily_reminder = True
+    user_5 = User()
+    user_5.email = 'mock_user@mock.com'
+    user_5.username = 'mock_user@mock.com'
     db.session.add(user_4)
+    db.session.add(user_5)
     db.session.commit()
 
 
@@ -168,6 +175,41 @@ def fill_finance():
     db.session.add(finance)
     db.session.add(finance_3)
     db.session.add(finance_2)
+    db.session.commit()
+
+
+def fill_conflicts():
+    """
+    Fill conflict database for tests
+    """
+    conflict = Conflict()
+    conflict.created_by_user = "test@user.pl"
+    conflict.user_connected = "x@x.pl"
+    conflict.order_connected = 1
+    conflict.i_know_who = True
+    conflict.did_order_come = True
+    conflict.resolved = False
+    conflict.resolved_by = None
+    conflict.notes = " "
+    conflict_2 = Conflict()
+    conflict.created_by_user = "x@x.pl"
+    conflict.user_connected = "test@user.pl"
+    conflict.order_connected = 2
+    conflict.i_know_who = True
+    conflict.did_order_come = True
+    conflict_3 = Conflict()
+    conflict.created_by_user = "test@user.pl"
+    conflict.order_connected = 3
+    conflict.i_know_who = False
+    conflict.did_order_come = True
+    conflict_4 = Conflict()
+    conflict.created_by_user = "test@user.pl"
+    conflict.order_connected = 4
+    conflict.did_order_come = False
+    db.session.add(conflict)
+    db.session.add(conflict_2)
+    db.session.add(conflict_3)
+    db.session.add(conflict_4)
     db.session.commit()
 
 

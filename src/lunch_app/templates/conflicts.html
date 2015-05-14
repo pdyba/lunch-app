@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% set page_id = 'conflicts' %}
+
+{% block content %}
+<div class="large-12 columns">
+        <h3>My conflicts</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Created on</th>
+                <th>Order</th>
+                <th>Resolved</th>
+                <th>Did order come</th>
+                <th>I know who ate it</th>
+                <th>Foreign-meal-lover</th>
+                <th>Outcome</th>
+                <th>Notes</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for conflict in conflicts %}
+                <tr>
+                    <td>{{ conflict.date_added.strftime('%Y-%m-%d') }}</td>
+                    <td><a href="{{ url_for('order_details', order_id=conflict.order_connected) }}">details</a></td>
+                    <td>{{ conflict.resolved }}</td>
+                    <td>{{ conflict.did_order_come }}</td>
+                    <td>{{ conflict.i_know_who }}</td>
+                    <td>{{ conflict.user_connected }}</td>
+                    {% if current_user.is_admin() and not conflict.resolved %}
+                        <td><a href="{{ url_for('conflict_resolve', conf_id=conflict.id) }}">resolve !</a></td>
+                    {% else %}
+                    <td>{{ conflict.resolved_by }}</td>
+                {% endif %}
+                    <td>{{ conflict.notes }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+{% endblock %}

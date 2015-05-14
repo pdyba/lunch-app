@@ -18,11 +18,22 @@ MOCK_ADMIN.preferred_arrival_time = "12:00"
 MOCK_USER = Mock()
 MOCK_USER.username = 'mock_user'
 MOCK_USER.active = True
+MOCK_USER.is_admin.return_value = False
 MOCK_USER.is_anonymous.return_value = False
 MOCK_USER.is_active.return_value = True
 MOCK_USER.email = 'mock_user@mock.com'
 MOCK_USER.id = 1
 MOCK_USER.preferred_arrival_time = "12:00"
+
+MOCK_USER_2 = Mock()
+MOCK_USER_2.username = 'mock_user2@mock.com'
+MOCK_USER_2.is_admin.return_value = False
+MOCK_USER_2.active = True
+MOCK_USER_2.is_anonymous.return_value = False
+MOCK_USER_2.is_active.return_value = True
+MOCK_USER_2.email = 'mock_user2@mock.com'
+MOCK_USER_2.id = 5
+MOCK_USER_2.preferred_arrival_time = "12:00"
 
 MOCK_DATA_KOZIOLEK = Mock()
 MOCK_DATA_KOZIOLEK.return_value = {

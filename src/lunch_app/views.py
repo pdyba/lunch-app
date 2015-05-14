@@ -13,7 +13,8 @@ from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user
 from flask.ext.mail import Message
-from sqlalchemy import and_
+from sqlalchemy import and_, or_, desc
+from sqlalchemy.orm import load_only
 
 from .main import app, db, mail
 from .forms import (
@@ -21,11 +22,12 @@ from .forms import (
     UserOrders, CompanyOrders, MailTextForm,
     UserPreferences, FinanceSearchForm, CompanyAddForm,
     FoodRateForm, FinanceBlockUserForm, PizzaChooseForm,
+    CreateConflict, ResolveConflict,
 )
 from .models import (
     Order, Food, User,
     Finance, MailText, Company,
-    Pizza,
+    Pizza, Conflict,
 )
 from .permissions import user_is_admin
 from .utils import (
@@ -203,9 +205,7 @@ def day_summary():
             foods = foods.replace('\r', '').split('\n')
             for food in foods:
                 food = food.strip()
-                if food and \
-                        food != "!RANDOM ORDER!" and \
-                        order.company == comp.name:
+                if food != "!RANDOM ORDER!" and order.company == comp.name:
                     if order.arrival_time == '12:00':
                         if order not in order_details[comp.name]['12:00']:
                             order_details[comp.name]['cost12'] += order.cost
@@ -534,7 +534,7 @@ def finance(year, month, did_pay):
         for row in finance_data.values():
             finance_record = Finance()
             finance_record.did_user_pay = (request.form.get(
-                'did_user_pay_'+row['username'],
+                'did_user_pay_' + row['username'],
             ) == 'on')
             finance_record.month = month
             finance_record.year = year
@@ -654,7 +654,7 @@ def finance_mail_all():
                 record['number_of_orders'],
                 record['month_cost'],
                 message_text.monthly_pay_summary,
-                )
+            )
             mail.send(msg)
         flash('Mail send')
         return redirect('finance_mail_all')
@@ -670,7 +670,7 @@ def finance_mail_all():
                     record['number_of_orders'],
                     record['month_cost'],
                     message_text.pay_reminder,
-                    )
+                )
                 mail.send(msg)
                 flash('Mail send')
         return redirect('finance_mail_all')
@@ -843,7 +843,7 @@ def food_rate():
     if request.method == 'POST' and form.validate():
         food = Food.query.get(form.food.data)
         if food.rating:
-            food.rating = (food.rating + form.rate.data)/2
+            food.rating = (food.rating + form.rate.data) / 2
         else:
             food.rating = form.rate.data
         user = User.query.get(current_user.id)
@@ -1018,7 +1018,7 @@ def pizza_time_view(happening):
         size = form.pizza_size.data
         try:
             try:
-                pizzas_db.ordered_pizzas[pizza][size]\
+                pizzas_db.ordered_pizzas[pizza][size] \
                     += current_user.username
             except KeyError:
                 try:
@@ -1033,7 +1033,7 @@ def pizza_time_view(happening):
             pizzas_db.ordered_pizzas = {
                 form.description.data: {
                     form.pizza_size.data: current_user.username,
-                    }
+                }
             }
         pizzas_db.users_already_ordered += current_user.username + " "
         db.session.commit()
@@ -1097,3 +1097,128 @@ def delete_food(food_id):
     db.session.delete(Food.query.get(food_id))
     db.session.commit()
     return redirect('add_food')
+
+
+@app.route('/conflicts', methods=['GET', 'POST'])
+@login.login_required
+def conflicts():
+    """
+    Renders conflict view page.
+    """
+    if current_user.is_admin():
+        conflicts = Conflict.query.all()
+    else:
+        conflicts = Conflict.query.filter(
+            or_(
+                Conflict.created_by_user == current_user.username,
+                Conflict.user_connected == current_user.username,
+            )
+        ).all()
+
+    return render_template("conflicts.html", conflicts=conflicts)
+
+
+@app.route('/conflict_create/<int:order_id>', methods=['GET', 'POST'])
+@login.login_required
+def conflict_create(order_id):
+    """
+    Renders conflict create page.
+    """
+    order = Order.query.get(order_id)
+    form = CreateConflict(formdata=request.form)
+    form.user_connected.choices = [
+        (user.username, user.username) for user in User.query.options(
+            load_only("username")
+        ).all()
+    ]
+    form.user_connected.choices.append(("None", "None"))
+    form.user_connected.default = ("None", "None")
+    if request.method == 'POST':
+        conflict = Conflict()
+        conflict.did_order_come = request.form.get("did_order_come") == 'y'
+        conflict.i_know_who = request.form.get("i_know_who") == 'y'
+        conflict.user_connected = request.form.get("user_connected")
+        conflict.order_connected = order.id
+        conflict.created_by_user = current_user.username
+        db.session.add(conflict)
+        db.session.commit()
+        if conflict.i_know_who:
+            new_conflict = Conflict.query.order_by(Conflict.date_added.desc()).first()
+            conflict_url = server_url() + url_for(
+                "conflict_resolve",
+                conf_id=new_conflict.id,
+            )
+            msg = Message(
+                'Lunch app new conflict',
+                recipients=[conflict.user_connected],
+            )
+            msg.body = 'You were chosen as the one who ate my lunch! ' \
+                       'Please use the link below to respond' \
+                       ' \n\n {}'.format(conflict_url)
+            mail.send(msg)
+        flash('Conflict created')
+        return redirect('my_orders')
+    return render_template("conflict_create.html", form=form)
+
+
+@app.route('/conflict_resolve/<int:conf_id>', methods=['GET', 'POST'])
+@login.login_required
+def conflict_resolve(conf_id):
+    """
+    Renders conflict resolve page.
+    """
+    conflict = Conflict.query.get(conf_id)
+    form = ResolveConflict(formdata=request.form, obj=conflict)
+    if current_user.is_admin():
+        form.resolved_by.choices = [
+            ("Not resolved yet", "Not resolved yet"),
+            ("Order did not come", "Order did not come"),
+            ("Order come but someone ate it", "Order come but someone ate it"),
+        ]
+        info = ["Order did not come -- means that the order cost will be "
+                "changed to 0 and there will be additional description in "
+                "the order",
+                "Order come but someone ate it -- does not change anything.",
+                "Not resolved yet -- does not change anything"]
+    elif current_user.username == conflict.user_connected:
+        form.resolved_by.choices = [
+            ("I did not eat your lunch", "I did not eat your lunch"),
+            ("I'm sorry, I ate your meal", "I'm sorry, I ate your meal"),
+        ]
+        info = ["I'm sorry, I ate your meal -- means that the order will be "
+                "asinged to you.",
+                "I did not eat your lunch -- does not change anything"]
+    else:
+        flash("You cannot resolve conflicts by yourself")
+        return redirect('conflicts')
+
+    if request.method == 'POST' and form.validate():
+        conflict.resolved = (request.form.get("resolved") == "y")
+        conflict.resolved_by = request.form["resolved_by"]
+        conflict.notes = request.form.get("notes")
+        msg = Message(
+            'Lunch app conflict update',
+            recipients=[conflict.created_by_user],
+        )
+        if conflict.resolved_by == "Order did not come":
+            order = Order.query.get(conflict.order_connected)
+            order.cost = 0
+            order.description = "ORDER DID NOT COME\n" + order.description
+            msg.body = "The order \n{}\n did not come so it cost was changed" \
+                       "to 0 pln and it got properly described on your list " \
+                       "of orders.".format(order.description)
+        elif conflict.resolved_by == "I'm sorry, I ate your meal":
+            conflict.resolved = True
+            order = Order.query.get(conflict.order_connected)
+            order.user_name = current_user.username
+            msg.body = "{} is sorry he ate Your meal the order is now" \
+                       "assigned to him/her".format(conflict.user_connected)
+        else:
+            url = server_url() + url_for("conflict_resolve", conf_id=conf_id)
+            msg.body = "Your conflict was updated check out the changes " \
+                       "here: \n {}".format(url)
+        mail.send(msg)
+        db.session.commit()
+        flash('Conflict updated')
+        return redirect('conflicts')
+    return render_template("conflict_resolve.html", form=form, info=info)
