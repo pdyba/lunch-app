@@ -8,33 +8,29 @@
        <form method="POST">
     <div class="large-6 columns">
 
-        <div class="large-11 columns">
-        Did the order come ? (just click submit if you don't know)
+        <div class="large-10 columns">
+        Did the order came ?
         </div>
-        <div class="large-1 columns">
-            <div class="switch small did_order_come_class">
+        <div class="large-2 columns">
                 {{ form.did_order_come }}
-            <label for="did_order_come"></label>
             </div>
-        </div>
+
 
         <div class="i_know_who_class" style="display: none">
-        <div class="large-11 columns">
+        <div class="large-10 columns">
         I know who ate my order:
         </div>
-        <div class="large-1 columns">
-            <div class="switch small">
+        <div class="large-2 columns">
                 {{ form.i_know_who }}
-            <label for="i_know_who"></label>
             </div>
-        </div>
         </div>
         <div class="large-12 columns user_connected_class" style="display: none">
             This user are my meal:
             {{ form.user_connected }}
         </div>
+        <input type="submit" value="submit" class="button right">
     </div>
-    <input type="submit" value="submit" class="button right">
+
 
     </form>
     </div>
