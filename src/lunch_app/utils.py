@@ -370,3 +370,23 @@ def send_rate_reminder():
     )
     msg.body = '{} {}'
     mail.send(msg)
+
+def get_conflicts_amount(user):
+    """
+    Get current conflicts number.
+    """
+    from sqlalchemy import or_
+    from .models import Conflict
+
+    if user.is_admin():
+        return Conflict.query.filter(Conflict.resolved == False).count()
+    else:
+        return Conflict.query.filter(
+            and_(
+                Conflict.resolved == False,
+                or_(
+                    Conflict.created_by_user == user.username,
+                    Conflict.user_connected == user.username,
+                ),
+            )
+        ).count()

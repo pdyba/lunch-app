@@ -37,6 +37,8 @@ setup(
         'Flask-Script',
         'Flask-Migrate',
         'beautifulsoup4',
+        'raven',
+        'blinker',
     ],
     entry_points="""
     [console_scripts]

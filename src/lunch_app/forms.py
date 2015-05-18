@@ -303,3 +303,32 @@ class PizzaChooseForm(Form):
             ('big', 'big'),
         ]
     )
+
+
+class CreateConflict(Form):
+    """
+    Create a conflict.
+    """
+    did_order_come = BooleanField(
+        'did_order_come',
+        validators=[validators.DataRequired("Please check if order come")],
+    )
+    i_know_who = BooleanField(
+        'i_know_who',
+    )
+    user_connected = SelectField('user_connected', default=None)
+
+
+class ResolveConflict(Form):
+    """
+    Resolve a conflict.
+    """
+    resolved = BooleanField(
+        'resolved',
+    )
+    resolved_by = SelectField(
+        'resolved_by',
+    )
+    notes = TextAreaField(
+        "notes",
+    )
