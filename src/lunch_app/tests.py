@@ -25,7 +25,10 @@ from .webcrawler import (
     get_dania_dnia_from_pod_koziolek,
     get_week_from_tomas_crawler,
 )
-from .utils import make_datetime, get_current_month
+from .utils import (
+    make_datetime, get_current_month, get_conflicts_amount,
+    send_rate_reminder,
+)
 
 
 def setUp():
@@ -287,10 +290,10 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/day_summary')
         self.assertIn('Maly Gruby Nalesnik', str(resp.data))
         self.assertIn('Duzy Gruby Nalesnik', str(resp.data))
-        self.assertIn('Kebab<b> 3 szt.', str(resp.data))
-        self.assertIn('Frytki<b> 3 szt.', str(resp.data))
-        self.assertIn('CieplyKot<b> 3 szt.', str(resp.data))
-        self.assertIn('Marchewka W Keczupie<b> 3 szt.', str(resp.data))
+        self.assertIn('Kebab<b> 3', str(resp.data))
+        self.assertIn('Frytki<b> 3', str(resp.data))
+        self.assertIn('CieplyKot<b> 3', str(resp.data))
+        self.assertIn('Marchewka W Keczupie<b> 3', str(resp.data))
 
     @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_order_list_view(self):
@@ -1298,6 +1301,38 @@ class LunchBackendViewsTestCase(unittest.TestCase):
                 msg=link,
             )
 
+    def test_get_conflicts_amount(self):
+        """
+        Test conflict amounts
+        """
+        fill_user()
+        self.assertEquals(get_conflicts_amount(User.query.get(1)), 0)
+        fill_conflicts()
+        self.assertEquals(get_conflicts_amount(User.query.get(2)), 1)
+
+    @patch('lunch_app.views.current_user', new=MOCK_USER)
+    def test_send_rate_reminder(self):
+        """
+        Test send rate reminder
+        """
+        MOCK_USER.id = 5
+        with app.test_request_context():
+            with mail.record_messages() as outbox:
+                fill_company()
+                allow_ordering()
+                fill_user()
+                data = {
+                    'cost': '12',
+                    'company': 'Pod Koziołkiem',
+                    'description': 'dobre_jedzonko',
+                    'send_me_a_copy': 'false',
+                    'arrival_time': '12:00',
+                }
+                resp = self.client.post('/order', data=data)
+                self.assertEquals(resp.status_code, 302)
+                send_rate_reminder()
+                self.assertEquals(len(outbox), 1)
+
 
 class LunchBackendUtilsTestCase(unittest.TestCase):
     """
@@ -1451,7 +1486,6 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
                 1,
                 msg="ERROR IN {}".format(i),
             )
-
 
 def suite():
     """

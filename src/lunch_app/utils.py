@@ -6,7 +6,10 @@ Helper functions.
 from calendar import monthrange
 import datetime
 
-from flask import current_app, request, render_template, redirect
+from flask import (
+    current_app, request, render_template,
+    redirect,
+)
 from social.exceptions import SocialAuthBaseException
 from sqlalchemy import and_
 from werkzeug.exceptions import HTTPException
@@ -347,29 +350,23 @@ def change_ordering_status(block_or_not):
 
 def send_rate_reminder():
     """
-    Sends reminder to all users who orderd lunch.
+    Sends reminder to all users who ordered lunch.
     """
     from .models import User
     from .main import mail
-
     orders = current_day_orders()
     orders_users = [order.user_name for order in orders]
-    today = datetime.datetime.combine(
-        datetime.date.today(),
-        datetime.time(0, 1)
-    )
+    today = datetime.date.today()
     users = User.query.filter(User.rate_timestamp < today).all()
-    url = server_url()
     emails = ([user.email for user in users
                if user.username in orders_users])
     msg = Message(
-        '{} {}'.format(
-            today, url,
-        ),
+        'Remember to rate your meal',
         recipients=emails,
     )
-    msg.body = '{} {}'
+    msg.body = 'Remember to rate your meal, before the end of day.'
     mail.send(msg)
+
 
 def get_conflicts_amount(user):
     """
