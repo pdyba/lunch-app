@@ -16,7 +16,7 @@ MOCK_ADMIN.id = 1
 MOCK_ADMIN.preferred_arrival_time = "12:00"
 
 MOCK_USER = Mock()
-MOCK_USER.username = 'mock_user'
+MOCK_USER.username = 'mock_user@mock.com'
 MOCK_USER.active = True
 MOCK_USER.is_admin.return_value = False
 MOCK_USER.is_anonymous.return_value = False

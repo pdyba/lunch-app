@@ -1222,3 +1222,12 @@ def conflict_resolve(conf_id):
         flash('Conflict updated')
         return redirect('conflicts')
     return render_template("conflict_resolve.html", form=form, info=info)
+
+@app.route('/snr', methods=['GET', 'POST'])
+def send_mail_rate():
+    """
+    Deletes food.
+    """
+    from .utils import send_rate_reminder
+    send_rate_reminder()
+    return 'it works'

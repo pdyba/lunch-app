@@ -234,6 +234,23 @@ def run():
         with app.app_context():
             change_ordering_status(True)
 
+    def action_send_rate_reminder(debug=False):
+        """
+        This command is responsible for sending every one who ate an
+        e-mail that they did not rated the meal on current day at 14:00
+        Options:
+        - '--debug' use debug configuration
+        """
+        from .utils import send_rate_reminder
+
+        if debug:
+            app = make_debug(with_debug_layer=False)
+        else:
+            app = make_app()
+
+        with app.app_context():
+            send_rate_reminder()
+
     werkzeug.script.run()
 
 
