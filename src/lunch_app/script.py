@@ -148,7 +148,7 @@ def run():
         Options:
         - '--debug' use debug configuration
         """
-        from flask.ext.migrate import upgrade, init, migrate, stamp, heads
+        from flask.ext.migrate import upgrade, init, migrate, stamp, downgrade
         if debug:
             app = make_debug(with_debug_layer=False)
         else:
@@ -163,6 +163,8 @@ def run():
                 upgrade()
             elif action == 'stamp':
                 stamp()
+            elif action == 'downgrade':
+                downgrade()
             else:
                 print('Unknown action')
 
