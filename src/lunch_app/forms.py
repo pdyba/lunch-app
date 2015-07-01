@@ -14,6 +14,7 @@ from wtforms import (
     DateField,
     FloatField,
     StringField,
+    DateTimeField,
 )
 
 
@@ -332,3 +333,30 @@ class ResolveConflict(Form):
     notes = TextAreaField(
         "notes",
     )
+
+class CreateFoodEventForm(Form):
+    """
+    Create food event.
+    """
+    event_name = StringField("event_name")
+    food_type = SelectField(
+        'food_type',
+        validators=[validators.DataRequired("Please choose food type")],
+        choices=[
+            ("burger", "burger"),
+            ("pizza", "pizza"),
+            ("sushi", "sushi"),
+            ("chinese", "chinese"),
+            ("other", "other"),
+        ],
+    )
+    other_food_type = StringField(
+        "other_food_type",
+        validators=[validators.Optional()],
+    )
+    food_company = StringField("food_company")
+    menu = StringField("menu", validators=[
+        validators.URL(message="Please enter a valid url")
+    ])
+    deadline_for_ordering = DateTimeField(format='%Y-%m-%d %H:%M')
+    eta = DateTimeField(format='%Y-%m-%d %H:%M')

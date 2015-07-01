@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% set page_id = 'order' %}
+
+{% block content %}
+<div class="large-12 columns">
+    <div class="large-6 columns">
+
+    <h3 class="right">{{ food_type }} event {{ name }} is
+            {% if pizzas_active %}<a style="color: green">active</a>
+            {% else %}<b style="color: red">blocked</b>
+            {% endif %}</h3><br>
+        {% if pizzas_active %}
+        <form method="POST" name="pizza">
+<br>
+            Ordered Food (copy only the name if you don't edit the ingridients)
+            {{ form.description }}
+            <!-- Size
+            {{ form.pizza_size }} -->
+            <input type="submit" value="pizza" class="button right">
+        </form>
+        {% endif %}
+    <br><br>
+               <h3>{{ food_type }} orders</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Food</th>
+                <th>Size nad user</th>
+            </tr>
+            </thead>
+            <tbody>{% if pizzas_ordered %}
+            {% for pizza in pizzas_ordered %}
+                <tr>
+
+                    <td>{{ pizza }}</td>
+                    <td>{{ pizzas_ordered[pizza] }}</td>
+
+
+                </tr>
+            {% endfor %}
+             {% endif %}
+            </tbody>
+        </table>
+
+    </div>
+    </div>
+{% endblock %}

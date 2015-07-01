@@ -22,12 +22,12 @@ from .forms import (
     UserOrders, CompanyOrders, MailTextForm,
     UserPreferences, FinanceSearchForm, CompanyAddForm,
     FoodRateForm, FinanceBlockUserForm, PizzaChooseForm,
-    CreateConflict, ResolveConflict,
+    CreateConflict, ResolveConflict, CreateFoodEventForm
 )
 from .models import (
     Order, Food, User,
     Finance, MailText, Company,
-    Pizza, Conflict,
+    Pizza, Conflict, FoodEvent,
 )
 from .permissions import user_is_admin
 from .utils import (
@@ -943,6 +943,107 @@ def get_week_from_tomas_view():
     flash('Weak of meals from Tomas have been added.')
     return redirect('add_food')
 
+@app.route('/food_event_start', methods=['GET', 'POST'])
+@login.login_required
+def food_event_start():
+    form = CreateFoodEventForm(request.form)
+    if request.method == 'POST' and form.validate():
+        new_event = FoodEvent()
+        form.populate_obj(new_event)
+        new_event.created_by_user = current_user.username
+        db.session.add(new_event)
+        db.session.commit()
+        new_event = FoodEvent.query.filter(and_(
+            FoodEvent.created_by_user == current_user.username,
+            FoodEvent.active,
+            FoodEvent.event_name == new_event.event_name,
+        )).first()
+        new_event_id = new_event.id
+        # import pdb; pdb.set_trace()
+        event_url = server_url() + url_for(
+            "food_event",
+            event=new_event_id,
+        )
+        stop_url = server_url() + url_for(
+            "food_event",
+            event=new_event_id,
+        )
+        users = User.query.filter(User.active).all()
+        emails = [user.email for user in users]
+        text = 'You succesfully orderd pizza for all You can check who wants' \
+               ' what here:\n{}\n to finish the pizza orgy click here\n{}\n ' \
+               'than order pizza!'.format(event_url, stop_url)
+        msg = Message(
+            'Lunch app PIZZA TIME',
+            recipients=emails,
+        )
+        msg.body = '{} ordered pizza for everyone ! \n order it here:\n\n' \
+                   '{}\n\n and thank him!'.format(current_user.username, event_url)
+        mail.send(msg)
+        msg = Message(
+            'Lunch app PIZZA TIME',
+            recipients=[current_user.username],
+        )
+        msg.body = text
+        mail.send(msg)
+        flash(text)
+        return redirect(url_for("food_event", event=new_event_id))
+
+    return render_template(
+        'food_event_start.html',
+        form=form,
+    )
+
+
+@app.route('/food_event/<int:event>', methods=['GET', 'POST'])
+@login.login_required
+def food_event(event):
+    """
+    Shows pizza menu, order Form and orders summary.
+    """
+    food_event_db = FoodEvent.query.get(event)
+    form = PizzaChooseForm(request.form)
+    if request.method == 'POST' and form.validate():
+        if not food_event_db.active:
+            flash('Pizza time finished !')
+            return redirect(url_for('pizza_time_view', happening=happening))
+        if current_user.username in [u for u in food_event_db.users.values()]:
+            flash('You already ordered !')
+            return redirect(url_for('pizza_time_view', happening=happening))
+        pizza = form.description.data
+        pizza = pizza.strip()
+        size = form.pizza_size.data
+        try:
+            try:
+                pizzas_db.ordered_pizzas[pizza][size] \
+                    += current_user.username
+            except KeyError:
+                try:
+                    pizzas_db.ordered_pizzas[pizza] += {
+                        size: current_user.username
+                    }
+                except KeyError:
+                    pizzas_db.ordered_pizzas[pizza] = {
+                        size: current_user.username
+                    }
+        except TypeError:
+            pizzas_db.ordered_pizzas = {
+                form.description.data: {
+                    form.pizza_size.data: current_user.username,
+                }
+            }
+        pizzas_db.users_already_ordered += current_user.username + " "
+        db.session.commit()
+        flash('You successfully ordered a pizza ;-)')
+        return redirect(url_for('pizza_time_view', happening=happening))
+    pizzas_ordered = pizzas_db.ordered_pizzas
+    pizzas_active = pizzas_db.pizza_ordering_is_allowed
+    return render_template(
+        'pizza_time.html',
+        form=form,
+        pizzas_ordered=pizzas_ordered,
+        pizzas_active=pizzas_active,
+    )
 
 @app.route('/order_pizza_for_everybody', methods=['GET', 'POST'])
 @login.login_required
@@ -1143,7 +1244,9 @@ def conflict_create(order_id):
         db.session.add(conflict)
         db.session.commit()
         if conflict.i_know_who:
-            new_conflict = Conflict.query.order_by(Conflict.date_added.desc()).first()
+            new_conflict = Conflict.query.order_by(
+                Conflict.date_added.desc()
+            ).first()
             conflict_url = server_url() + url_for(
                 "conflict_resolve",
                 conf_id=new_conflict.id,
@@ -1222,6 +1325,7 @@ def conflict_resolve(conf_id):
         flash('Conflict updated')
         return redirect('conflicts')
     return render_template("conflict_resolve.html", form=form, info=info)
+
 
 @app.route('/snr', methods=['GET', 'POST'])
 def send_mail_rate():

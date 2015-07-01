@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% set page_id = 'orders_lists' %}
+
+{% block content %}
+
+    <div class="large-6 columns">
+        <h3>Order list</h3>
+
+        <form method="POST">
+
+            <b>Event Name</b>
+            {{ form.event_name }}
+            <b>Food Type</b>
+            {{ form.food_type }}
+            <b>Other</b>
+            {{ form.other_food_type }}
+            <b>Company</b>
+            {{ form.food_company }}
+            <b>Menu</b>
+            {{ form.menu }}
+            <b>Dead line for ordering</b>
+            {{ form.deadline_for_ordering }}
+            <b>ETA</b>
+            {{ form.eta }}
+
+            <input type="submit" value="submit" class="button right">
+
+        </form>
+    </div>
+{% endblock %}

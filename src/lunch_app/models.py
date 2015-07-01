@@ -184,3 +184,22 @@ class Conflict(db.Model):
     notes = Column(String(500))
     i_know_who = Column(Boolean, default=False)
     did_order_come = Column(Boolean, default=False)
+
+
+class FoodEvent(db.Model):
+    """
+    Food events data base
+    """
+    __tablename__ = 'foodevent'
+    id = Column(Integer, primary_key=True)
+    created_by_user = Column(String(100), db.ForeignKey('user.username'))
+    event_name = Column(String(100))
+    food_type = Column(String(30))
+    other_food_type = Column(String(60))
+    active = Column(Boolean, default=True)
+    food_company = Column(String(50))
+    menu = Column(String(500))
+    date_created = Column(DateTime, default=datetime.utcnow)
+    deadline_for_ordering = Column(DateTime)
+    eta = Column(DateTime)
+    users = Column(MutableDict.as_mutable(PickleType))
