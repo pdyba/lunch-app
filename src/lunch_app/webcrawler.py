@@ -74,10 +74,10 @@ def get_week_from_tomas_crawler():
     """
     Returns weak of meals from Tomas ! use only on mondays !.
     """
-    from .main import app
+    # from .main import app
 
-    url = app.config['URL_TOMAS']
-    webpage = request.urlopen(url)
+    # url = app.config['URL_TOMAS']
+    webpage = request.urlopen('http://www.tomas.net.pl/niagara.php')
     magic_soup = BeautifulSoup(read_webpage(webpage), 'html.parser')
     menu = magic_soup.find_all("td", {"class": "biala"})
     alist = []
@@ -92,24 +92,22 @@ def get_week_from_tomas_crawler():
     for meal in menu:
         for food in meal:
             item = "{}".format(food)
-            item = item.replace("\n", "")
-            item = item.replace("\t", "")
-            item = item.replace('<span class="biala">', "")
-            item = item.replace('<span class="dzien">', "")
-            item = item.replace('</span>', "")
-            item = item.strip("\xa0")
-            item = item.strip()
+            item = item.replace("\n", "").replace("\t", "")\
+                .replace('<span class="biala">', "")\
+                .replace('<span class="dzien">', "")\
+                .replace('</span>', "").strip("\xa0").strip()
             if item != "<br/>" and item and item != "\xa0" \
                     and item != ":):)":
                 alist.append(item)
-    while "kcal" in str(alist) and alist[0]:
+    while "kcal" in str(alist) or "..." in str(alist) and alist[0]:
         meal = alist[0]
         alist.pop(0)
-        while "kcal" not in alist[0] and alist[0] != 'ZUPA DNIA:' and alist[0]:
-            meal += " "
+        while ("kcal" and '...') not in alist[0] and alist[0] != 'ZUPA DNIA:':
             meal += alist[0]
+            meal += " "
             alist.pop(0)
-        tomas_menu['diet'].append(meal)
+            tomas_menu['diet'].append(meal.strip('...').strip())
+
     for i in range(1, 6):
         day_manu = {
             'zupy': [],
