@@ -74,10 +74,10 @@ def get_week_from_tomas_crawler():
     """
     Returns weak of meals from Tomas ! use only on mondays !.
     """
-    # from .main import app
+    from .main import app
 
-    # url = app.config['URL_TOMAS']
-    webpage = request.urlopen('http://www.tomas.net.pl/niagara.php')
+    url = app.config['URL_TOMAS']
+    webpage = request.urlopen(url)
     magic_soup = BeautifulSoup(read_webpage(webpage), 'html.parser')
     menu = magic_soup.find_all("td", {"class": "biala"})
     alist = []
