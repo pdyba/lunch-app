@@ -176,7 +176,7 @@ class Conflict(db.Model):
     __tablename__ = 'conflicts'
     id = Column(Integer, primary_key=True)
     created_by_user = Column(String(100), db.ForeignKey('user.username'))
-    user_connected = Column(String(100), db.ForeignKey('user.username'))
+    user_connected = Column(String(100), nullable=True)
     order_connected = Column(Integer, db.ForeignKey('order.id'))
     date_added = Column(DateTime, default=datetime.utcnow)
     resolved = Column(Boolean, default=False)
