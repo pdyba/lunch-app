@@ -56,23 +56,28 @@ def fill_user():
     user = User()
     user.email = 'test_user'
     user.username = 'test_user'
+    user.favourite_food = '["pizza", "burger", "sushi", "chinese", "other"]'
     db.session.add(user)
     user_2 = User()
     user_2.email = 'test@user.pl'
     user_2.username = 'test@user.pl'
     user_2.i_want_daily_reminder = True
+    user_2.favourite_food = '["pizza", "sushi", "chinese", "other"]'
     db.session.add(user_2)
     user_3 = User()
     user_3.email = 'x@x.pl'
     user_3.username = 'x@x.pl'
+    user_3.favourite_food = '["sushi", "chinese", "other"]'
     db.session.add(user_3)
     user_4 = User()
     user_4.email = 'reminder@user.pl'
     user_4.username = 'reminder@user.pl'
     user_4.i_want_daily_reminder = True
+    user_4.favourite_food = '["sushi", "chinese"]'
     user_5 = User()
     user_5.email = 'mock_user@mock.com'
     user_5.username = 'mock_user@mock.com'
+    user_5.username = '["sushi"]'
     user_5.rate_timestamp = date(2015, month=2, day=2)
     db.session.add(user_4)
     db.session.add(user_5)

@@ -35,6 +35,7 @@ class User(db.Model, UserMixin):
     i_want_daily_reminder = Column(Boolean, default=False)
     rate_timestamp = Column(Date)
     preferred_arrival_time = Column(String(5), default="12:00")
+    favourite_food = Column(String(200), default='')
 
     def is_active(self):
         """
@@ -202,4 +203,4 @@ class FoodEvent(db.Model):
     date_created = Column(DateTime, default=datetime.utcnow)
     deadline_for_ordering = Column(DateTime)
     eta = Column(DateTime)
-    users = Column(MutableDict.as_mutable(PickleType))
+    users_orders = Column(String(5000))

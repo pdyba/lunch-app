@@ -6,12 +6,13 @@ Defines views.
 from calendar import monthrange, month_name
 from collections import Counter
 import datetime
+import json
 import logging
 from random import choice
 
 from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
-from flask.ext.login import current_user
+from flask.ext.login import current_user, login_user
 from flask.ext.mail import Message
 from sqlalchemy import and_, or_, desc
 from sqlalchemy.orm import load_only
@@ -22,7 +23,8 @@ from .forms import (
     UserOrders, CompanyOrders, MailTextForm,
     UserPreferences, FinanceSearchForm, CompanyAddForm,
     FoodRateForm, FinanceBlockUserForm, PizzaChooseForm,
-    CreateConflict, ResolveConflict, CreateFoodEventForm
+    CreateConflict, ResolveConflict, CreateFoodEventForm,
+    FoodEventChooseForm,
 )
 from .models import (
     Order, Food, User,
@@ -45,8 +47,21 @@ log = logging.getLogger(__name__)
 @app.route('/<error>')
 def index(error=None):
     """
-    Gplus login page.
+    Google plus login page.
     """
+    if app.debug:
+        new_admin = User.query.get(1)
+        if not new_admin:
+            new_admin = User()
+            new_admin.username = 'admin_debug'
+            new_admin.password = 'admin12345'
+            new_admin.active = True
+            new_admin.admin = True
+            new_admin.email = 'admin@stxnext.pl'
+            db.session.add(new_admin)
+            db.session.commit()
+        login_user(new_admin, force=True)
+        return redirect('order')
     if not current_user.is_anonymous() and \
             '@stxnext.pl' in current_user.username:
         return redirect('order')
@@ -64,12 +79,16 @@ def overview():
     """
     user = User.query.get(current_user.id)
     form = UserPreferences(formdata=request.form, obj=user)
+    form.favourite_food.process_formdata(json.loads(
+        user.favourite_food if user.favourite_food else "{}"
+    ))
     if request.method == 'POST' and form.validate():
         user.i_want_daily_reminder = \
             request.form.get('i_want_daily_reminder') == 'y'
         user.preferred_arrival_time = request.form.get(
             'preferred_arrival_time'
         )
+        user.favourite_food = json.dumps(form.favourite_food.raw_data)
         db.session.commit()
         flash('User preferences updated')
         return redirect('overview')
@@ -943,9 +962,13 @@ def get_week_from_tomas_view():
     flash('Weak of meals from Tomas have been added.')
     return redirect('add_food')
 
+
 @app.route('/food_event_start', methods=['GET', 'POST'])
 @login.login_required
 def food_event_start():
+    """
+    Food event start.
+    """
     form = CreateFoodEventForm(request.form)
     if request.method == 'POST' and form.validate():
         new_event = FoodEvent()
@@ -953,97 +976,136 @@ def food_event_start():
         new_event.created_by_user = current_user.username
         db.session.add(new_event)
         db.session.commit()
-        new_event = FoodEvent.query.filter(and_(
-            FoodEvent.created_by_user == current_user.username,
-            FoodEvent.active,
-            FoodEvent.event_name == new_event.event_name,
-        )).first()
         new_event_id = new_event.id
-        # import pdb; pdb.set_trace()
         event_url = server_url() + url_for(
-            "food_event",
-            event=new_event_id,
+            "food_event_view",
+            event_id=new_event_id,
         )
         stop_url = server_url() + url_for(
-            "food_event",
-            event=new_event_id,
+            "food_event_stop",
+            event_id=new_event_id,
         )
-        users = User.query.filter(User.active).all()
+        users = User.query.filter(and_(
+            User.active,
+            User.favourite_food.like('%{}%'.format(new_event.food_type)),
+        )).all()
+        # query only interested users
         emails = [user.email for user in users]
-        text = 'You succesfully orderd pizza for all You can check who wants' \
-               ' what here:\n{}\n to finish the pizza orgy click here\n{}\n ' \
-               'than order pizza!'.format(event_url, stop_url)
+        # message to all interested users
+        text = '{} started {} event! You cane order it here:\n{} '.format(
+            current_user.username,
+            new_event.food_type,
+            event_url,
+        )
         msg = Message(
-            'Lunch app PIZZA TIME',
+            '{} lunch app {} food event'.format(
+                new_event.event_name,
+                new_event.food_type,
+            ),
             recipients=emails,
+            body=text
         )
-        msg.body = '{} ordered pizza for everyone ! \n order it here:\n\n' \
-                   '{}\n\n and thank him!'.format(current_user.username, event_url)
         mail.send(msg)
-        msg = Message(
-            'Lunch app PIZZA TIME',
-            recipients=[current_user.username],
+        # message to event creator
+        text = 'You successfully started food event for everyone interested' \
+               'in this typo of food click view the event:\n{}\n or click ' \
+               'here to end \n{}\n e-mail was send to {} users.'.format(
+            event_url, stop_url, len(emails),
         )
+        msg.recipients = [current_user.email]
         msg.body = text
         mail.send(msg)
         flash(text)
-        return redirect(url_for("food_event", event=new_event_id))
-
+        return redirect(url_for("food_event_view", event_id=new_event_id))
     return render_template(
         'food_event_start.html',
         form=form,
     )
 
 
-@app.route('/food_event/<int:event>', methods=['GET', 'POST'])
+@app.route('/food_event/<int:event_id>', methods=['GET', 'POST'])
 @login.login_required
-def food_event(event):
+def food_event_view(event_id):
     """
-    Shows pizza menu, order Form and orders summary.
+    Food event menu, order form and orders summary.
     """
-    food_event_db = FoodEvent.query.get(event)
-    form = PizzaChooseForm(request.form)
-    if request.method == 'POST' and form.validate():
-        if not food_event_db.active:
-            flash('Pizza time finished !')
-            return redirect(url_for('pizza_time_view', happening=happening))
-        if current_user.username in [u for u in food_event_db.users.values()]:
-            flash('You already ordered !')
-            return redirect(url_for('pizza_time_view', happening=happening))
-        pizza = form.description.data
-        pizza = pizza.strip()
-        size = form.pizza_size.data
-        try:
-            try:
-                pizzas_db.ordered_pizzas[pizza][size] \
-                    += current_user.username
-            except KeyError:
-                try:
-                    pizzas_db.ordered_pizzas[pizza] += {
-                        size: current_user.username
-                    }
-                except KeyError:
-                    pizzas_db.ordered_pizzas[pizza] = {
-                        size: current_user.username
-                    }
-        except TypeError:
-            pizzas_db.ordered_pizzas = {
-                form.description.data: {
-                    form.pizza_size.data: current_user.username,
-                }
-            }
-        pizzas_db.users_already_ordered += current_user.username + " "
-        db.session.commit()
-        flash('You successfully ordered a pizza ;-)')
-        return redirect(url_for('pizza_time_view', happening=happening))
-    pizzas_ordered = pizzas_db.ordered_pizzas
-    pizzas_active = pizzas_db.pizza_ordering_is_allowed
-    return render_template(
-        'pizza_time.html',
-        form=form,
-        pizzas_ordered=pizzas_ordered,
-        pizzas_active=pizzas_active,
+    food_event = FoodEvent.query.get(event_id)
+    if food_event.active:
+        form = FoodEventChooseForm(request.form)
+    else:
+        form = None
+    users_orders = json.loads(
+        food_event.users_orders if food_event.users_orders else "{}"
     )
+    if request.method == 'POST' and form.validate():
+        if not food_event.active:
+            flash('Food Event has already finished !')
+            return redirect(url_for('food_event_view', event_id=event_id))
+        if current_user.email in users_orders.keys():
+            flash('You already ordered !')
+            return redirect(url_for('food_event_view', event_id=event_id))
+
+        food = form.description.data
+        users_orders[current_user.email] = {
+            'food': food.strip(),
+            'cost': form.cost.data,
+        }
+        food_event.users_orders = json.dumps(users_orders)
+        db.session.commit()
+        flash('You successfully ordered!')
+        return redirect(url_for('food_event_view', event_id=event_id))
+    return render_template(
+        'food_event.html',
+        form=form,
+        users_orders=users_orders,
+        food_event=food_event,
+        total_cost=sum([float(x['cost']) for x in users_orders.values()])
+    )
+
+
+@app.route('/food_event_stop/<int:event_id>', methods=['GET', 'POST'])
+@login.login_required
+def food_event_stop(event_id):
+    """
+    Stops Food Event time.
+    """
+    event = FoodEvent.query.get(event_id)
+    if current_user.username != event.created_by_user:
+        flash('! Only event creator can stop the event !')
+        return redirect(url_for('food_event_view', event_id=event_id))
+    if not event.active:
+        flash('! You alredy finished Your event !')
+        return redirect(url_for('food_event_view', event_id=event_id))
+    event.active = False
+    db.session.commit()
+    text = "{} has finished wait for a message that the order came" \
+           " and don't forget to pay for it".format(event.event_name)
+    emails = [email for email in json.loads(
+        event.users_orders if event.users_orders else ""
+    )]
+    msg = Message(
+        'Lunch App: {} has finished'.format(event.event_name),
+        recipients=emails,
+        body=text
+    )
+    mail.send(msg)
+    flash("You finished the food event. {} users were informed "
+          "about it".format(len(emails)))
+    return redirect(url_for('food_event_view', event_id=event_id))
+
+
+@app.route('/current_food_events', methods=['GET'])
+@login.login_required
+def current_food_events():
+    events = FoodEvent.query.filter(FoodEvent.active).all()
+    events_urls = {
+        event.event_name: url_for('food_event_view', event_id=event.id)
+        for event in events
+    }
+    resp = jsonify(events_urls)
+    resp.status_code = 200
+    return resp
+
 
 @app.route('/order_pizza_for_everybody', methods=['GET', 'POST'])
 @login.login_required
@@ -1087,16 +1149,6 @@ def order_pizza_for_everybody():
     mail.send(msg)
     flash(text)
     return redirect(url_for("pizza_time_view", happening=new_event_id))
-
-
-@app.route('/tv', methods=['GET', 'POST'])
-@login.login_required
-def orders_summary_for_tv():
-    """
-    View for TV showing all orders and reveling hard random orders.
-    """
-    orders = current_day_orders()
-    return render_template('tv.html', orders=orders)
 
 
 @app.route('/pizza_time/<int:happening>', methods=['GET', 'POST'])
@@ -1335,3 +1387,15 @@ def send_mail_rate():
     from .utils import send_rate_reminder
     send_rate_reminder()
     return 'it works'
+
+
+@app.route('/tv', methods=['GET', 'POST'])
+@login.login_required
+def orders_summary_for_tv():
+    """
+    View for TV showing all orders and reveling hard random orders.
+    """
+    orders = current_day_orders()
+    return render_template('tv.html', orders=orders)
+
+

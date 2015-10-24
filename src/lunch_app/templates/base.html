@@ -15,6 +15,8 @@
           media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/sweet-alert.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
+    <link href="{{ url_for('static', filename='css/jquery.timepicker.css') }}"
+          media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/stx_style.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
@@ -22,6 +24,7 @@
     <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.timepicker.min.js') }}"></script>
 
     <link rel="shortcut icon"
           href="{{ url_for('static', filename='img/favicon.ico') }}"
@@ -33,6 +36,10 @@
             <ul class="title-area">
                 <img src="{{ url_for('static', filename='img/stxnext_logo.png') }}"
                      alt="STX Next">
+            <div id="current_food_events_list" class="right">
+            </div>
+
+
 
 
                 {% if current_user and current_user.is_authenticated() %}
@@ -48,7 +55,7 @@
                             <ul class="left">
                                 <li {% if page_id == 'overview' %}
                                     class="active" {% endif %}><a
-                                        href="{{ url_for('overview') }}">Overview</a>
+                                        href="{{ url_for('overview') }}">Settings</a>
                                 </li>
                                 <li {% if page_id == 'order' %}
                                     class="active" {% endif %}><a
@@ -78,6 +85,11 @@
                                     class="active" {% endif %}><a
                                         href="{{ url_for('food_rate') }}">Rate
                                     food</a>
+                                </li>
+
+                            <li {% if page_id == 'food_rate' %}
+                                    class="active" {% endif %}><a
+                                        href="{{ url_for('food_event_start') }}">Start food event</a>
                                 </li>
 
                                 {% if current_user.is_admin() %}
@@ -142,7 +154,6 @@
 
                                 {% endif %}
 
-
                                 <li {% if page_id == 'conflicts' %}
                                     class="active" {% endif %}><a
                                         href="{{ url_for('conflicts') }}">Conflicts
@@ -197,6 +208,13 @@
 <script>
     $('.alert-box > a.close').click(function () {
         $(this).closest('[data-alert]').fadeOut();
+    });
+    $.getJSON('{{ url_for('current_food_events') }}', function (data) {
+        var new_urls="Current Food Events:<br>";
+        for(var key in data){
+           new_urls += '<a href="' + data[key] + '">' + key + '</a> | '
+        }
+        $('#current_food_events_list').html(new_urls)
     });
 </script>
 </html>

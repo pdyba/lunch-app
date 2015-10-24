@@ -114,6 +114,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         data = {
             'i_want_daily_reminder': 'y',
             'preferred_arrival_time': "13:00",
+            'favourite_food': 'pizza',
         }
         resp = self.client.post('/overview', data=data)
         self.assertEqual(resp.status_code, 302)
@@ -1332,6 +1333,96 @@ class LunchBackendViewsTestCase(unittest.TestCase):
                 self.assertEquals(resp.status_code, 302)
                 send_rate_reminder()
                 self.assertEquals(len(outbox), 1)
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_food_event_start(self):
+        """
+        Test food event start.
+        """
+        fill_db()
+        with mail.record_messages() as outbox:
+            resp = self.client.get('/food_event_start')
+            self.assertEqual(resp.status_code, 200)
+            data = {
+                'event_name': 'PizzaFun',
+                'food_type': 'pizza',
+                'food_company': 'Pizzarka',
+                'menu': 'www.pizza.pl',
+                'deadline_for_ordering': '14:00',
+                'eta': '15:00',
+            }
+            resp = self.client.post('/food_event_start', data=data)
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 2)
+            msg = outbox[0]
+            self.assertTrue(msg.subject.startswith('PizzaFun'))
+        resp = self.client.get('/food_event/1')
+        self.assertEqual(resp.status_code, 200)
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_food_event_view(self):
+        """
+        Test food event view.
+        """
+        fill_db()
+        data = {
+            'event_name': 'PizzaFun',
+            'food_type': 'pizza',
+            'food_company': 'Pizzarka',
+            'menu': 'www.pizza.pl',
+            'deadline_for_ordering': '14:00',
+            'eta': '15:00',
+        }
+        resp = self.client.post('/food_event_start', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/food_event/1')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'description': 'WielkaMargarittaZKotem',
+            'cost': '15',
+        }
+        resp = self.client.post('/food_event/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/food_event/1')
+        self.assertIn('WielkaMargarittaZKotem', str(resp.data))
+        data = {
+            'description': 'WielkaMargarittaZMisiem',
+            'cost': '12',
+        }
+        resp = self.client.post('/food_event/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/food_event/1')
+        self.assertIn('You already ordered !', str(resp.data))
+        self.assertNotIn('WielkaMargarittaZMisiem', str(resp.data))
+
+    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
+    def test_food_event_stop(self):
+        """
+        Test pizza time stop function
+        """
+        fill_db()
+        data = {
+            'event_name': 'PizzaFun',
+            'food_type': 'pizza',
+            'food_company': 'Pizzarka',
+            'menu': 'www.pizza.pl',
+            'deadline_for_ordering': '14:00',
+            'eta': '15:00',
+        }
+        resp = self.client.post('/food_event_start', data=data)
+        self.assertEqual(resp.status_code, 302)
+        data = {
+            'description': 'WielkaMargarittaZMisiem',
+            'cost': '12',
+        }
+        resp = self.client.post('/food_event/1', data=data)
+        self.assertEqual(resp.status_code, 302)
+        with mail.record_messages() as outbox:
+            resp = self.client.get('/food_event_stop/1')
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(len(outbox), 1)
+            msg = outbox[0]
+            self.assertIn('PizzaFun has finished', msg.subject)
 
 
 class LunchBackendUtilsTestCase(unittest.TestCase):

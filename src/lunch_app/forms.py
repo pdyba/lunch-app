@@ -15,7 +15,22 @@ from wtforms import (
     FloatField,
     StringField,
     DateTimeField,
+    SelectMultipleField,
+    widgets,
 )
+
+
+FOOD_TYPE_LIST = ['pizza', 'burger', 'sushi', 'chinese', 'other']
+
+class MultiCheckboxField(SelectMultipleField):
+    """
+    A multiple-select, except displays a list of checkboxes.
+
+    Iterating the field will produce subfields, allowing custom rendering of
+    the enclosed checkbox fields.
+    """
+    widget = widgets.ListWidget(prefix_label=False, html_tag='ol')
+    option_widget = widgets.CheckboxInput()
 
 
 class OrderForm(Form):
@@ -200,6 +215,11 @@ class UserPreferences(Form):
             ('13:00', '13:00'),
         ]
     )
+    favourite_food = MultiCheckboxField(
+        'preferred_arrival_time',
+        choices=[(food,)*2 for food in FOOD_TYPE_LIST],
+        validators=[validators.optional()]
+    )
 
 
 class FinanceSearchForm(Form):
@@ -301,6 +321,7 @@ class PizzaChooseForm(Form):
         validators=[validators.DataRequired("Please choose pizza size.")],
         choices=[
             ('small', 'small'),
+            ('medium', 'medium'),
             ('big', 'big'),
         ]
     )
@@ -334,6 +355,7 @@ class ResolveConflict(Form):
         "notes",
     )
 
+
 class CreateFoodEventForm(Form):
     """
     Create food event.
@@ -342,13 +364,7 @@ class CreateFoodEventForm(Form):
     food_type = SelectField(
         'food_type',
         validators=[validators.DataRequired("Please choose food type")],
-        choices=[
-            ("burger", "burger"),
-            ("pizza", "pizza"),
-            ("sushi", "sushi"),
-            ("chinese", "chinese"),
-            ("other", "other"),
-        ],
+        choices=[(food,)*2 for food in FOOD_TYPE_LIST],
     )
     other_food_type = StringField(
         "other_food_type",
@@ -356,7 +372,28 @@ class CreateFoodEventForm(Form):
     )
     food_company = StringField("food_company")
     menu = StringField("menu", validators=[
-        validators.URL(message="Please enter a valid url")
+        validators.data_required(message="Please enter a menu link")
     ])
-    deadline_for_ordering = DateTimeField(format='%Y-%m-%d %H:%M')
-    eta = DateTimeField(format='%Y-%m-%d %H:%M')
+    deadline_for_ordering = DateTimeField(format='%H:%M')
+    eta = DateTimeField(format='%H:%M')
+
+
+class FoodEventChooseForm(Form):
+    """
+    Food event ordering form.
+    """
+    description = TextAreaField(
+        "description",
+        validators=[validators.DataRequired('Please enter your pizza.')],
+    )
+    cost = FloatField(
+        'cost',
+        validators=[
+            validators.DataRequired('Please enter cost.'),
+            validators.NumberRange(
+                min=0.01,
+                max=999.99,
+                message='Cost has to be provided and be a positive value',
+                ),
+        ]
+    )
