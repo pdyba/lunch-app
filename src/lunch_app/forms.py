@@ -309,25 +309,6 @@ class FinanceBlockUserForm(Form):
     )
 
 
-class PizzaChooseForm(Form):
-    """
-    Choose a pizza
-    """
-    description = TextAreaField(
-        "description",
-        validators=[validators.DataRequired('Please enter your pizza.')],
-    )
-    pizza_size = SelectField(
-        'pizza_size',
-        validators=[validators.DataRequired("Please choose pizza size.")],
-        choices=[
-            ('small', 'small'),
-            ('medium', 'medium'),
-            ('big', 'big'),
-        ]
-    )
-
-
 class CreateConflict(Form):
     """
     Create a conflict.
