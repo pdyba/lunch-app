@@ -36,8 +36,9 @@
             <ul class="title-area">
                 <img src="{{ url_for('static', filename='img/stxnext_logo.png') }}"
                      alt="STX Next">
-            <div id="current_food_events_list" class="right">
-            </div>
+
+                <div id="current_food_events_list" class="right">
+                </div>
 
 
 
@@ -87,9 +88,10 @@
                                     food</a>
                                 </li>
 
-                            <li {% if page_id == 'food_rate' %}
+                                <li {% if page_id == 'food_rate' %}
                                     class="active" {% endif %}><a
-                                        href="{{ url_for('food_event_start') }}">Start food event</a>
+                                        href="{{ url_for('food_event_start') }}">Start
+                                    food event</a>
                                 </li>
 
                                 {% if current_user.is_admin() %}
@@ -148,7 +150,8 @@
                                         }
                                     </script>
 
-                                <li><a onclick="pizza_conf()">PizzaParty</a>
+                                    <li>
+                                        <a onclick="pizza_conf()">PizzaParty</a>
                                     </li>
 
 
@@ -157,11 +160,11 @@
                                 <li {% if page_id == 'conflicts' %}
                                     class="active" {% endif %}><a
                                         href="{{ url_for('conflicts') }}">Conflicts
-                                    </a>
+                                </a>
                                     {% if get_conflicts_amount(current_user) > 0 %}
-                                <span class="conflicts-number">{{ get_conflicts_amount(current_user) }}</span>
-                                {% endif %}
-                                        </li>
+                                        <span class="conflicts-number">{{ get_conflicts_amount(current_user) }}</span>
+                                    {% endif %}
+                                </li>
 
                             </ul>
                         </section>
@@ -210,9 +213,9 @@
         $(this).closest('[data-alert]').fadeOut();
     });
     $.getJSON('{{ url_for('current_food_events') }}', function (data) {
-        var new_urls="Current Food Events:<br>";
-        for(var key in data){
-           new_urls += '<a href="' + data[key] + '">' + key + '</a> | '
+        var new_urls = "Current Food Events:<br>";
+        for (var key in data) {
+            new_urls += '<a href="' + data[key] + '">' + key + '</a> | '
         }
         $('#current_food_events_list').html(new_urls)
     });

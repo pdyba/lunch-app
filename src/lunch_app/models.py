@@ -12,10 +12,8 @@ from sqlalchemy import Column
 from sqlalchemy.types import (
     Integer, String, Boolean,
     Unicode, DateTime, Float,
-    Date, PickleType,
+    Date,
 )
-
-from sqlalchemy.ext.mutable import MutableDict
 
 from .main import db
 
@@ -142,19 +140,6 @@ class OrderingInfo(db.Model):
     __tablename__ = 'ordering_info'
     id = Column(Integer, primary_key=True)
     is_allowed = Column(Boolean, default=True)
-
-
-class Pizza(db.Model):
-    """
-    Pizza ordering.
-    """
-    __tablename__ = 'pizza'
-    id = Column(Integer, primary_key=True)
-    date = Column(DateTime, default=datetime.utcnow)
-    pizza_ordering_is_allowed = Column(Boolean, default=False)
-    ordered_pizzas = Column(MutableDict.as_mutable(PickleType))
-    users_already_ordered = Column(String(5000))
-    who_created = Column(String(100))
 
 
 class Company(db.Model):

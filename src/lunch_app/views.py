@@ -14,7 +14,7 @@ from flask import redirect, render_template, request, flash, url_for, jsonify
 from flask.ext import login
 from flask.ext.login import current_user, login_user
 from flask.ext.mail import Message
-from sqlalchemy import and_, or_, desc
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import load_only
 
 from .main import app, db, mail
@@ -22,14 +22,14 @@ from .forms import (
     OrderForm, AddFood, OrderEditForm,
     UserOrders, CompanyOrders, MailTextForm,
     UserPreferences, FinanceSearchForm, CompanyAddForm,
-    FoodRateForm, FinanceBlockUserForm, PizzaChooseForm,
+    FoodRateForm, FinanceBlockUserForm,
     CreateConflict, ResolveConflict, CreateFoodEventForm,
     FoodEventChooseForm,
 )
 from .models import (
     Order, Food, User,
     Finance, MailText, Company,
-    Pizza, Conflict, FoodEvent,
+    Conflict, FoodEvent,
 )
 from .permissions import user_is_admin
 from .utils import (
@@ -37,7 +37,7 @@ from .utils import (
     add_daily_koziolek, get_week_from_tomas, ordering_is_active,
     server_url, current_day_orders, current_day_meals,
     current_day_meals_and_companies, month_orders, add_a_new_meal,
-    change_ordering_status,
+    change_ordering_status, get_current_date,
 )
 
 log = logging.getLogger(__name__)
@@ -62,8 +62,13 @@ def index(error=None):
             db.session.commit()
         login_user(new_admin, force=True)
         return redirect('order')
-    if not current_user.is_anonymous() and \
-            '@stxnext.pl' in current_user.username:
+    if (
+        not current_user.is_anonymous() and
+        '@stxnext.pl' in current_user.username
+    ):
+        if not current_user.active:
+            msg = "Your account is not active. Pleas contac administrator"
+            return render_template('index.html', msg=msg)
         return redirect('order')
     elif not current_user.is_anonymous() or error:
         msg = "Sadly you are not a hero, but you can try and join us."
@@ -111,7 +116,7 @@ def create_order():
     companies = Company.query.all()
     form.company.choices = [
         (comp.name, "Order from {}".format(comp.name)) for comp in companies
-    ]
+        ]
     if current_user.preferred_arrival_time:
         form.arrival_time.data = current_user.preferred_arrival_time
     foods, companies_current, companies_menu = \
@@ -159,9 +164,14 @@ def add_food():
     form.company.choices = [(comp.name, comp.name) for comp in companies]
     if request.method == 'POST' and form.validate() \
             and request.form['add_meal'] == 'add':
-        food = Food()
-        form.populate_obj(food)
-        db.session.add(food)
+        add_a_new_meal(
+            form.cost.data,
+            form.description.data,
+            form.date_available_from.data,
+            form.date_available_to.data,
+            form.company.data,
+            ftype=form.o_type.data
+        )
         db.session.commit()
         flash('Food added')
         return redirect('add_food')
@@ -178,7 +188,7 @@ def add_food():
                     form.date_available_from.data,
                     form.date_available_to.data,
                     form.company.data,
-                    type=form.o_type.data
+                    ftype=form.o_type.data
                 )
                 number_of_foods_aded += 1
         db.session.commit()
@@ -884,11 +894,11 @@ def finance_block_user():
     users_to_block = [
         (user.id, user.username)
         for user in users if user.active
-    ]
+        ]
     users_to_unblock = [
         (user.id, user.username)
         for user in users if not user.active
-    ]
+        ]
     form_block = FinanceBlockUserForm(request.form)
     form_block.user_select.choices = users_to_block
     form_unblock = FinanceBlockUserForm(request.form)
@@ -900,8 +910,10 @@ def finance_block_user():
         db.session.commit()
         flash('User blocked')
         return redirect('finance_block_user')
-    elif request.method == 'POST' and \
-            request.form['block_change'] == 'unblock':
+    elif (
+        request.method == 'POST' and
+        request.form['block_change'] == 'unblock'
+    ):
         user = User.query.get(request.form['user_select'])
         user.active = True
         db.session.commit()
@@ -1007,10 +1019,14 @@ def food_event_start():
         )
         mail.send(msg)
         # message to event creator
-        text = 'You successfully started food event for everyone interested' \
-               'in this typo of food click view the event:\n{}\n or click ' \
-               'here to end \n{}\n e-mail was send to {} users.'.format(
-            event_url, stop_url, len(emails),
+        text = '''
+            You successfully started food event for everyone interested
+            in this typo of food click view the event:\n{}\n or click
+            here to end \n{}\n e-mail was send to {} users.
+            '''.format(
+            event_url,
+            stop_url,
+            len(emails),
         )
         msg.recipients = [current_user.email]
         msg.body = text
@@ -1097,11 +1113,14 @@ def food_event_stop(event_id):
 @app.route('/current_food_events', methods=['GET'])
 @login.login_required
 def current_food_events():
+    """
+    Rerurns ongoing food events
+    """
     events = FoodEvent.query.filter(FoodEvent.active).all()
     events_urls = {
         event.event_name: url_for('food_event_view', event_id=event.id)
         for event in events
-    }
+        }
     resp = jsonify(events_urls)
     resp.status_code = 200
     return resp
@@ -1113,27 +1132,35 @@ def order_pizza_for_everybody():
     """
     Orders pizza for every user and sedns him an e-mail.
     """
-    new_event = Pizza()
-    new_event.who_created = current_user.username
-    new_event.pizza_ordering_is_allowed = True
-    new_event.users_already_ordered = ""
+    new_event = FoodEvent()
+    new_event.created_by_user = current_user.username
+    new_event.event_name = "Pizza for evertbody from {}".format(
+        current_user.username
+    )
+    new_event.food_type = 'pizza'
+    new_event.food_company = 'Skarbiec Smaków'
+    new_event.menu = 'http://www.skarbiec-smakow.pl'
+    new_event.deadline_for_ordering = datetime.datetime.combine(
+        get_current_date(),
+        datetime.time(19, 0)
+    )
+    new_event.eta = datetime.datetime.combine(
+        get_current_date(),
+        datetime.time(21, 0)
+    )
     db.session.add(new_event)
     db.session.commit()
-    new_event = Pizza.query.all()[-1]
     new_event_id = new_event.id
     event_url = server_url() + url_for(
-        "pizza_time_view",
-        happening=new_event_id,
+        "food_event_view",
+        event_id=new_event_id,
     )
     stop_url = server_url() + url_for(
-        "pizza_time_stop",
-        happening=new_event_id,
+        "food_event_stop",
+        event_id=new_event_id,
     )
-    users = User.query.filter(User.active).all()
-    emails = [user.email for user in users]
-    text = 'You succesfully orderd pizza for all You can check who wants' \
-           ' what here:\n{}\n to finish the pizza orgy click here\n{}\n ' \
-           'than order pizza!'.format(event_url, stop_url)
+    emails = [user.email for user in User.query.filter(User.active).all()]
+    # msg for every one:
     msg = Message(
         'Lunch app PIZZA TIME',
         recipients=emails,
@@ -1141,80 +1168,18 @@ def order_pizza_for_everybody():
     msg.body = '{} ordered pizza for everyone ! \n order it here:\n\n' \
                '{}\n\n and thank him!'.format(current_user.username, event_url)
     mail.send(msg)
+    # msg for creator:
+    text = 'You succesfully orderd pizza for all You can check who wants' \
+           ' what here:\n{}\n to finish the pizza orgy click here\n{}\n ' \
+           'than order pizza!'.format(event_url, stop_url)
     msg = Message(
         'Lunch app PIZZA TIME',
-        recipients=[current_user.username],
+        recipients=[current_user.email],
     )
     msg.body = text
     mail.send(msg)
     flash(text)
-    return redirect(url_for("pizza_time_view", happening=new_event_id))
-
-
-@app.route('/pizza_time/<int:happening>', methods=['GET', 'POST'])
-@login.login_required
-def pizza_time_view(happening):
-    """
-    Shows pizza menu, order Form and orders summary.
-    """
-    pizzas_db = Pizza.query.get(happening)
-    form = PizzaChooseForm(request.form)
-    if request.method == 'POST' and form.validate():
-        if not pizzas_db.pizza_ordering_is_allowed:
-            flash('Pizza time finished !')
-            return redirect(url_for('pizza_time_view', happening=happening))
-        if current_user.username in pizzas_db.users_already_ordered:
-            flash('You already ordered !')
-            return redirect(url_for('pizza_time_view', happening=happening))
-        pizza = form.description.data
-        pizza = pizza.strip()
-        size = form.pizza_size.data
-        try:
-            try:
-                pizzas_db.ordered_pizzas[pizza][size] \
-                    += current_user.username
-            except KeyError:
-                try:
-                    pizzas_db.ordered_pizzas[pizza] += {
-                        size: current_user.username
-                    }
-                except KeyError:
-                    pizzas_db.ordered_pizzas[pizza] = {
-                        size: current_user.username
-                    }
-        except TypeError:
-            pizzas_db.ordered_pizzas = {
-                form.description.data: {
-                    form.pizza_size.data: current_user.username,
-                }
-            }
-        pizzas_db.users_already_ordered += current_user.username + " "
-        db.session.commit()
-        flash('You successfully ordered a pizza ;-)')
-        return redirect(url_for('pizza_time_view', happening=happening))
-    pizzas_ordered = pizzas_db.ordered_pizzas
-    pizzas_active = pizzas_db.pizza_ordering_is_allowed
-    return render_template(
-        'pizza_time.html',
-        form=form,
-        pizzas_ordered=pizzas_ordered,
-        pizzas_active=pizzas_active,
-    )
-
-
-@app.route('/pizza_time_stop/<int:happening>', methods=['GET', 'POST'])
-@login.login_required
-def pizza_time_stop(happening):
-    """
-    Stops pizza time.
-    """
-    pizzas_db = Pizza.query.get(happening)
-    if current_user.username != pizzas_db.who_created:
-        flash('! Only event creator can stop the event !')
-        return redirect(url_for('pizza_time_view', happening=happening))
-    pizzas_db.pizza_ordering_is_allowed = False
-    db.session.commit()
-    return redirect(url_for('pizza_time_view', happening=happening))
+    return redirect(url_for("food_event_view", event_id=new_event_id))
 
 
 @app.route('/food_edit/<int:food_id>', methods=['GET', 'POST'])
@@ -1283,7 +1248,7 @@ def conflict_create(order_id):
         (user.username, user.username) for user in User.query.options(
             load_only("username")
         ).all()
-    ]
+        ]
     form.user_connected.choices.append(("None", "None"))
     form.user_connected.default = ("None", "None")
     if request.method == 'POST':
@@ -1380,13 +1345,16 @@ def conflict_resolve(conf_id):
 
 
 @app.route('/snr', methods=['GET', 'POST'])
+@login.login_required
+@user_is_admin
 def send_mail_rate():
     """
     Deletes food.
     """
     from .utils import send_rate_reminder
-    send_rate_reminder()
-    return 'it works'
+    email_count = send_rate_reminder()
+    flash('{} users were informed'.format(email_count))
+    return redirect('day_summary')
 
 
 @app.route('/tv', methods=['GET', 'POST'])
@@ -1396,6 +1364,5 @@ def orders_summary_for_tv():
     View for TV showing all orders and reveling hard random orders.
     """
     orders = current_day_orders()
-    return render_template('tv.html', orders=orders)
-
-
+    date = get_current_date()
+    return render_template('tv.html', orders=orders, date=date)

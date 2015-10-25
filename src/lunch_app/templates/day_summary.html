@@ -35,25 +35,49 @@
                             <h3>{{ comp.name }}</h3>
 
                             <h4>12:00</h4>
-
-                            <ul class="square">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                </tr>
+                                </thead>
+                                <tbody>
                                 {% for order in orders_summary['12:00'][comp.name] %}
+                                    <tr>
 
-                                    <li> {{ order }}<b> {{ orders_summary['12:00'][comp.name][order] }}
-                                        szt.</b>
-                                    </li>
+                                        <td>{{ order }}</td><td><b> {{ orders_summary['12:00'][comp.name][order] }} </b></td>
+                                    </tr>
 
                                 {% endfor %}
-                            </ul>
+
+                                </tbody>
+                            </table>
+
                             <h4>13:00</h4>
-                            <ul class="square">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                </tr>
+                                </thead>
+                                <tbody>
                                 {% for order in orders_summary['13:00'][comp.name] %}
-                                    <li>{{ order }} <b>{{ orders_summary['13:00'][comp.name][order] }} szt.</b></li>
+                                    <tr>
+                                        <td>{{ order }}</td><td><b>{{ orders_summary['13:00'][comp.name][order] }}</b></td>
+                                    </tr>
+
                                 {% endfor %}
-                            </ul>
+
+                                </tbody>
+                            </table>
                         </div>
+
                     {% endfor %}
+
                 </div>
+
             </div>
 
 

@@ -1,4 +1,3 @@
-
 <div style="position:absolute;
     top:50%;
     left:50%;
@@ -7,14 +6,15 @@
     margin: -104px 0 0 -104px;">
 
     <a class="googleplus"
-           href="{{ url_for('social.auth', backend='google-oauth2') }}"
-           title="Google+/Gmail">
-        <img src="{{ url_for('static', filename='img/logingplus.png') }}" alt="Google+/Gmail">
+       href="{{ url_for('social.auth', backend='google-oauth2') }}"
+       title="Google+/Gmail">
+        <img src="{{ url_for('static', filename='img/logingplus.png') }}"
+             alt="Google+/Gmail">
     </a>
 
     {% if msg %}
-    <a href="http://stxnext.com/#/en/job-offers/junior-python-developer">
-    <h4 style="color: red">{{ msg }}</h4>
+        <a href="http://stxnext.com/#/en/job-offers/junior-python-developer">
+            <h4 style="color: red">{{ msg }}</h4>
         </a>
     {% endif %}
 </div>

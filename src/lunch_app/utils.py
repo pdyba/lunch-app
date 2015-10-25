@@ -7,11 +7,10 @@ from calendar import monthrange
 import datetime
 
 from flask import (
-    current_app, request, render_template,
-    redirect,
+    current_app, request, render_template, redirect,
 )
 from social.exceptions import SocialAuthBaseException
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from werkzeug.exceptions import HTTPException
 from flask.ext.mail import Message
 
@@ -160,26 +159,36 @@ def current_day_orders():
             Order.date >= today_beg,
             Order.date <= today_end,
         )
-    ).all()
+    ).order_by(Order.user_name).all()
 
 
-def add_a_new_meal(price, meal, date_from, date_to, comp, type="daniednia"):
+def add_a_new_meal(price, meal, date_from, date_to, comp, ftype="daniednia"):
     """
     Adds a new meal to menu
     """
     from .models import Food
     from .main import db
 
-    db.session.add(
-        Food(
-            cost=price,
-            description=meal,
-            company=comp,
-            o_type=type,
-            date_available_from=date_from,
-            date_available_to=date_to,
+    meal_check = Food.query.filter(and_(
+        Food.description == meal,
+        Food.company == comp,
+        Food.o_type == ftype,
+    )).first()
+    if meal_check:
+        meal_check.cost = price
+        meal_check.date_available_from = date_from
+        meal_check.date_available_to = date_to
+    else:
+        db.session.add(
+            Food(
+                cost=price,
+                description=meal,
+                company=comp,
+                o_type=ftype,
+                date_available_from=date_from,
+                date_available_to=date_to,
+            )
         )
-    )
 
 
 def send_daily_reminder():
@@ -225,7 +234,7 @@ def add_daily_koziolek():
                 datetime.date.today(),
                 datetime.date.today(),
                 "Pod Koziołkiem",
-                type="daniednia",
+                ftype="daniednia",
             )
 
     db_session_commit()
@@ -243,7 +252,7 @@ def get_week_from_tomas():
             datetime.date.today(),
             datetime.date.today() + datetime.timedelta(days=4),
             "Tomas",
-            type="tygodniowe"
+            ftype="tygodniowe"
         )
     for i in range(1, 6):
         food = foods['dzien_{}'.format(i)]
@@ -356,8 +365,11 @@ def send_rate_reminder():
     from .main import mail
     orders = current_day_orders()
     orders_users = [order.user_name for order in orders]
-    today = datetime.date.today()
-    users = User.query.filter(User.rate_timestamp < today).all()
+    today = get_current_date()
+    users = User.query.filter(or_(
+        User.rate_timestamp == None,
+        User.rate_timestamp < today,
+    )).all()
     emails = ([user.email for user in users
                if user.username in orders_users])
     msg = Message(
@@ -366,6 +378,7 @@ def send_rate_reminder():
     )
     msg.body = 'Remember to rate your meal, before the end of day.'
     mail.send(msg)
+    return len(emails)
 
 
 def get_conflicts_amount(user):

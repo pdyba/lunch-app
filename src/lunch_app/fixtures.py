@@ -77,8 +77,7 @@ def fill_user():
     user_5 = User()
     user_5.email = 'mock_user@mock.com'
     user_5.username = 'mock_user@mock.com'
-    user_5.username = '["sushi"]'
-    user_5.rate_timestamp = date(2015, month=2, day=2)
+    user_5.favourite_food = '["sushi"]'
     db.session.add(user_4)
     db.session.add(user_5)
     db.session.commit()

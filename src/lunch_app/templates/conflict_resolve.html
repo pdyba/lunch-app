@@ -3,40 +3,41 @@
 {% set page_id = 'conflict_resolve' %}
 
 {% block content %}
-<div class="large-12 columns">
-<h3>Conflict Resolve</h3>
-       <form method="POST">
-    <div class="large-6 columns">
+    <div class="large-12 columns">
+        <h3>Conflict Resolve</h3>
 
-        <div class="large-10 columns">
-        Is the conflict resolved:
-        </div>
-        <div class="large-2 columns">
-            <div class="switch small">
-                {{ form.resolved }}
-            <label for="resolved"></label>
+        <form method="POST">
+            <div class="large-6 columns">
+
+                <div class="large-10 columns">
+                    Is the conflict resolved:
+                </div>
+                <div class="large-2 columns">
+                    <div class="switch small">
+                        {{ form.resolved }}
+                        <label for="resolved"></label>
+                    </div>
+                </div>
+
+                <div class="large-12 columns">
+                    Resolve conflict by:
+                    {{ form.resolved_by }}
+                </div>
+
+                <div class="large-12 columns">
+                    Add some notes:
+                    {{ form.notes }}
+                </div>
+                <input type="submit" value="submit" class="button right">
             </div>
+
+
+        </form>
+        <div class="large-6 columns">
+            {% for desc in info %}
+                <p>{{ desc }}</p>
+            {% endfor %}
         </div>
-
-        <div class="large-12 columns">
-            Resolve conflict by:
-            {{ form.resolved_by }}
-        </div>
-
-        <div class="large-12 columns">
-            Add some notes:
-            {{ form.notes }}
-        </div>
-        <input type="submit" value="submit" class="button right">
-    </div>
-
-
-    </form>
-    <div class="large-6 columns">
-        {% for desc in info %}
-            <p>{{ desc }}</p>
-        {% endfor %}
-    </div>
     </div>
 
 {% endblock %}

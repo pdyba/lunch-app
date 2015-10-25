@@ -6,23 +6,23 @@
     <script type="text/javascript">
         function confirmation() {
             swal({
-                title: "Are you sure?",
-                text: "Are You sure You want delete food, there is no way to undo it !",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: '#DD6B55',
-                confirmButtonText: 'Yes, delete it',
-                cancelButtonText: "No",
-                closeOnConfirm: false,
-                closeOnCancel: false
-            },
-            function (isConfirm) {
-                if (isConfirm) {
-                    window.location = "{{ url_for('delete_food', food_id=food.id) }}";
-                } else {
-                    swal("OK maybe next time");
-                }
-            });
+                        title: "Are you sure?",
+                        text: "Are You sure You want delete food, there is no way to undo it !",
+                        type: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: '#DD6B55',
+                        confirmButtonText: 'Yes, delete it',
+                        cancelButtonText: "No",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            window.location = "{{ url_for('delete_food', food_id=food.id) }}";
+                        } else {
+                            swal("OK maybe next time");
+                        }
+                    });
         }
     </script>
 
@@ -70,11 +70,12 @@
             <div class="small-8 columns">
                 {{ form.date_available_to }}
 
-                <a class="button alert left" onclick="confirmation()">delete</a>
+                <a class="button alert left"
+                   onclick="confirmation()">delete</a>
                 <input type="submit" value="save" class="button right"
                        name="add_meal">
 
-                </div>
+            </div>
         </form>
 
     </div>

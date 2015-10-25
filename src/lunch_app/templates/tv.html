@@ -15,35 +15,42 @@
           media="all" rel="stylesheet" type="text/css"/>
     <link href="{{ url_for('static', filename='css/stx_style.css') }}"
           media="all" rel="stylesheet" type="text/css"/>
-    <script src="{{ url_for('static', filename='js/vendor/jquery.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation/foundation.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/foundation/foundation.alert.js') }}"></script>
 
-    <link rel="shortcut icon"
-          href="{{ url_for('static', filename='img/favicon.ico') }}"
-          type="image/x-icon">
 </head>
 <body>
 <div class="large-12 columns">
-<hr>
-{% for order in orders %}
-    <div class="small-3 columns">
-<ul class="pricing-table">
-  <li class="title">{{ order.user_name }}</li>
-  <li class="description">{{ order.company }} @ {{ order.arrival_time }}</li>
-  <li class="description">{% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}<b style="color: red">{{ order.description }}</b>{% else %}{{ order.description }}{% endif %}</li>
-</ul>
-    </div>
+    <h3>Orders for {{ date }}</h3>
+    <table width='100%'>
+        <thead>
+        <tr>
+            <th>User</th>
+            <th>Company</th>
+            <th>Food</th>
+            <th>Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>{{ order.user_name }}</td>
+                <td>{{ order.company }} </td>
+                <td>
+                    {% if order.description.startswith('!RANDOM ORDER!') and make_date(order.date) == get_current_date() %}
+                        <b style="color: red">{{ order.description }}</b>{% else %}
+                        {{ order.description }}{% endif %}</td>
+                <td>{{ order.arrival_time }}</td>
+            </tr>
 
-{% endfor %}
-  </div>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 </body>
 
-    <div class="large-12 columns small-text-right">
+<div class="large-12 columns small-text-right">
 
-        <hr>
-        <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
-    </div>
+    <hr>
+    <h6>Created by <a href="http://stxnext.pl/">STXNext</a> in 2015</h6>
+</div>
 
 </html>

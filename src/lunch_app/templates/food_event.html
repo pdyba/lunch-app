@@ -17,7 +17,7 @@
             Deadline for
             ordering: {{ food_event.deadline_for_ordering.strftime('%H:%M') }}<br>
             ETA: {{ food_event.eta.strftime('%H:%M') }}<br>
-            ETA: {{ food_event.created_by_user }}<br>
+            Created <by></by>: {{ food_event.created_by_user }}<br>
             {% if food_event.active %}
                 <form method="POST" name="food_event_form">
                     <br>
@@ -65,6 +65,13 @@
             {% else %}
                 Non yet...
             {% endif %}
+
+        {% if current_user.username == food_event.created_by_user and food_event.active %}
+            <br>
+            Administration:
+            <br>ew
+        <a href="{{ url_for('food_event_stop', event_id=food_event.id) }}">End Your food event</a>
+        {% endif %}
         </div>
     </div>
 {% endblock %}

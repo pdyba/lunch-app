@@ -53,24 +53,27 @@
 
                 <input type="submit" value="bulk" class="button center"
                        name="add_meal">
-                </div>
+            </div>
         </form>
     </div>
 
-<div class="large-6 columns">
-<h4>How to add many</h4>
+    <div class="large-6 columns">
+        <h4>How to add many</h4>
         To add few meal at one time separate them with enter and click bulk,
         all meals will be added with same company, cost, dates and type.
-<hr><h4>If something gone wrong</h4>
-        To add meal of a day from "Pod Koziołek" click <a href="{{ url_for("add_daily_koziolek_view") }}">here</a>.
-<br><br>
-    !!! WARNING: use ONLY on MODAY !!!<br>
-    To add a weak from "Tomas" click <a href="{{ url_for("get_week_from_tomas_view") }}">here</a>.<br>
-    !!! WARNING: use ONLY on MODAY !!!
+        <hr>
+        <h4>If something gone wrong</h4>
+        To add meal of a day from "Pod Koziołek" click <a
+            href="{{ url_for("add_daily_koziolek_view") }}">here</a>.
+        <br><br>
+        !!! WARNING: use ONLY on MODAY !!!<br>
+        To add a weak from "Tomas" click <a
+            href="{{ url_for("get_week_from_tomas_view") }}">here</a>.<br>
+        !!! WARNING: use ONLY on MODAY !!!
 
 
-<hr>
-<h4>Edit today's meals</h4>
+        <hr>
+        <h4>Edit today's meals</h4>
 
         Daily menu
         <ul class="tabs" data-tab role="tablist">
@@ -84,18 +87,18 @@
         <div class="tabs-content">
             {% for comp in companies_current %}
                 <div class="content" id="c{{ comp.id }}">
-                        <ul>
+                    <ul>
                         {% for meal in foods %}
                             {% if meal.company == comp.name and meal.o_type != 'menu' %}
                                 <li>
-                                <a href="{{ url_for('food_edit_view', food_id=meal.id) }}">
-                                    {{ meal.description }}
-                                    (<b>{{ meal.cost }} PLN</b>)
+                                    <a href="{{ url_for('food_edit_view', food_id=meal.id) }}">
+                                        {{ meal.description }}
+                                        (<b>{{ meal.cost }} PLN</b>)
                                     </a>
                                 </li>
                             {% endif %}
                         {% endfor %}
-               </ul>
+                    </ul>
                 </div>
 
 
@@ -103,38 +106,38 @@
         </div>
 
         Standard menu
-         <ul class="accordion" data-accordion>
+        <ul class="accordion" data-accordion>
 
 
-                {% for comp in companies_menu %}
-                    <li class="accordion-navigation">
+            {% for comp in companies_menu %}
+                <li class="accordion-navigation">
                     <a href="#cm{{ comp.id }}">{{ comp.name }}</a>
 
                     <div id="cm{{ comp.id }}" class="content">
                         <ul>
-                        {% for meal in foods %}
-                            {% if meal.company == comp.name and meal.o_type == 'menu' %}
-                                <li>
-                                <a href="{{ url_for('food_edit_view', food_id=meal.id) }}">
-                                    {{ meal.description }}
-                                    (<b>{{ meal.cost }} PLN</b>)
-                                    </a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
+                            {% for meal in foods %}
+                                {% if meal.company == comp.name and meal.o_type == 'menu' %}
+                                    <li>
+                                        <a href="{{ url_for('food_edit_view', food_id=meal.id) }}">
+                                            {{ meal.description }}
+                                            (<b>{{ meal.cost }} PLN</b>)
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
 
                     </div>
-                    </li>
-                {% endfor %}
+                </li>
+            {% endfor %}
 
         </ul>
-                    </div>
+    </div>
 
-        <script src="{{ url_for('static', filename='js/foundation/foundation.accordion.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.accordion.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.tooltip.js') }}"></script>
-<script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
-<script>
+    <script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
+    <script>
         $(document).foundation({
             accordion: {
                 callback: function (accordion) {
@@ -147,13 +150,13 @@
                 }
             }
         });
-  $(function() {
-    $( "#date_available_from" ).datepicker({
-        dateFormat: 'yy-mm-dd'
-    });
-    $( "#date_available_to" ).datepicker({
-        dateFormat: 'yy-mm-dd'
-    });
-    });
-  </script>
+        $(function () {
+            $("#date_available_from").datepicker({
+                dateFormat: 'yy-mm-dd'
+            });
+            $("#date_available_to").datepicker({
+                dateFormat: 'yy-mm-dd'
+            });
+        });
+    </script>
 {% endblock %}

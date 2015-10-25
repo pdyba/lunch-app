@@ -8,51 +8,51 @@
     <script src="{{ url_for('static', filename='js/order_script.js') }}"></script>
 
     {% if random_ordering_is_allowed %}
-<script>
-function confirmation_12() {
-	swal({
-		title: "Are you sure?",
-		text: "Are you sure you want to order a random meal at 12:00, there is no way to undo it !",
-		type: "warning",
-		showCancelButton: true,
-		confirmButtonColor: '#DD6B55',
-		confirmButtonText: 'Yes, order it!',
-		cancelButtonText: "No, I'm a coward",
-		closeOnConfirm: false,
-		closeOnCancel: false
-	},
-	function(isConfirm){
-    if (isConfirm){
-        window.location = "{{ url_for('random_food', courage=1) }}";
-    } else {
-        swal("OK maybe next time");
-    }
-	});
-}
+        <script>
+            function confirmation_12() {
+                swal({
+                            title: "Are you sure?",
+                            text: "Are you sure you want to order a random meal at 12:00, there is no way to undo it !",
+                            type: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: '#DD6B55',
+                            confirmButtonText: 'Yes, order it!',
+                            cancelButtonText: "No, I'm a coward",
+                            closeOnConfirm: false,
+                            closeOnCancel: false
+                        },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                window.location = "{{ url_for('random_food', courage=1) }}";
+                            } else {
+                                swal("OK maybe next time");
+                            }
+                        });
+            }
 
-function confirmation_13() {
-	swal({
-		title: "Are you sure?",
-		text: "Are you sure you want to order a random meal at 13:00, there is no way to undo it !",
-		type: "warning",
-		showCancelButton: true,
-		confirmButtonColor: '#DD6B55',
-		confirmButtonText: 'Yes, order it!',
-		cancelButtonText: "No, I'm a coward",
-		closeOnConfirm: false,
-		closeOnCancel: false
-	},
-	function(isConfirm){
-    if (isConfirm){
-        window.location = "{{ url_for('random_food', courage=2) }}";
-    } else {
-        swal("OK maybe next time");
-    }
-	});
-}
+            function confirmation_13() {
+                swal({
+                            title: "Are you sure?",
+                            text: "Are you sure you want to order a random meal at 13:00, there is no way to undo it !",
+                            type: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: '#DD6B55',
+                            confirmButtonText: 'Yes, order it!',
+                            cancelButtonText: "No, I'm a coward",
+                            closeOnConfirm: false,
+                            closeOnCancel: false
+                        },
+                        function (isConfirm) {
+                            if (isConfirm) {
+                                window.location = "{{ url_for('random_food', courage=2) }}";
+                            } else {
+                                swal("OK maybe next time");
+                            }
+                        });
+            }
 
 
-    </script>
+        </script>
     {% endif %}
 
     <div class="large-6 columns">
@@ -70,40 +70,48 @@ function confirmation_13() {
         <div class="tabs-content">
             {% for comp in companies_current %}
                 <div class="content" id="c{{ comp.id }}">
-                     <table>
-            <thead>
-            <tr>
-                <th>*</th>
-                <th>Meal</th>
-                <th>Rating</th>
-                <th>Cost PLN</th>
-            </tr>
-            </thead>
-            <tbody>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>*</th>
+                            <th>Meal</th>
+                            <th>Rating</th>
+                            <th>Cost PLN</th>
+                        </tr>
+                        </thead>
+                        <tbody>
 
                         {% for meal in foods %}
                             {% if meal.company == comp.name and meal.o_type != 'menu' %}
-                               <tr {% if "Danie dnia" in meal.description %}class="danie-dnia"{% endif %}>
-                 <td>
+                                <tr {% if "Danie dnia" in meal.description %}class="danie-dnia"{% endif %}>
+                                    <td>
                      <span data-tooltip aria-haspopup="true" class="has-tip"
-                       title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
+                           title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
-                     </td>
-                     <td><a class='meal_menu_link'
-                                       data-desc="{{ meal.description }}"
-                                       data-cost="{{ meal.cost }}"
-                                       data-comp="{{ meal.company }}"
-                                       href="#">
+                                    </td>
+                                    <td><a class='meal_menu_link'
+                                           data-desc="{{ meal.description }}"
+                                           data-cost="{{ meal.cost }}"
+                                           data-comp="{{ meal.company }}"
+                                           href="#">
                                         {{ meal.description }}</a></td>
-                                   <td>{% if meal.rating %}<b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">{% if meal.rating > 4.5 %}&#9829;{% elif meal.rating > 3.5 %}&#9733;{% elif meal.rating > 2.5  %}&#10137;{% elif meal.rating > 1.6  %}&#9762;{% else %}&#9760;{% endif %} {{ meal.rating }}</b>{% endif %}</td>
-                                <td>{{ meal.cost }}</td>
-                               </td>
+                                    <td>{% if meal.rating %}
+                                        <b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">
+                                            {% if meal.rating > 4.5 %}
+                                                &#9829;{% elif meal.rating > 3.5 %}
+                                                &#9733;{% elif meal.rating > 2.5 %}
+                                                &#10137;{% elif meal.rating > 1.6 %}
+                                                &#9762;{% else %}
+                                                &#9760;{% endif %} {{ meal.rating }}</b>{% endif %}
+                                    </td>
+                                    <td>{{ meal.cost }}</td>
+                                    </td>
 
-                </tr>
+                                </tr>
                             {% endif %}
                         {% endfor %}
-               </tbody>
-        </table>
+                        </tbody>
+                    </table>
                 </div>
 
 
@@ -113,49 +121,57 @@ function confirmation_13() {
         <ul class="accordion" data-accordion>
 
 
-                {% for comp in companies_menu %}
-                    <li class="accordion-navigation">
+            {% for comp in companies_menu %}
+                <li class="accordion-navigation">
                     <a href="#cm{{ comp.id }}">{{ comp.name }}</a>
 
                     <div id="cm{{ comp.id }}" class="content">
-                       <table>
-                        <thead>
-            <tr>
-                <th>*</th>
-                <th>Meal</th>
-                <th>Rating</th>
-                <th>Cost PLN</th>
-            </tr>
-            </thead>
-            <tbody>
-                        {% for meal in foods %}
-                            {% if meal.company == comp.name and meal.o_type == 'menu' %}
-                                <tr>
-                 <td>
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>*</th>
+                                <th>Meal</th>
+                                <th>Rating</th>
+                                <th>Cost PLN</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for meal in foods %}
+                                {% if meal.company == comp.name and meal.o_type == 'menu' %}
+                                    <tr>
+                                        <td>
                                 <span data-tooltip aria-haspopup="true"
                                       class="has-tip"
                                       title="{% if meal.o_type == 'tygodniowe' %}Meal available for some time only{% elif meal.o_type == 'daniednia' %}Meal available only today!{% elif meal.o_type == 'menu' %}Meal available always{% endif %}">
                             <i class="{% if meal.o_type == 'tygodniowe' %}foundicon-calendar{% endif %}{% if meal.o_type == 'daniednia' %}foundicon-star{% endif %}{% if meal.o_type == 'menu' %}foundicon-folder{% endif %}"></i></span>
-                               </td>
-                               <td>
-                                <a class='meal_menu_link'
-                                   data-desc="{{ meal.description }}"
-                                   data-cost="{{ meal.cost }}"
-                                   data-comp="{{ meal.company }}"
-                                   href="#">
-                                    {{ meal.description }}</a></td>
+                                        </td>
+                                        <td>
+                                            <a class='meal_menu_link'
+                                               data-desc="{{ meal.description }}"
+                                               data-cost="{{ meal.cost }}"
+                                               data-comp="{{ meal.company }}"
+                                               href="#">
+                                                {{ meal.description }}</a></td>
 
-                                      <td>{% if meal.rating %}<b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">{% if meal.rating > 4.5 %}&#9829;{% elif meal.rating > 3.5 %}&#9733;{% elif meal.rating > 2.5  %}&#10137;{% elif meal.rating > 1.6  %}&#9762;{% else %}&#9760;{% endif %} {{ meal.rating }}/5</b>{% endif %}</td>
-                                <td>{{ meal.cost }}</td>
-                                 </tr>
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-        </table>
+                                        <td>{% if meal.rating %}
+                                            <b style="color: {% if meal.rating > 3 %} green {% else %} red {% endif %}">
+                                                {% if meal.rating > 4.5 %}
+                                                    &#9829;{% elif meal.rating > 3.5 %}
+                                                    &#9733;{% elif meal.rating > 2.5 %}
+                                                    &#10137;{% elif meal.rating > 1.6 %}
+                                                    &#9762;{% else %}
+                                                    &#9760;{% endif %} {{ meal.rating }}/5</b>{% endif %}
+                                        </td>
+                                        <td>{{ meal.cost }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
 
                     </div>
-                    </li>
-                {% endfor %}
+                </li>
+            {% endfor %}
 
         </ul>
 
@@ -179,13 +195,16 @@ function confirmation_13() {
                 <b>&larr; Click on the list to fill your order</b>
             </div>
             <div class="large-4 columns">
-                <a class="button tiny success right random-box" id="softrandom">Random</a>
+                <a class="button tiny success right random-box"
+                   id="softrandom">Random</a>
 
                 {% if random_ordering_is_allowed %}
-               <a class="button tiny alert right random-box" onclick="confirmation_12()">Hard
-                    random 12</a>
-                <a class="button tiny alert right random-box" onclick="confirmation_13()">Hard
-                    random 13</a>
+                    <a class="button tiny alert right random-box"
+                       onclick="confirmation_12()">Hard
+                        random 12</a>
+                    <a class="button tiny alert right random-box"
+                       onclick="confirmation_13()">Hard
+                        random 13</a>
                 {% endif %}
 
             </div>

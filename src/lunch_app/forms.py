@@ -22,6 +22,7 @@ from wtforms import (
 
 FOOD_TYPE_LIST = ['pizza', 'burger', 'sushi', 'chinese', 'other']
 
+
 class MultiCheckboxField(SelectMultipleField):
     """
     A multiple-select, except displays a list of checkboxes.

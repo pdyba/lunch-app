@@ -3,30 +3,32 @@
 {% set page_id = 'finance_block_user' %}
 
 {% block content %}
-<div class="large-12 columns">
-    {% include "finance_base.html" %}
+    <div class="large-12 columns">
+        {% include "finance_base.html" %}
 
-    <div class="large-6 columns">
-        <h3>Block</h3>
+        <div class="large-6 columns">
+            <h3>Block</h3>
 
-        <form method="POST">
-            I want to<b style="color: red"> block </b>this user:
-            {{ form_block.user_select }}
+            <form method="POST">
+                I want to<b style="color: red"> block </b>this user:
+                {{ form_block.user_select }}
 
-            <input type="submit" value="block" class="button right" name="block_change">
-        </form>
-    </div>
-    <div class="large-6 columns">
-        <h3>Unblock</h3>
+                <input type="submit" value="block" class="button right"
+                       name="block_change">
+            </form>
+        </div>
+        <div class="large-6 columns">
+            <h3>Unblock</h3>
 
-        <form method="POST">
-             I want to <b style="color: greenyellow">unblock</b> this user:
-            {{ form_unblock.user_select }}
+            <form method="POST">
+                I want to <b style="color: greenyellow">unblock</b> this user:
+                {{ form_unblock.user_select }}
 
 
-             <input type="submit" value="unblock" class="button right" name="block_change">
+                <input type="submit" value="unblock" class="button right"
+                       name="block_change">
 
-        </form>
-    </div>
+            </form>
+        </div>
     </div>
 {% endblock %}

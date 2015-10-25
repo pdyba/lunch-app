@@ -67,7 +67,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         Test main page view.
         """
         resp = self.client.get('/')
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 302)
 
     def test_info_view(self):
         """
@@ -195,7 +195,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         fill_company()
         resp = self.client.get('/add_food')
         self.assertEqual(resp.status_code, 200)
-        data = {
+        data_1 = {
             'cost': '333',
             'description': 'dobre_jedzonko',
             'date_available_to': '2015-01-01',
@@ -204,8 +204,8 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             'o_type': 'daniednia',
             'add_meal': 'add',
         }
-        resp_2 = self.client.post('/add_food', data=data,)
-        food_db = Food.query.first()
+        resp_2 = self.client.post('/add_food', data=data_1, )
+        food_db = Food.query.get(1)
         self.assertEqual(resp_2.status_code, 302)
         self.assertEqual(food_db.cost, 333)
         self.assertEqual(food_db.description, 'dobre_jedzonko')
@@ -215,6 +215,27 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         self.assertEqual(
             food_db.date_available_from,
             datetime(2015, 1, 1, 0, 0)
+        )
+        data_2 = {
+            'cost': '12',
+            'description': 'dobre_jedzonko',
+            'date_available_to': '2015-10-11',
+            'company': 'Pod Koziołkiem',
+            'date_available_from': '2015-10-01',
+            'o_type': 'daniednia',
+            'add_meal': 'add',
+        }
+        resp = self.client.post('/add_food', data=data_2, )
+        self.assertEqual(resp.status_code, 302)
+        food_db_2 = Food.query.get(1)
+        self.assertEqual(float(data_2['cost']), food_db_2.cost)
+        self.assertEqual(
+            data_2['date_available_to'],
+            food_db_2.date_available_to.strftime("%Y-%m-%d"),
+        )
+        self.assertEqual(
+            data_2['date_available_from'],
+            food_db_2.date_available_from.strftime("%Y-%m-%d"),
         )
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
@@ -291,10 +312,10 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         resp = self.client.get('/day_summary')
         self.assertIn('Maly Gruby Nalesnik', str(resp.data))
         self.assertIn('Duzy Gruby Nalesnik', str(resp.data))
-        self.assertIn('Kebab<b> 3', str(resp.data))
-        self.assertIn('Frytki<b> 3', str(resp.data))
-        self.assertIn('CieplyKot<b> 3', str(resp.data))
-        self.assertIn('Marchewka W Keczupie<b> 3', str(resp.data))
+        self.assertIn('Kebab</td><td><b> 3', str(resp.data))
+        self.assertIn('Frytki</td><td><b> 3', str(resp.data))
+        self.assertIn('CieplyKot</td><td><b> 3', str(resp.data))
+        self.assertIn('Marchewka W Keczupie</td><td><b> 3', str(resp.data))
 
     @patch('lunch_app.views.current_user', new=MOCK_USER)
     def test_order_list_view(self):
@@ -529,7 +550,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             msg = outbox[0]
             self.assertTrue(msg.subject.startswith('Lunch'))
             self.assertIn(
-                '{}'.format(month_name[get_current_month()-1]),
+                '{}'.format(month_name[get_current_month() - 1]),
                 msg.body,
             )
 
@@ -955,57 +976,8 @@ class LunchBackendViewsTestCase(unittest.TestCase):
             self.assertTrue(msg.subject.startswith('Lunch app PIZZA'))
             self.assertIn('pizza for everyone', msg.body)
             self.assertEqual(len(msg.recipients), 5)
-        resp = self.client.get('/pizza_time/1')
+        resp = self.client.get('/food_event_view/1')
         self.assertEqual(resp.status_code, 200)
-
-    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
-    def test_pizza_time_view(self):
-        """
-        Test pizza showing menu, pizza ordering, and orders list.
-        """
-        fill_db()
-        resp = self.client.get('/order_pizza_for_everybody')
-        self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/pizza_time/1')
-        self.assertEqual(resp.status_code, 200)
-        data = {
-            'description': 'WielkaMargarittaZKotem',
-            'pizza_size': 'big',
-        }
-        resp = self.client.post('/pizza_time/1', data=data)
-        self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/pizza_time/1')
-        self.assertIn('WielkaMargarittaZKotem', str(resp.data))
-        data = {
-            'description': 'WielkaMargarittaZMisiem',
-            'pizza_size': 'big',
-        }
-        resp = self.client.post('/pizza_time/1', data=data)
-        self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/pizza_time/1')
-        self.assertIn('You already ordered !', str(resp.data))
-        self.assertNotIn('WielkaMargarittaZMisiem', str(resp.data))
-
-    @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
-    def test_pizza_time_stop(self):
-        """
-        Test pizza time stop function
-        """
-        fill_db()
-        resp = self.client.get('/order_pizza_for_everybody')
-        self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/pizza_time/1')
-        self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/pizza_time_stop/1')
-        self.assertEqual(resp.status_code, 302)
-        data = {
-            'description': 'WielkaMargarittaZKotem',
-            'pizza_size': 'big',
-        }
-        resp = self.client.post('/pizza_time/1', data=data)
-        self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/pizza_time/1')
-        self.assertNotIn('WielkaMargarittaZKotem', str(resp.data))
 
     @patch('lunch_app.permissions.current_user', new=MOCK_ADMIN)
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
@@ -1222,7 +1194,6 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         # Accessible for user
         # Test pages with response 200
         good_url_list_200 = [
-            '/',
             '/order',
             '/overview',
             '/info',
@@ -1236,10 +1207,13 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         ]
         for link in good_url_list_200:
             resp = self.client.get(link)
+            if resp.status_code != 200:
+                print(link)
             self.assertEqual(resp.status_code, 200, msg=link)
 
         # Test pages with response 302
         good_url_list_302 = [
+            '/',
             '/food_rate',
             '/random_meal/1',
             '/random_meal/2',
@@ -1251,10 +1225,10 @@ class LunchBackendViewsTestCase(unittest.TestCase):
         # Pizza link need to be in exactly that order
         resp = self.client.get('/order_pizza_for_everybody')
         self.assertEqual(resp.status_code, 302)
-        resp = self.client.get('/pizza_time/1')
+        resp = self.client.get('/food_event/1')
         self.assertEqual(resp.status_code, 200)
-        resp = self.client.get('/pizza_time_stop/1')
-        self.assertEqual(resp.status_code, 302)
+        resp = self.client.get('/food_event_stop/1')
+        self.assertEqual(resp.status_code, 200)
 
         # To rate food You need to order the food before
         data = {
@@ -1398,7 +1372,7 @@ class LunchBackendViewsTestCase(unittest.TestCase):
     @patch('lunch_app.views.current_user', new=MOCK_ADMIN)
     def test_food_event_stop(self):
         """
-        Test pizza time stop function
+        Test food event stop funtion.
         """
         fill_db()
         data = {
@@ -1429,6 +1403,7 @@ class LunchBackendUtilsTestCase(unittest.TestCase):
     """
     Utils tests.
     """
+
     def setUp(self):
         """
         Before each test, set up a environment.
@@ -1497,6 +1472,7 @@ class LunchBackendPermissionsTestCase(unittest.TestCase):
     """
     Permissions tests.
     """
+
     def setUp(self):
         """
         Before each test, set up a environment.
@@ -1523,6 +1499,7 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
     """
     Webcrawlers tests.
     """
+
     def setUp(self):
         """
         Before each test, set up a environment.
@@ -1577,6 +1554,7 @@ class LunchWebCrawlersTestCases(unittest.TestCase):
                 1,
                 msg="ERROR IN {}".format(i),
             )
+
 
 def suite():
     """
